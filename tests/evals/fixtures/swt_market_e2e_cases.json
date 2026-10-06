@@ -1,0 +1,274 @@
+{
+  "version": 1,
+  "evaluation_scope": "SWT router intent contract, per-offer Location Context resolution, current market/state facts, and existing position budget output",
+  "cases": [
+    {
+      "id": "market_001",
+      "user_query": "我拿到 Myrtle Beach, SC 的 Offer：$15/h，40h/week，housing $150/week，工作 12 周，帮我完整分析。",
+      "route_evidence": {"section": "position", "anchor": "帮我分析这个 Offer"},
+      "context": {
+        "locations": [{"id": "A", "city": "Myrtle Beach", "state": "SC"}],
+        "offers": [{"id": "A", "label": "Myrtle Beach, SC", "city": "Myrtle Beach", "state": "SC", "wage_usd_per_hour": 15, "hours_per_week": 40, "rent_usd_per_week": 150, "work_weeks": 12}]
+      },
+      "expected_route": "swt-position",
+      "expected_location_match": {"A": "city_exact"},
+      "expected_facts": {"locations": {"A": {"availability.state_context": true, "availability.swt_market": true, "swt_market.city_market.total": 2050, "swt_market.state_market.total": 2852, "swt_market.support.support_level": "city_exact", "swt_market.support.city_exact_support.0.support_group_name": "Myrtle Beach ISOP"}}, "offer_count": 1},
+      "forbidden_claims": ["二工一定好找", "当地每年有2050个SWT学生", "participant count高所以更推荐"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？", "收入", "住宿", "生活成本", "交通", "二工", "落地便利"],
+      "notes": "核对 city_exact、州级背景、Market 数据和完整 Offer 概览结构。"
+    },
+    {
+      "id": "market_002",
+      "user_query": "Ocean City, MD 的完整 Offer：$17/h，40h/week，住宿 $160/week，工作 12 周。",
+      "route_evidence": {"section": "position", "anchor": "这个岗位怎么样"},
+      "context": {
+        "locations": [{"id": "A", "city": "Ocean City", "state": "MD"}],
+        "offers": [{"id": "A", "label": "Ocean City, MD", "city": "Ocean City", "state": "MD", "wage_usd_per_hour": 17, "hours_per_week": 40, "rent_usd_per_week": 160, "work_weeks": 12}]
+      },
+      "expected_route": "swt-position",
+      "expected_location_match": {"A": "city_exact"},
+      "expected_facts": {"locations": {"A": {"availability.state_context": true, "availability.swt_market": true, "swt_market.city_market.total": 3693, "swt_market.state_market.total": 5918, "swt_market.support.support_level": "city_exact", "swt_market.support.city_exact_support.0.support_group_name": "Ocean City Summer Work Travel Committee"}}, "offer_count": 1},
+      "forbidden_claims": ["participant count高所以二工容易", "当地每年有3693个SWT学生", "市场人数证明岗位更好"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？"],
+      "notes": "核对 Ocean City, MD 的城市、州和 Support 记录未串用其他城市数据。"
+    },
+    {
+      "id": "market_003",
+      "user_query": "Wisconsin Dells, WI 的 Offer 是 $15/h、每周 38 小时、住宿 $125/week、工作 12 周，帮我评估。",
+      "route_evidence": {"section": "position", "anchor": "Wisconsin Dells 做 SWT 是什么情况"},
+      "context": {
+        "locations": [{"id": "A", "city": "Wisconsin Dells", "state": "WI"}],
+        "offers": [{"id": "A", "label": "Wisconsin Dells, WI", "city": "Wisconsin Dells", "state": "WI", "wage_usd_per_hour": 15, "hours_per_week": 38, "rent_usd_per_week": 125, "work_weeks": 12}]
+      },
+      "expected_route": "swt-position",
+      "expected_location_match": {"A": "city_exact"},
+      "expected_facts": {"locations": {"A": {"availability.state_context": true, "availability.swt_market": true, "swt_market.city_market.total": 3116, "swt_market.state_market.total": 5478, "swt_market.support.support_level": "city_exact", "swt_market.support.city_exact_support.0.support_group_name": "Wisconsin Dells BridgeUSA Community Support Group"}}, "offer_count": 1},
+      "forbidden_claims": ["participant count高所以工作机会多", "二工一定好找", "人数代表岗位成熟"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？"],
+      "notes": "核对城市精确记录及其城市级 Community Support Group。"
+    },
+    {
+      "id": "market_004",
+      "user_query": "我在 Newport, Rhode Island 有一份 $16/h、35h/week、住宿 $175/week、12 周的 Offer，请完整分析。",
+      "route_evidence": {"section": "position", "anchor": "South Carolina 的 SWT 地点怎么样"},
+      "context": {
+        "locations": [{"id": "A", "city": "Newport", "state": "Rhode Island"}],
+        "offers": [{"id": "A", "label": "Newport, RI", "city": "Newport", "state": "Rhode Island", "wage_usd_per_hour": 16, "hours_per_week": 35, "rent_usd_per_week": 175, "work_weeks": 12}]
+      },
+      "expected_route": "swt-position",
+      "expected_location_match": {"A": "city_exact"},
+      "expected_facts": {"locations": {"A": {"availability.state_context": false, "availability.swt_market": true, "state_context": null, "swt_market.city_market.total": 430, "swt_market.state_market.total": 1030, "swt_market.support.support_level": "none", "swt_market.support.city_exact_support": [], "swt_market.support.regional_support": []}}, "offer_count": 1, "offer_state": {"A": "RI"}, "offer_sources": {"A": {"rent_usd_per_week": "provided"}}, "offer_tax_sources": {"A": {"state": "state_planning_reserve"}}},
+      "forbidden_claims": ["Rhode Island 最低工资是", "Rhode Island 州税是", "participant count高所以推荐"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？"],
+      "notes": "Market 可用、州级 knowledge layer 缺失时仍继续计算；不填造州税或最低工资。"
+    },
+    {
+      "id": "market_005",
+      "user_query": "比较 Myrtle Beach, SC 和 Ocean City, MD 两个完整 Offer，哪个更适合？",
+      "route_evidence": {"section": "position", "anchor": "Ocean City 和 Myrtle Beach 怎么选"},
+      "context": {
+        "locations": [{"id": "A", "city": "Myrtle Beach", "state": "SC"}, {"id": "B", "city": "Ocean City", "state": "MD"}],
+        "offers": [{"id": "A", "label": "Myrtle Beach, SC", "city": "Myrtle Beach", "state": "SC", "wage_usd_per_hour": 15, "hours_per_week": 40, "rent_usd_per_week": 150, "work_weeks": 12}, {"id": "B", "label": "Ocean City, MD", "city": "Ocean City", "state": "MD", "wage_usd_per_hour": 17, "hours_per_week": 40, "rent_usd_per_week": 160, "work_weeks": 12}]
+      },
+      "expected_route": "swt-position",
+      "expected_location_match": {"A": "city_exact", "B": "city_exact"},
+      "expected_facts": {"locations": {"A": {"swt_market.city_market.total": 2050, "swt_market.state_market.total": 2852, "swt_market.support.city_exact_support.0.support_group_name": "Myrtle Beach ISOP"}, "B": {"swt_market.city_market.total": 3693, "swt_market.state_market.total": 5918, "swt_market.support.city_exact_support.0.support_group_name": "Ocean City Summer Work Travel Committee"}}, "offer_count": 2},
+      "forbidden_claims": ["A 的数据用于 B", "人数多所以更推荐", "二工一定好找"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？", "A 与 B 独立列项"],
+      "notes": "重点检查两套地点与 Support 数据分别对应各自 Offer。"
+    },
+    {
+      "id": "market_006",
+      "user_query": "对比 Myrtle Beach, SC 和 Wisconsin Dells, WI 的两个 Offer。",
+      "route_evidence": {"section": "position", "anchor": "帮我对比这三个岗位"},
+      "context": {
+        "locations": [{"id": "A", "city": "Myrtle Beach", "state": "SC"}, {"id": "B", "city": "Wisconsin Dells", "state": "WI"}],
+        "offers": [{"id": "A", "label": "Myrtle Beach, SC", "city": "Myrtle Beach", "state": "SC", "wage_usd_per_hour": 15, "hours_per_week": 38, "rent_usd_per_week": 150, "work_weeks": 12}, {"id": "B", "label": "Wisconsin Dells, WI", "city": "Wisconsin Dells", "state": "WI", "wage_usd_per_hour": 16, "hours_per_week": 38, "rent_usd_per_week": 125, "work_weeks": 12}]
+      },
+      "expected_route": "swt-position",
+      "expected_location_match": {"A": "city_exact", "B": "city_exact"},
+      "expected_facts": {"locations": {"A": {"swt_market.city_market.total": 2050, "swt_market.state_market.total": 2852}, "B": {"swt_market.city_market.total": 3116, "swt_market.state_market.total": 5478}}, "offer_count": 2},
+      "forbidden_claims": ["participant count直接决定排序", "participant count高所以二工容易", "participant count高所以推荐"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？"],
+      "notes": "地点背景只辅助解释，原有财务和 Offer 逻辑保持排序依据。"
+    },
+    {
+      "id": "market_007",
+      "user_query": "比较 Myrtle Beach, SC 和 Fenwick Beach, DE 的 Offer。",
+      "route_evidence": {"section": "position", "anchor": "帮我对比这三个岗位"},
+      "context": {
+        "locations": [{"id": "A", "city": "Myrtle Beach", "state": "SC"}, {"id": "B", "city": "Fenwick Beach", "state": "DE"}],
+        "offers": [{"id": "A", "label": "Myrtle Beach, SC", "city": "Myrtle Beach", "state": "SC", "wage_usd_per_hour": 15, "hours_per_week": 38, "rent_usd_per_week": 150, "work_weeks": 12}, {"id": "B", "label": "Fenwick Beach, DE", "city": "Fenwick Beach", "state": "DE", "wage_usd_per_hour": 16, "hours_per_week": 38, "rent_usd_per_week": 155, "work_weeks": 12}]
+      },
+      "expected_route": "swt-position",
+      "expected_location_match": {"A": "city_exact", "B": "state_fallback"},
+      "expected_facts": {"locations": {"A": {"swt_market.city_market.total": 2050}, "B": {"swt_market.city_market": null, "swt_market.state_market.total": 1791, "swt_market.support.support_level": "regional_evidence", "swt_market.support.regional_support.0.match_type": "multi_city"}}, "offer_count": 2},
+      "forbidden_claims": ["Fenwick Beach 城市 participant count 为 0", "Fenwick Beach 等于 Fenwick Island", "Bethany-Fenwick 支持组是 Fenwick Beach 城市精确记录"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？", "Fenwick Beach City participant count 为 -"],
+      "notes": "一个 city_exact、一个 state_fallback；DE 区域支持不得改成城市精确支持。"
+    },
+    {
+      "id": "market_008",
+      "user_query": "比较 Myrtle Beach 同一城市里两家不同雇主的 Offer：A $15/h、35 小时、房租 $130；B $18/h、40 小时、房租 $170。",
+      "route_evidence": {"section": "position", "anchor": "帮我对比这三个岗位"},
+      "context": {
+        "locations": [{"id": "CITY", "city": "Myrtle Beach", "state": "SC"}],
+        "offers": [{"id": "A", "label": "Employer A", "city": "Myrtle Beach", "state": "SC", "wage_usd_per_hour": 15, "hours_per_week": 35, "rent_usd_per_week": 130, "work_weeks": 12}, {"id": "B", "label": "Employer B", "city": "Myrtle Beach", "state": "SC", "wage_usd_per_hour": 18, "hours_per_week": 40, "rent_usd_per_week": 170, "work_weeks": 12}]
+      },
+      "expected_route": "swt-position",
+      "expected_location_match": {"CITY": "city_exact"},
+      "expected_facts": {"locations": {"CITY": {"swt_market.city_market.total": 2050, "swt_market.state_market.total": 2852}}, "offer_count": 2, "offer_inputs": {"A": {"wage_usd_per_hour": 15, "hours_per_week": 35, "rent_usd_per_week": 130}, "B": {"wage_usd_per_hour": 18, "hours_per_week": 40, "rent_usd_per_week": 170}}},
+      "forbidden_claims": ["合并两个 Offer", "把 Employer A 工资套给 Employer B", "地点相同所以岗位条件相同"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？", "两个 Offer 独立列项"],
+      "notes": "地点查询只需一份；Offer 工资、工时和住宿仍独立计算。"
+    },
+    {
+      "id": "market_009",
+      "user_query": "比较三个岗位：Myrtle Beach, SC；Ocean City, MD；以及一个暂时没给地点的岗位。",
+      "route_evidence": {"section": "position", "anchor": "帮我对比这三个岗位"},
+      "context": {
+        "locations": [{"id": "A", "city": "Myrtle Beach", "state": "SC"}, {"id": "B", "city": "Ocean City", "state": "MD"}],
+        "offers": [{"id": "A", "label": "Myrtle Beach, SC", "city": "Myrtle Beach", "state": "SC", "wage_usd_per_hour": 15, "hours_per_week": 38, "work_weeks": 12}, {"id": "B", "label": "Ocean City, MD", "city": "Ocean City", "state": "MD", "wage_usd_per_hour": 16, "hours_per_week": 38, "work_weeks": 12}, {"id": "C", "label": "Location not supplied", "wage_usd_per_hour": 14, "hours_per_week": 35, "work_weeks": 12}]
+      },
+      "expected_route": "swt-position",
+      "expected_location_match": {"A": "city_exact", "B": "city_exact"},
+      "expected_facts": {"locations": {"A": {"swt_market.city_market.total": 2050}, "B": {"swt_market.city_market.total": 3693}}, "offer_count": 3, "unlocated_offer_id": "C"},
+      "forbidden_claims": ["C 位于 Myrtle Beach", "C 位于 Ocean City", "没有地点就无法比较其他岗位"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？", "C 使用通用估值"],
+      "notes": "未提供地点的 Offer 不调用地点解析、不借用其他 Offer 的州或城市。"
+    },
+    {
+      "id": "market_010",
+      "user_query": "Myrtle Beach SWT 人多吗？",
+      "route_evidence": {"section": "position", "anchor": "这个城市 SWT 人多吗"},
+      "context": {"locations": [{"id": "A", "city": "Myrtle Beach", "state": "SC"}], "offers": []},
+      "expected_route": "swt-position",
+      "expected_location_match": {"A": "city_exact"},
+      "expected_facts": {"locations": {"A": {"swt_market.city_market.total": 2050, "swt_market.state_market.total": 2852}}},
+      "forbidden_claims": ["二工一定好找", "工作机会很多", "当地每年有2050个SWT学生"],
+      "expected_sections": ["简短 participant count 背景", "不输出完整岗位回本表"],
+      "notes": "单点地点背景问题按需回答，不机械套完整 Offer 模板。"
+    },
+    {
+      "id": "market_011",
+      "user_query": "Ocean City 和 Myrtle Beach 哪边 SWT participant count 更多？",
+      "route_evidence": {"section": "position", "anchor": "哪个城市的 SWT participant count 更多"},
+      "context": {"locations": [{"id": "Ocean", "city": "Ocean City", "state": "MD"}, {"id": "Myrtle", "city": "Myrtle Beach", "state": "SC"}], "offers": []},
+      "expected_route": "swt-position",
+      "expected_location_match": {"Ocean": "city_exact", "Myrtle": "city_exact"},
+      "expected_facts": {"locations": {"Ocean": {"swt_market.city_market.total": 3693, "swt_market.support.support_level": "city_exact"}, "Myrtle": {"swt_market.city_market.total": 2050, "swt_market.support.support_level": "city_exact"}}, "count_comparison": "Ocean City > Myrtle Beach"},
+      "forbidden_claims": ["Ocean City 因人数更多而更适合", "Ocean City 二工更容易", "participant count 等于就业机会"],
+      "expected_sections": ["先回答计数对比", "说明 BridgeUSA SWT Map participant count 口径"],
+      "notes": "回答计数差异，不把数量差异变成岗位或地点推荐。"
+    },
+    {
+      "id": "market_012",
+      "user_query": "Myrtle Beach 有没有 Community Support Group？",
+      "route_evidence": {"section": "position", "anchor": "Myrtle Beach 有没有 Community Support Group"},
+      "context": {"locations": [{"id": "A", "city": "Myrtle Beach", "state": "SC"}], "offers": []},
+      "expected_route": "swt-position",
+      "expected_location_match": {"A": "city_exact"},
+      "expected_facts": {"locations": {"A": {"swt_market.support.support_level": "city_exact", "swt_market.support.has_support_group": true, "swt_market.support.city_exact_support.0.support_group_name": "Myrtle Beach ISOP", "swt_market.support.city_exact_support.0.match_type": "exact"}}},
+      "forbidden_claims": ["支持组保证工作更好", "支持组保证有二工", "支持组保证当季活动或名额"],
+      "expected_sections": ["回答是否存在明确城市记录", "说明记录不代表工作结果保证"],
+      "notes": "只陈述城市精确记录及其证据边界。"
+    },
+    {
+      "id": "market_013",
+      "user_query": "Rhode Island SWT 情况怎么样？",
+      "route_evidence": {"section": "position", "anchor": "South Carolina 的 SWT 地点怎么样"},
+      "context": {"locations": [{"id": "A", "city": null, "state": "Rhode Island"}], "offers": []},
+      "expected_route": "swt-position",
+      "expected_location_match": {"A": "state_exact"},
+      "expected_facts": {"locations": {"A": {"availability.state_context": false, "availability.swt_market": true, "state_context": null, "swt_market.city_market": null, "swt_market.state_market.total": 1030}}},
+      "forbidden_claims": ["Rhode Island 州税率为 X", "Rhode Island 最低工资为 X", "state_context 缺失等于 SWT 不存在"],
+      "expected_sections": ["州级 market 背景", "明确 state_context 暂无可靠数据", "不伪造税率或最低工资"],
+      "notes": "只有州级输入；state_context 缺失不否定 market 数据。"
+    },
+    {
+      "id": "market_014",
+      "user_query": "Fenwick Beach 做 SWT 是什么情况？",
+      "route_evidence": {"section": "position", "anchor": "Wisconsin Dells 做 SWT 是什么情况"},
+      "context": {"locations": [{"id": "A", "city": "Fenwick Beach", "state": "DE"}], "offers": []},
+      "expected_route": "swt-position",
+      "expected_location_match": {"A": "state_fallback"},
+      "expected_facts": {"locations": {"A": {"swt_market.city_market": null, "swt_market.state_market.total": 1791, "swt_market.support.support_level": "regional_evidence", "swt_market.support.regional_support.0.location_raw": "Bethany Beach and Fenwick Beach, DE", "swt_market.support.regional_support.0.match_type": "multi_city"}}},
+      "forbidden_claims": ["Fenwick Beach 有城市精确 participant count", "Fenwick Beach 就是 Fenwick Island", "区域记录代表该城市有官方支持组织"],
+      "expected_sections": ["州级 participant count", "Regional evidence", "不生成城市 participant count"],
+      "notes": "Fenwick Beach 的地理身份与区域支持证据分开表达。"
+    },
+    {
+      "id": "market_015",
+      "user_query": "Door County 有 Community Support Group 吗？",
+      "route_evidence": {"section": "position", "anchor": "Myrtle Beach 有没有 Community Support Group"},
+      "context": {"locations": [{"id": "A", "city": "Door County", "state": "WI"}], "offers": []},
+      "expected_route": "swt-position",
+      "expected_location_match": {"A": "city_exact"},
+      "expected_facts": {"locations": {"A": {"swt_market.city_market": null, "swt_market.support.support_level": "regional_evidence", "swt_market.support.has_support_group": false, "swt_market.support.city_exact_support": [], "swt_market.support.regional_support.0.location_raw": "Door County, WI", "swt_market.support.regional_support.0.location_scope": "county_or_region", "swt_market.support.regional_support.0.match_type": "unmatched"}}},
+      "forbidden_claims": ["Door County Affiliate 是城市精确支持组", "Door County 有已匹配的城市级支持组", "区域证据证明当地有工作"],
+      "expected_sections": ["区分 county/region 记录和 city exact", "不把 unmatched 改写成城市匹配"],
+      "notes": "额外核对 Cape Cod Affiliate 区域证据见 diagnostic_locations；不增加用户场景数。",
+      "diagnostic_locations": [{"id": "Cape Cod (Dennis, MA)", "city": "Dennis", "state": "MA", "expected_location_match": "city_exact", "expected_facts": {"swt_market.support.support_level": "regional_evidence", "swt_market.support.has_support_group": false, "swt_market.support.regional_support.0.location_raw": "Cape Cod Affiliate - Dennis, Not West Yarmouth, MA", "swt_market.support.regional_support.0.location_scope": "affiliate", "swt_market.support.regional_support.0.match_type": "regional"}}]
+    },
+    {
+      "id": "route_016",
+      "user_query": "Myrtle Beach 面签要准备什么？",
+      "route_evidence": {"section": "specialist", "anchor": "我在 Myrtle Beach 面签要准备什么"},
+      "context": {"locations": [], "offers": [], "known_context": {}},
+      "expected_route": "swt-visa",
+      "expected_location_match": null,
+      "expected_facts": {},
+      "forbidden_claims": ["只因城市词路由到 swt-position"],
+      "expected_sections": ["签证准备回答", "不输出岗位概览"],
+      "notes": "明确面签任务优先于地点词。"
+    },
+    {
+      "id": "route_017",
+      "user_query": "帮我练 Myrtle Beach 雇主面试英语。",
+      "route_evidence": {"section": "specialist", "anchor": "帮我练 Myrtle Beach 雇主面试英语"},
+      "context": {"locations": [], "offers": [], "known_context": {}},
+      "expected_route": "swt-english",
+      "expected_location_match": null,
+      "expected_facts": {},
+      "forbidden_claims": ["只因城市词路由到 swt-position"],
+      "expected_sections": ["英语练习互动", "不输出岗位概览"],
+      "notes": "明确英语训练任务优先于地点词。"
+    },
+    {
+      "id": "route_018",
+      "user_query": "到了 Myrtle Beach 第一周怎么办？",
+      "route_evidence": {"section": "specialist", "anchor": "到了 Myrtle Beach 第一周要做什么"},
+      "context": {"locations": [], "offers": [], "known_context": {}},
+      "expected_route": "swt-arrival",
+      "expected_location_match": null,
+      "expected_facts": {},
+      "forbidden_claims": ["只因城市词路由到 swt-position"],
+      "expected_sections": ["抵美后第一周操作", "不输出岗位概览"],
+      "notes": "明确抵美后操作任务优先于地点词。"
+    },
+    {
+      "id": "route_019",
+      "user_query": "申请 South Carolina 的岗位准备什么材料？",
+      "route_evidence": {"section": "specialist", "anchor": "申请 South Carolina 的岗位要准备什么材料"},
+      "context": {"locations": [], "offers": [], "known_context": {}},
+      "expected_route": "swt-application",
+      "expected_location_match": null,
+      "expected_facts": {},
+      "forbidden_claims": ["只因州名路由到 swt-position"],
+      "expected_sections": ["申请材料清单或说明", "不输出岗位概览"],
+      "notes": "核心意图是申请材料。"
+    },
+    {
+      "id": "ambiguous_020",
+      "user_query": "Myrtle Beach",
+      "route_evidence": {"section": "context", "anchor": "单独输入一个地名"},
+      "context": {"locations": [], "offers": [], "known_context": {}},
+      "expected_route": "swt",
+      "expected_location_match": null,
+      "expected_facts": {},
+      "forbidden_claims": ["自动开始岗位分析", "自动调用地点数据"],
+      "expected_sections": ["总入口或一个必要澄清问题", "不输出岗位概览"],
+      "notes": "孤立城市名无上下文，不强制进入岗位专项。"
+    }
+  ]
+}

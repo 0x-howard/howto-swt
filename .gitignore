@@ -1,0 +1,39 @@
+# Finder and Python caches
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+
+# Local build and temporary test output
+/build/
+/dist/
+/tests/.tmp/
+/tests/tmp/
+*.tmp
+swt-user-state.json
+
+# Local editor state
+.idea/
+.vscode/*.log
+
+# Credentials, local state, and private exports
+.env
+.env.*
+!.env.example
+*.log
+*.pem
+*.key
+*.p12
+*.pfx
+auth.json
+offline-device-key.json
+members.csv
+*.sqlite
+*.db
+*.zip
+*.bundle
+*.enc
+USER_DATA/

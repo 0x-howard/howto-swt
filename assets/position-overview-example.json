@@ -1,0 +1,22 @@
+{
+  "mode": "position_overview",
+  "offers": [
+    {
+      "id": "a",
+      "label": "岗位 A",
+      "state": "Texas",
+      "wage_usd_per_hour": 16,
+      "hours_per_week": 32,
+      "cautions": {"工时": "32 小时是平均值，非保证"}
+    },
+    {
+      "id": "b",
+      "label": "岗位 B",
+      "state": "South Carolina",
+      "wage_usd_per_hour": 17,
+      "hours_per_week": 35,
+      "rent_usd_per_week": 120,
+      "cautions": {"时薪": "$17 为当前资料值，需以正式 Offer 确认"}
+    }
+  ]
+}

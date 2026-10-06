@@ -1,0 +1,38 @@
+{
+  "version": "2026-09-23",
+  "purpose": "SWT 首轮回本规划估值，不是当季报价、工资承诺或个人税务结论",
+  "global": {
+    "work_weeks": 13,
+    "rent_usd_per_week": 140,
+    "food_usd_per_week": 90,
+    "transport_usd_per_week": 20,
+    "other_weekly_usd": 15,
+    "project_cost_cny": 25000,
+    "planning_fx_cny_per_usd": 7.2
+  },
+  "city_cost_overrides": {},
+  "tax_planning": {
+    "federal_tax_year": 2026,
+    "assumed_profile": "single J-1 nonresident alien, authorized program work, no treaty benefit or other US income",
+    "standard_deduction_usd": 0,
+    "federal_brackets_single": [
+      {"up_to_usd": 12400, "rate_percent": 10},
+      {"up_to_usd": 50400, "rate_percent": 12},
+      {"up_to_usd": 105700, "rate_percent": 22},
+      {"up_to_usd": 201775, "rate_percent": 24},
+      {"up_to_usd": 256225, "rate_percent": 32},
+      {"up_to_usd": 640600, "rate_percent": 35},
+      {"up_to_usd": null, "rate_percent": 37}
+    ],
+    "state_tax_unknown_reserve_percent": 5,
+    "fica_if_assumed_qualified_percent": 0,
+    "federal_source": "https://www.irs.gov/publications/p505",
+    "nonresident_source": "https://www.irs.gov/individuals/international-taxpayers/nonresident-figuring-your-tax",
+    "j1_fica_source": "https://www.irs.gov/individuals/taxation-of-alien-individuals-by-immigration-status-j-1",
+    "unknown_state_note": "5% 是插件用于规划的州税预留率，不是该州法定税率或个人最终税额"
+  },
+  "zero_wage_income_tax_states": {
+    "TX": "https://comptroller.texas.gov/transparency/revenue/docs/96-1774.pdf",
+    "AK": "https://treasury.dor.alaska.gov/docs/treasurydivisionlibraries/debt-management/meetings-minutes/packets/2024_03_26_sbc_packet.pdf"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "version": "test-fixture-v1",
+  "global": {
+    "work_weeks": 13,
+    "rent_usd_per_week": 100,
+    "food_usd_per_week": 50,
+    "transport_usd_per_week": 10,
+    "other_weekly_usd": 5,
+    "project_cost_cny": 13000,
+    "planning_fx_cny_per_usd": 10
+  },
+  "city_cost_overrides": {},
+  "tax_planning": {
+    "federal_tax_year": 2026,
+    "assumed_profile": "test fixture profile",
+    "standard_deduction_usd": 0,
+    "federal_brackets_single": [
+      {"up_to_usd": 12400, "rate_percent": 10},
+      {"up_to_usd": 50400, "rate_percent": 12},
+      {"up_to_usd": 105700, "rate_percent": 22},
+      {"up_to_usd": null, "rate_percent": 24}
+    ],
+    "state_tax_unknown_reserve_percent": 5,
+    "fica_if_assumed_qualified_percent": 0
+  },
+  "zero_wage_income_tax_states": {"TX": "test fixture"}
+}

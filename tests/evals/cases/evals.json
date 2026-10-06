@@ -1,0 +1,1255 @@
+{
+  "plugin": "howto-swt",
+  "version": "1.1.1",
+  "behavior_contract": {
+    "routing_dimensions": [
+      "Task Type",
+      "SWT Stage",
+      "Known Context",
+      "Risk Level"
+    ],
+    "attribution_scope": "conversation",
+    "attribution_position": "first non-emergency SWT reply, final standalone line",
+    "shared_source": "shared/",
+    "reader_architecture": "Analyze → Compress → Present → Edit",
+    "complex_default": "3–5 numbered P1 conclusions before optional Detail Layer",
+    "position_overview_default": "one-sentence conclusion → six-row core table → one tax-inclusive ROI table → parallel cautions table → one choice question",
+    "persona": "explicit 小How / HowTo SWT brand call activates the main Skill; ordinary greetings alone do not trigger; direct tasks skip homepage",
+    "decision_model": "finite internal decision record; never reveal chain of thought or raw record",
+    "persistence": "no cross-conversation writes without explicit external USER_DATA_ROOT and user request"
+  },
+  "reader_facing_rubric": [
+    {
+      "test": "first-screen comprehension",
+      "pass": "一级编号和每点首句已传达结论、原因、关键风险、下一步"
+    },
+    {
+      "test": "information hierarchy",
+      "pass": "P1 全部出现，P3 不抢占主结构，P2 只在有助理解时展开"
+    },
+    {
+      "test": "numbered compression",
+      "pass": "复杂问题通常形成 3–5 个按重要性排序、各答一个问题的编号；简单题不凑数"
+    },
+    {
+      "test": "database leakage",
+      "pass": "reference 或州级字段不因存在就自动进入主回答或表格"
+    },
+    {
+      "test": "action extraction",
+      "pass": "用户读后能明确说出现在该做什么；必要暂停条件没有被压掉"
+    }
+  ],
+  "cases": [
+    {
+      "id": "attribution-01-home-first-turn",
+      "conversation": "new",
+      "turns": [
+        "你好小How"
+      ],
+      "expected": [
+        "显示简短首页",
+        "署名只出现一次",
+        "署名是回复最后一行",
+        "署名前先完成正常回答"
+      ]
+    },
+    {
+      "id": "activation-01-brand-greeting",
+      "conversation": "new",
+      "turns": ["你好小How"],
+      "expected": ["激活 swt 主入口", "显示精简首页", "署名作为最后独立一行"]
+    },
+    {
+      "id": "activation-02-main-brand-name",
+      "conversation": "new",
+      "turns": ["HowTo SWT 怎么用"],
+      "expected": ["激活 swt 主入口", "显示精简首页", "介绍如何直接说出任务"]
+    },
+    {
+      "id": "activation-03-lowercase-brand-alias",
+      "conversation": "new",
+      "turns": ["howto swt"],
+      "expected": ["激活 swt 主入口", "显示精简首页"]
+    },
+    {
+      "id": "activation-04-hyphenated-brand-alias",
+      "conversation": "new",
+      "turns": ["howto-swt"],
+      "expected": ["激活 swt 主入口", "显示精简首页"]
+    },
+    {
+      "id": "activation-05-direct-position-task",
+      "conversation": "new",
+      "turns": ["小How帮我分析这个 Offer"],
+      "expected": ["激活主入口", "直接路由 swt-position", "不显示首页"]
+    },
+    {
+      "id": "activation-06-direct-english-task",
+      "conversation": "new",
+      "turns": ["小How测一下 Sponsor 面试英语"],
+      "expected": ["识别品牌别名", "直接路由 swt-english", "不显示首页"]
+    },
+    {
+      "id": "activation-07-ordinary-greeting-no-trigger",
+      "conversation": "new",
+      "turns": ["你好"],
+      "expected": ["不要求未激活宿主调用 swt", "不强行显示 HowTo SWT 首页"]
+    },
+    {
+      "id": "activation-08-active-greeting-homepage",
+      "conversation": "active-howto-swt",
+      "turns": ["你好"],
+      "expected": ["HowTo SWT 已激活时显示精简首页", "不重复自我介绍"]
+    },
+    {
+      "id": "activation-09-bare-persona-name",
+      "conversation": "new",
+      "turns": ["小How"],
+      "expected": ["激活 swt 主入口", "显示精简首页"]
+    },
+    {
+      "id": "activation-10-workbuddy-greeting-no-trigger",
+      "conversation": "new",
+      "turns": ["WorkBuddy 你好"],
+      "expected": ["不因宿主名称和普通问候触发 swt", "不强行显示 HowTo SWT 首页"]
+    },
+    {
+      "id": "attribution-02-continuation",
+      "conversation": "same-as-01",
+      "turns": [
+        "我现在已经报名了"
+      ],
+      "expected": [
+        "复用上一轮上下文",
+        "署名不再出现"
+      ]
+    },
+    {
+      "id": "attribution-03-direct-position",
+      "conversation": "new",
+      "turns": [
+        "帮我对比这三个岗位"
+      ],
+      "expected": [
+        "直接路由 swt-position",
+        "不显示首页",
+        "先完成岗位任务",
+        "署名只在末尾出现一次"
+      ]
+    },
+    {
+      "id": "attribution-04-skill-switch",
+      "conversation": "new",
+      "turns": [
+        "帮我对比岗位",
+        "再陪我练这个岗位的英语面试"
+      ],
+      "expected": [
+        "第一轮路由 swt-position",
+        "第二轮路由 swt-english",
+        "整个 conversation 署名总计一次"
+      ]
+    },
+    {
+      "id": "attribution-05-multi-skill",
+      "conversation": "new",
+      "turns": [
+        "帮我看看这个岗位值不值得去，再告诉我面试怎么准备。"
+      ],
+      "expected": [
+        "依次调用 swt-position 和 swt-english",
+        "整合为一条回答",
+        "两个专项结果之间无署名",
+        "整条回答末尾署名一次"
+      ]
+    },
+    {
+      "id": "attribution-06-existing-line",
+      "conversation": "existing-attribution",
+      "turns": [
+        "继续帮我检查住宿和通勤"
+      ],
+      "expected": [
+        "检查对话历史",
+        "署名不再出现"
+      ]
+    },
+    {
+      "id": "attribution-07-new-conversation-visa",
+      "conversation": "new",
+      "turns": [
+        "DS-160 这里怎么填？"
+      ],
+      "expected": [
+        "直接路由 swt-visa",
+        "不显示首页",
+        "正常回答后在末尾署名一次"
+      ]
+    },
+    {
+      "id": "interaction-08-choice-first",
+      "conversation": "new",
+      "turns": [
+        "你需要先知道我的签证进度。"
+      ],
+      "expected": [
+        "给出签证进度选择题",
+        "包含未填到已获签的可观察状态",
+        "包含不确定或其他",
+        "不要求详细描述"
+      ]
+    },
+    {
+      "id": "context-09-known-sponsor",
+      "conversation": "known-sponsor",
+      "known_context": {
+        "sponsor": "示例 Sponsor"
+      },
+      "turns": [
+        "现在帮我判断 DS-160 的下一步。"
+      ],
+      "expected": [
+        "复用已知 Sponsor",
+        "不重复询问 Sponsor",
+        "路由 swt-visa"
+      ]
+    },
+    {
+      "id": "risk-10-second-job",
+      "conversation": "new",
+      "turns": [
+        "Sponsor 还没批准二工，我可以先去上班吗？"
+      ],
+      "expected": [
+        "明确不能先开工",
+        "本人 Sponsor 批准优先",
+        "给安全准备动作",
+        "署名不弱化风险信息"
+      ]
+    },
+    {
+      "id": "emergency-11-safety",
+      "conversation": "new",
+      "turns": [
+        "我现在呼吸困难，保险教程说先打保险电话。"
+      ],
+      "expected": [
+        "紧急行动置顶",
+        "建议立即联系 911 或当前当地紧急医疗帮助",
+        "常规保险流程不延误求助",
+        "允许完全省略署名"
+      ]
+    },
+    {
+      "id": "calculation-12-direct-net-income",
+      "conversation": "new",
+      "turns": [
+        "时薪 16 刀、每周 40 小时、6 月 1 日到 9 月 1 日，房租 150 一周，在 Texas，扣完税能剩多少？"
+      ],
+      "expected": [
+        "路由 swt-position 并进入默认岗位概览",
+        "按用户日期算工作周数，优先于默认周数",
+        "以规划税务模型计算预计税费，不永久写死联邦税 10%",
+        "一句结论、三张表、一个选择题，不展示首页"
+      ]
+    },
+    {
+      "id": "calculation-13-choice-first-missing-fields",
+      "conversation": "new",
+      "turns": [
+        "帮我算 SWT 净收入"
+      ],
+      "expected": [
+        "只追问时薪和平均每周工时这两个必要输入",
+        "不把日期、房租、州和税率变成普通前置问题",
+        "可给结构化填写方式"
+      ]
+    },
+    {
+      "id": "calculation-14-date-week-conflict",
+      "conversation": "new",
+      "turns": [
+        "我 6 月 1 到 9 月 1 上班，但 Offer 写 13 周，按哪个算？"
+      ],
+      "expected": [
+        "说明用户明确日期优先于 Offer 标注周数",
+        "按日期先算一版并标出冲突待核实",
+        "不要静默改写原 Offer 周数"
+      ]
+    },
+    {
+      "id": "calculation-15-tax-modes",
+      "conversation": "new",
+      "turns": [
+        "联邦税按 10%，州税按 0%，帮我快速算"
+      ],
+      "expected": [
+        "使用用户输入的手动税率",
+        "明确这不是最终税额、扣缴或退税",
+        "不把 10% 当默认事实"
+      ]
+    },
+    {
+      "id": "calculation-16-state-assisted-pending",
+      "conversation": "new",
+      "turns": [
+        "我在 California 工作，没拿到工资单，按已有数据算税"
+      ],
+      "expected": [
+        "不把 California 的规划预留当作法定税率",
+        "允许按明确标记的州税预留值先估税后项目结余",
+        "实际税额需按本人条件核验"
+      ]
+    },
+    {
+      "id": "calculation-17-multiple-offers-and-fx",
+      "conversation": "new",
+      "turns": [
+        "对比两个 Offer 最后剩得多，并按 7.2 换成人民币"
+      ],
+      "expected": [
+        "支持多个 Offer 并用三张并列表格",
+        "人民币投入按用户汇率换算",
+        "一句结论只判断当前估算下的结余，不冒充整体岗位推荐"
+      ]
+    },
+    {
+      "id": "state-context-18-myrtle-beach",
+      "conversation": "new",
+      "turns": [
+        "Myrtle Beach，$15/h，40h/week，住宿 $150/week，这个岗位怎么样？"
+      ],
+      "expected": [
+        "Myrtle Beach 路由 SC",
+        "有时薪和工时即可算概览",
+        "州级租金和生活费只作标估的预算代理，不冒充 Myrtle Beach 报价",
+        "保留 Offer $15/h"
+      ]
+    },
+    {
+      "id": "state-context-19-wisconsin-dells",
+      "conversation": "new",
+      "turns": [
+        "Wisconsin Dells 的岗位怎么样？"
+      ],
+      "expected": [
+        "Wisconsin Dells 路由 WI",
+        "缺时薪和工时时先问这两个输入",
+        "不因州级资料已存在就倾倒参考卡"
+      ]
+    },
+    {
+      "id": "state-context-20-ocean-city",
+      "conversation": "new",
+      "turns": [
+        "Ocean City 的岗位怎么样？"
+      ],
+      "expected": [
+        "Ocean City 路由 MD",
+        "读取 MD 州级资料",
+        "Offer 明确给州时优先 Offer 州"
+      ]
+    },
+    {
+      "id": "state-context-21-explicit-state",
+      "conversation": "new",
+      "turns": [
+        "South Carolina 的岗位怎么样？"
+      ],
+      "expected": [
+        "直接使用 South Carolina",
+        "不依赖地点索引",
+        "读取 SC 州级资料"
+      ]
+    },
+    {
+      "id": "state-context-22-offer-priority",
+      "conversation": "new",
+      "turns": [
+        "Offer 时薪 $15，州级常见 $10–12.99，应该按哪个？"
+      ],
+      "expected": [
+        "Offer 数据优先",
+        "表达为 $15 高于州级常见区间",
+        "不把州级数据覆盖为 Offer 条件"
+      ]
+    },
+    {
+      "id": "state-context-23-unknown-location",
+      "conversation": "new",
+      "turns": [
+        "A made-up resort town 的岗位怎么样？"
+      ],
+      "expected": [
+        "不猜测州",
+        "已有时薪和工时时可用通用默认值继续估算",
+        "此题尚缺时薪和工时，应优先追问这两个输入，不加载无关州资料"
+      ]
+    },
+    {
+      "id": "state-context-24-schema-and-wording",
+      "conversation": "new",
+      "turns": [
+        "南卡二工好不好找？"
+      ],
+      "expected": [
+        "只输出 South Carolina 的二工相关字段",
+        "决策所需字段缺失时才说明暂无可靠数据",
+        "不输出无关空字段、样本量或城市级统计"
+      ]
+    },
+    {
+      "id": "editorial-25-simple-risk-answer",
+      "conversation": "new",
+      "turns": [
+        "Sponsor 还没批准二工，我可以先去上班吗？"
+      ],
+      "expected": [
+        "直接回答不能先开工",
+        "说明取得本人 Sponsor 书面批准前能做的安全准备",
+        "简单题不为凑四点编号",
+        "第一眼可提取行动"
+      ]
+    },
+    {
+      "id": "editorial-26-selective-state-context",
+      "conversation": "new",
+      "turns": [
+        "南卡二工好不好找？"
+      ],
+      "expected": [
+        "直接回答二工问题",
+        "仅使用相关 South Carolina 州级字段",
+        "州级工资、银行、交通等 P3 不抢占首答",
+        "无数据库字段泄漏"
+      ]
+    },
+    {
+      "id": "position-27-ssn-dependency-overview",
+      "conversation": "fixture",
+      "input_fixture": "tests/evals/fixtures/position_compare_ssn_dependency_input.json",
+      "expected_fixture": "tests/evals/expected/position_compare_ssn_dependency_expected.md",
+      "expected": [
+        "一句话说明酒店预计缺口较小且两岗都未覆盖前期投入",
+        "只生成六点核心表、含预计税费的回本表、并列注意事项表",
+        "SSN 押薪与不能开工分开",
+        "四个指定编号且末尾只有一个选择题",
+        "机票等未计费用明确放在注意事项"
+      ]
+    },
+    {
+      "id": "compression-28-navigation",
+      "conversation": "new",
+      "turns": [
+        "我已经报名，但 Offer 还没确认。现在做到哪一步了，下一步做什么？"
+      ],
+      "expected": [
+        "复杂导航用少数编号先说明阶段、阻塞、下一动作、完成证据",
+        "不倾倒完整 00–12 阶段",
+        "首句可提取行动"
+      ]
+    },
+    {
+      "id": "compression-29-visa-conflict",
+      "conversation": "new",
+      "turns": [
+        "我的 DS-160 和 DS-2019 上英文姓名拼写不一样，现在可以提交 DS-160 吗？"
+      ],
+      "expected": [
+        "先明确暂缓相关提交",
+        "编号解释冲突为何影响此步及应找谁确认",
+        "不输出完整字段矩阵",
+        "安全暂停条件保持 P1"
+      ]
+    },
+    {
+      "id": "compression-30-application-status",
+      "conversation": "new",
+      "turns": [
+        "简历和 Application 都上传了，系统还显示待审核。是不是已经通过？"
+      ],
+      "expected": [
+        "先回答上传不等于审核通过",
+        "说明当前状态与下一步核对的回执或通知",
+        "不列出无关申请材料字段"
+      ]
+    },
+    {
+      "id": "compression-31-english-feedback",
+      "conversation": "new",
+      "turns": [
+        "雇主问 Why do you want this job? 我回答 I want money and I like America. 帮我改得自然一点，再让我练一次。"
+      ],
+      "expected": [
+        "基于用户真实表达修改，不编造经历",
+        "较复杂反馈可按问题、关键修改、自然版本、再次练习编号",
+        "不把英语训练写成资料报告",
+        "简单反馈不强制四点"
+      ]
+    },
+    {
+      "id": "position-overview-32-minimum-input",
+      "conversation": "new",
+      "turns": [
+        "时薪 $16，每周平均 32 小时，这岗位能回本吗？"
+      ],
+      "expected": [
+        "直接用统一默认周数和缺失费用算一版",
+        "预计税费进入最终结余",
+        "所有估值标估",
+        "一句结论、指定四节、三张表和一个选择题",
+        "不追问一串普通缺失数据"
+      ]
+    },
+    {
+      "id": "position-overview-33-rent-override",
+      "conversation": "new",
+      "turns": [
+        "$16/h、32h/周，房租实际 $110/周，帮我看回本。"
+      ],
+      "expected": [
+        "房租用 $110/周而非参考或通用值",
+        "其他缺失费用仍自动补估",
+        "同一回本模型重算"
+      ]
+    },
+    {
+      "id": "position-overview-34-state-over-global",
+      "conversation": "new",
+      "turns": [
+        "阿拉斯加岗位，$16/h、32h/周，吃住没写。"
+      ],
+      "expected": [
+        "AK 州级租金与每周基础开销估值优先于全局值",
+        "州级数据不得冒充城市或 Offer 实价",
+        "没有本地交通值时用通用规划值"
+      ]
+    },
+    {
+      "id": "position-overview-35-two-offers-three-tables",
+      "conversation": "new",
+      "turns": [
+        "A $16/h、32h/周，B $17/h、35h/周；哪个更能回本？"
+      ],
+      "expected": [
+        "六行核心数据横向表",
+        "含税费和最终项目结余的横向回本表",
+        "岗位并列注意事项表",
+        "表格前一句结论，末尾一个选择题"
+      ]
+    },
+    {
+      "id": "position-overview-36-caution-dash",
+      "conversation": "new",
+      "turns": [
+        "A 的工时不保证，B 没提到这个问题；请比较。"
+      ],
+      "expected": [
+        "注意事项同一问题占同一行",
+        "B 的对应格是 -",
+        "不为对称而虚构 B 的风险"
+      ]
+    },
+    {
+      "id": "position-overview-37-housing-followup",
+      "conversation": "continuation",
+      "turns": [
+        "住宿费用怎么算的？"
+      ],
+      "expected": [
+        "只展开每个岗位住宿值的来源、每周金额与停留周数计算",
+        "不重新输出完整四节三表"
+      ]
+    },
+    {
+      "id": "position-overview-38-hours-recalculation",
+      "conversation": "continuation",
+      "turns": [
+        "刚才那个岗位改成每周 40 小时，其余不变。"
+      ],
+      "expected": [
+        "沿用此前所有费用、工期和税务输入，仅修改工时",
+        "立即重新计算最终结余与回本周数",
+        "不重新询问已知字段"
+      ]
+    },
+    {
+      "id": "position-overview-39-food-override",
+      "conversation": "continuation",
+      "turns": [
+        "我实际吃饭每周只花 $45，按这个重算。"
+      ],
+      "expected": [
+        "餐费 $45/周覆盖州级与通用估值",
+        "其他输入保持原样",
+        "立即重算税后项目结余"
+      ]
+    },
+    {
+      "id": "english-assessment-01-agency-route",
+      "conversation": "new",
+      "turns": [
+        "测一下机构口语。"
+      ],
+      "expected": [
+        "进入 swt-english / ASSESS",
+        "使用 agency_generic",
+        "不预测某机构通过"
+      ]
+    },
+    {
+      "id": "english-assessment-02-sponsor-assess-not-roleplay-only",
+      "conversation": "new",
+      "turns": [
+        "帮我模拟 Sponsor 并评分。"
+      ],
+      "expected": [
+        "进入 sponsor_generic assessment",
+        "至少两次动态追问",
+        "区别准备答案与互动能力"
+      ]
+    },
+    {
+      "id": "english-assessment-03-cashier-host-profile",
+      "conversation": "new",
+      "turns": [
+        "我要面试 cashier，测一下。"
+      ],
+      "expected": [
+        "进入 host_generic",
+        "target_position 为 Cashier",
+        "使用收银／顾客沟通题型"
+      ]
+    },
+    {
+      "id": "english-assessment-04-reuse-known-position",
+      "conversation": "continuation",
+      "known_context": {
+        "position": "Retail Associate",
+        "job_duties": [
+          "customer assistance",
+          "stocking"
+        ]
+      },
+      "turns": [
+        "测一下我的英语能不能应付这个岗位。"
+      ],
+      "expected": [
+        "复用 Retail Associate Context",
+        "不重复问岗位",
+        "题目匹配岗位职责"
+      ]
+    },
+    {
+      "id": "english-assessment-05-visa-communication",
+      "conversation": "new",
+      "turns": [
+        "帮我测一下美签面试英语。"
+      ],
+      "expected": [
+        "进入 visa_interview_generic",
+        "复用 Visa domain facts 或先核实事实",
+        "只评沟通准备度，不输出签证通过率"
+      ]
+    },
+    {
+      "id": "english-assessment-06-visa-fact-conflict",
+      "conversation": "fixture",
+      "known_context": {
+        "ds2019_employer": "Harbor Hotel",
+        "ds2019_location": "Maine"
+      },
+      "turns": [
+        "签证官问我在哪工作。我回答：I will work at Ocean Market in Florida。"
+      ],
+      "expected": [
+        "标记 fact_conflict",
+        "不润色或认可错误事实",
+        "将事实核对交给 swt-visa"
+      ]
+    },
+    {
+      "id": "english-assessment-07-text-no-pronunciation",
+      "conversation": "new",
+      "turns": [
+        "我用文字回答几道题，你帮我评估。"
+      ],
+      "expected": [
+        "input_mode=text",
+        "Pronunciation 不可评分",
+        "说明文字模拟不能代表完整口语表现"
+      ]
+    },
+    {
+      "id": "english-assessment-08-transcript-pronunciation-unavailable",
+      "conversation": "new",
+      "turns": [
+        "这是我语音识别出来的回答文本，请评分。"
+      ],
+      "expected": [
+        "input_mode=transcript",
+        "Pronunciation 标记 unavailable 或 null",
+        "不根据转写猜发音"
+      ]
+    },
+    {
+      "id": "english-assessment-09-voice-pronunciation-evidence",
+      "conversation": "new",
+      "input_mode": "voice",
+      "turns": [
+        "用户提供三段可访问的真实语音回答。"
+      ],
+      "expected": [
+        "只在实际音频可用时评分发音／可理解度",
+        "依据可观察语音证据",
+        "不以是否像母语者评分"
+      ]
+    },
+    {
+      "id": "english-assessment-10-insufficient-interaction-followup",
+      "conversation": "continuation",
+      "assessment_state": {
+        "interaction_repair": {
+          "score": 6,
+          "confidence": "low",
+          "evidence_count": 1
+        }
+      },
+      "turns": [
+        "用户完成了一次追问回答。"
+      ],
+      "expected": [
+        "Interaction 证据不足",
+        "追加一次有目标的动态 follow-up",
+        "暂不报完整七维分数"
+      ]
+    },
+    {
+      "id": "english-assessment-11-sufficient-evidence-stop",
+      "conversation": "continuation",
+      "assessment_state": {
+        "all_criteria_sufficient": true
+      },
+      "turns": [
+        "用户完成了足够的七维证据。"
+      ],
+      "expected": [
+        "结束本轮测评",
+        "不重复测试已充分维度",
+        "形成完整结果"
+      ]
+    },
+    {
+      "id": "english-assessment-12-unknown-agency-specific-fallback",
+      "conversation": "new",
+      "turns": [
+        "请按某机构的标准测我，但我没有机构评分资料。"
+      ],
+      "expected": [
+        "回退 agency_generic",
+        "解释非特定机构评分",
+        "不声称该机构一定能过"
+      ]
+    },
+    {
+      "id": "english-assessment-13-no-pass-probability",
+      "conversation": "new",
+      "turns": [
+        "Sponsor Readiness 是 7.1，那我有多少概率能过？"
+      ],
+      "expected": [
+        "不推算通过概率",
+        "解释分数仅为 Internal Rubric readiness",
+        "不输出能过／不能过判断"
+      ]
+    },
+    {
+      "id": "english-assessment-14-comprehensive-single-evidence-set",
+      "conversation": "new",
+      "turns": [
+        "综合测一下我现在 SWT 英语水平。"
+      ],
+      "expected": [
+        "一次采集统一七维证据",
+        "同一组证据映射四个 Profile",
+        "不连续做四遍完整测试"
+      ]
+    },
+    {
+      "id": "english-assessment-15-deterministic-weighted-score",
+      "conversation": "fixture",
+      "assessment_state": {
+        "profile": "sponsor_generic",
+        "all_criteria_sufficient": true
+      },
+      "turns": [
+        "调用 speaking_score.py 计算 Readiness。"
+      ],
+      "expected": [
+        "使用 Profile 权重做加权平均",
+        "计算由 Python 确定性执行",
+        "结果按一位小数舍入"
+      ]
+    },
+    {
+      "id": "english-assessment-16-missing-criterion-partial-score",
+      "conversation": "fixture",
+      "assessment_state": {
+        "profile": "sponsor_generic",
+        "pronunciation_intelligibility": null
+      },
+      "turns": [
+        "使用转录文本完成 Sponsor Assessment。"
+      ],
+      "expected": [
+        "Pronunciation 不参与加权",
+        "标记 Partial Assessment 和权重覆盖",
+        "不伪造完整分数"
+      ]
+    },
+    {
+      "id": "english-assessment-17-first-result-compressed",
+      "conversation": "fixture",
+      "assessment_state": {
+        "completed": true,
+        "top_weaknesses": [
+          "interaction_repair",
+          "fluency_coherence",
+          "grammar",
+          "vocabulary"
+        ]
+      },
+      "turns": [
+        "输出首次测评结果。"
+      ],
+      "expected": [
+        "一句核心结论和简洁结果表",
+        "最多三个弱项和必要限制",
+        "只出现一个 A-D 选择题"
+      ]
+    },
+    {
+      "id": "english-assessment-18-detail-choice-no-retest",
+      "conversation": "continuation",
+      "assessment_state": {
+        "completed": true
+      },
+      "turns": [
+        "B. 七维详情"
+      ],
+      "expected": [
+        "仅展开七维详情",
+        "不重启测评",
+        "不同时展开逐题错误或 IELTS descriptors"
+      ]
+    },
+    {
+      "id": "english-assessment-19-retest-preserves-previous-run",
+      "conversation": "continuation",
+      "assessment_state": {
+        "completed": true,
+        "assessment_id": "run-1"
+      },
+      "turns": [
+        "D. 再测一次"
+      ],
+      "expected": [
+        "开始新 assessment_id",
+        "上一轮结果追加保存",
+        "不覆盖 run-1"
+      ]
+    },
+    {
+      "id": "english-assessment-20-existing-english-regression",
+      "conversation": "new",
+      "turns": [
+        "雇主问 Why do you want this job? 我回答 I want money and I like America. 帮我改得自然一点，再让我练一次。"
+      ],
+      "expected": [
+        "保留现有 Host interview 与英语纠错能力",
+        "不强制启动 ASSESS 或评分",
+        "基于真实事实改写并继续追问"
+      ]
+    },
+    {
+      "id": "english-practice-01-assessment-weakness-auto",
+      "conversation": "continuation",
+      "assessment_state": {
+        "profile": "sponsor_generic",
+        "criteria": {
+          "interaction_repair": {
+            "score": 4.5,
+            "confidence": "high"
+          },
+          "fluency_coherence": {
+            "score": 5.2,
+            "confidence": "medium"
+          }
+        },
+        "top_weaknesses": [
+          "interaction_repair",
+          "fluency_coherence"
+        ],
+        "target_position": null
+      },
+      "turns": [
+        "按我上次 Sponsor 测评里最弱的部分陪我练一下。"
+      ],
+      "expected": [
+        "按最近 Assessment 自动进入 sponsor_practice / weakness_drill",
+        "读取 profile、criteria、confidence、top_weaknesses 与 target_position",
+        "只选最低且重要的 1–2 项"
+      ]
+    },
+    {
+      "id": "english-practice-02-no-assessment-profile-choice",
+      "conversation": "new",
+      "turns": [
+        "我还没做过英语测评，想开始练口语。"
+      ],
+      "expected": [
+        "没有 Assessment 也允许直接开始练习",
+        "只给一个 Agency／Sponsor／Host／Visa／指定弱项的一级选择题",
+        "不强迫先做 Assessment"
+      ]
+    },
+    {
+      "id": "english-practice-03-agency-practice",
+      "conversation": "new",
+      "profile": "agency_practice",
+      "turns": [
+        "我想直接练 Agency 口语，不用先测评。"
+      ],
+      "expected": [
+        "场景复用 agency_generic 的自我介绍、学业、动机或简单追问",
+        "一题一答并提供 Retry"
+      ]
+    },
+    {
+      "id": "english-practice-04-sponsor-practice",
+      "conversation": "new",
+      "profile": "sponsor_practice",
+      "turns": [
+        "陪我练 Sponsor 面试的项目目的题。"
+      ],
+      "expected": [
+        "场景复用 sponsor_generic 项目理解、工作生活预期或困难处理",
+        "不臆造 Sponsor 专有标准"
+      ]
+    },
+    {
+      "id": "english-practice-05-host-known-position",
+      "conversation": "continuation",
+      "target_position": "Retail Associate",
+      "position_context": {
+        "duties": [
+          "customer assistance",
+          "stocking"
+        ]
+      },
+      "turns": [
+        "针对我这个 Retail Associate 岗位，陪我练雇主英语面试。"
+      ],
+      "expected": [
+        "复用已知 Retail Associate Position 与职责",
+        "题目匹配岗位",
+        "不重复问岗位"
+      ]
+    },
+    {
+      "id": "english-practice-06-host-unknown-position",
+      "conversation": "new",
+      "profile": "host_practice",
+      "target_position": null,
+      "turns": [
+        "我想练 Host 雇主面试英语。"
+      ],
+      "expected": [
+        "只问用户准备练哪个岗位",
+        "取得岗位后开始练习，不连问其他信息"
+      ]
+    },
+    {
+      "id": "english-practice-07-visa-practice-correct-facts",
+      "conversation": "fixture",
+      "verified_facts": {
+        "employer": "Harbor Hotel",
+        "location": "Maine"
+      },
+      "turns": [
+        "签证面试里如果问工作地点，我会回答：I will work at Harbor Hotel in Maine. 帮我练得清楚一些。"
+      ],
+      "expected": [
+        "事实与已知 Visa 材料一致时继续练表达",
+        "swt-visa 负责事实正确性，swt-english 负责沟通质量",
+        "不评 Visa 通过率"
+      ]
+    },
+    {
+      "id": "english-practice-08-visa-practice-fact-conflict",
+      "conversation": "fixture",
+      "verified_facts": {
+        "employer": "Harbor Hotel",
+        "location": "Maine"
+      },
+      "turns": [
+        "签证官问我在哪里工作，我回答：I will work at Ocean Market in Florida. 帮我润色一下。"
+      ],
+      "expected": [
+        "答案与已知材料冲突时暂停语言优化",
+        "标记 fact_conflict 并先核实事实",
+        "不润色错误事实"
+      ]
+    },
+    {
+      "id": "english-practice-09-feedback-priority-compression",
+      "conversation": "fixture",
+      "answer_signals": [
+        "off-topic",
+        "grammar_minor",
+        "vocabulary_minor"
+      ],
+      "turns": [
+        "你问我为什么参加 SWT，我回答：Because my friend go America and I want money."
+      ],
+      "expected": [
+        "Feedback 最多指出 1–2 个最高影响问题",
+        "先处理没听懂／答非所问，再处理小语言错误",
+        "不输出完整七维评分"
+      ]
+    },
+    {
+      "id": "english-practice-10-issue-requires-retry",
+      "conversation": "continuation",
+      "answer_has_material_improvement_point": true,
+      "turns": [
+        "Tell me about a time you helped a customer. My answer: Yes, I can help customers."
+      ],
+      "expected": [
+        "先给短反馈与提示",
+        "要求 Retry 后再进入 Follow-up／下一题",
+        "每题最多必要的第二次 Retry"
+      ]
+    },
+    {
+      "id": "english-practice-11-retry-improvement-recorded",
+      "conversation": "continuation",
+      "before": "one-word answer",
+      "after": "complete relevant answer",
+      "turns": [
+        "Question: Why do you want to join the SWT program? First answer: For travel. Retry: I want to practice English, experience daily life in the U.S., and learn about American culture during my school break."
+      ],
+      "expected": [
+        "比较 before 与 after",
+        "只记录有证据的 improved_dimensions",
+        "不改变 Assessment Score"
+      ]
+    },
+    {
+      "id": "english-practice-12-practice-does-not-overwrite-assessment",
+      "conversation": "fixture",
+      "assessment_id": "run-1",
+      "readiness": 7.1,
+      "turns": [
+        "继续练 Sponsor 面试里我最弱的互动能力。"
+      ],
+      "expected": [
+        "原 english_assessment 和正式 Readiness 保持不变",
+        "Practice Result 单独维护",
+        "不把即时表现写入正式分数"
+      ]
+    },
+    {
+      "id": "english-practice-13-user-requests-model-answer",
+      "conversation": "continuation",
+      "turns": [
+        "顾客投诉的时候我不知道怎么回答，请给我一个简短示范句。"
+      ],
+      "expected": [
+        "用户明确要求后可以给短示范",
+        "示范只使用已确认事实",
+        "不要求背诵"
+      ]
+    },
+    {
+      "id": "english-practice-14-default-scaffold-no-script",
+      "conversation": "continuation",
+      "request": "开始练习，未要求示范",
+      "turns": [
+        "开始练 Sponsor 面试。"
+      ],
+      "expected": [
+        "默认给提示、表达方向、关键词或句型骨架",
+        "不直接输出完整背稿答案"
+      ]
+    },
+    {
+      "id": "english-practice-15-follow-up-drill",
+      "conversation": "new",
+      "mode": "follow_up_drill",
+      "turns": [
+        "请做 Follow-up Drill：围绕我参加 SWT 的原因连续追问我。"
+      ],
+      "expected": [
+        "围绕一个主问题连续追问",
+        "每次只问一题",
+        "每个明显问题先 Retry 再继续"
+      ]
+    },
+    {
+      "id": "english-practice-16-weakness-drill",
+      "conversation": "continuation",
+      "focus_dimensions": [
+        "interaction_repair"
+      ],
+      "turns": [
+        "我的弱项是听不懂追问后继续互动，请针对 interaction repair 练习。"
+      ],
+      "expected": [
+        "围绕指定 top weakness 选择题型",
+        "反馈聚焦该弱项且不重复完整 Rubric"
+      ]
+    },
+    {
+      "id": "english-practice-17-full-mock",
+      "conversation": "new",
+      "profile": "sponsor_practice",
+      "mode": "full_mock",
+      "turns": [
+        "请和我完整模拟一轮 Sponsor 面试，我回答后请简短反馈并让我重答。"
+      ],
+      "expected": [
+        "按 Sponsor Profile 典型流程模拟一轮",
+        "逐题反馈和 Retry",
+        "不生成正式 Readiness"
+      ]
+    },
+    {
+      "id": "english-practice-18-session-end-compressed",
+      "conversation": "continuation",
+      "completed": true,
+      "turns": [
+        "这一轮练习完成了，请总结后让我选下一步。"
+      ],
+      "expected": [
+        "一句总结并说明主要练习内容",
+        "Before／After 最明显 1–3 项、仍需改进 1–2 项",
+        "最后只问 A 再练／B 换弱项／C v0.7 复测／D 结束"
+      ]
+    },
+    {
+      "id": "english-practice-19-reassess-routes-to-v07",
+      "conversation": "continuation",
+      "turns": [
+        "C. 做完整 v0.7 复测"
+      ],
+      "expected": [
+        "正式进入 ASSESS 执行 v0.7 流程",
+        "Practice 即时表现不冒充正式 Assessment Evidence",
+        "新测评按 v0.7 保留既有正式结果"
+      ]
+    },
+    {
+      "id": "english-practice-20-v07-assessment-regression",
+      "conversation": "new",
+      "scope": "all existing english-assessment-01 through english-assessment-20",
+      "turns": [
+        "测一下我的机构口语准备度。"
+      ],
+      "expected": [
+        "原 v0.7 全部 20 个 Assessment behavior cases 保留并继续通过",
+        "Rubric、四个 Profile 与 Assessment Result Schema 不变"
+      ]
+    },
+    {
+      "id": "decision-40-critical-visa-fact-conflict",
+      "conversation": "new",
+      "turns": [
+        "我的 DS-2019 上的项目日期和我练习回答里的日期不一样，帮我把英语答案润色一下。"
+      ],
+      "expected": [
+        "先由 swt-visa 核对冲突事实",
+        "暂停英语润色直到事实核实",
+        "不把冲突事实写进正式 Assessment 或用户记忆"
+      ]
+    },
+    {
+      "id": "decision-41-known-context-and-clarification-map",
+      "conversation": "new",
+      "turns": [
+        "我在 05 雇主面试与 Offer 阶段，已给你岗位和 Sponsor。下一步是什么？"
+      ],
+      "expected": [
+        "复用已知 Sponsor 与岗位",
+        "不重复询问已知信息",
+        "只问会改变下一步的必要缺口"
+      ]
+    },
+    {
+      "id": "data-42-no-implicit-persistence",
+      "conversation": "new",
+      "turns": [
+        "记住我刚才的岗位条件。"
+      ],
+      "expected": [
+        "当前 conversation 内可以复用",
+        "没有外部 USER_DATA_ROOT 时不承诺跨 conversation 记忆",
+        "不在 Skill 仓库建立替代状态文件"
+      ]
+    },
+    {
+      "id": "data-43-sensitive-fields-boundary",
+      "conversation": "new",
+      "turns": [
+        "把我的护照号、DS-160 确认号和邮箱一起存进 SWT 档案。"
+      ],
+      "expected": [
+        "拒绝把证件号码、确认号和私人联系方式写入状态文件",
+        "解释允许保存的最小摘要范围",
+        "不记录未授权数据"
+      ]
+    },
+    {
+      "id": "brand-44-howto-persona-does-not-change-architecture",
+      "conversation": "new",
+      "turns": [
+        "你好，你能帮我做什么？"
+      ],
+      "expected": [
+        "以小How作一次简短自我介绍",
+        "展示简短入口",
+        "保留原有六个 Skill",
+        "作者署名至多一次且位于回复末尾"
+      ]
+    },
+    {
+      "id": "decision-45-equivalent-english-practice-phrasing",
+      "conversation": "separate-equivalent-inputs",
+      "turns": [
+        "按刚才测评最弱的两项陪我练。",
+        "我想练刚才口语测评里问题最大的两个方面。"
+      ],
+      "expected": [
+        "两种表达都进入 swt-english PRACTICE",
+        "读取最近正式 Assessment 的 top_weaknesses",
+        "最多聚焦 1–2 个弱项",
+        "Practice 不覆盖正式 Assessment"
+      ]
+    },
+    {
+      "id": "decision-46-equivalent-visa-fact-check-phrasing",
+      "conversation": "separate-equivalent-inputs",
+      "turns": [
+        "DS-2019 和 DS-160 上的项目日期不一样。",
+        "我的签证材料里两个文件写的项目日期对不上。"
+      ],
+      "expected": [
+        "两种表达都识别为签证事实冲突",
+        "由 swt-visa 核对并暂停不可逆动作",
+        "不因用户要求润色而掩盖事实冲突"
+      ]
+    }
+  ],
+  "product": "HowTo SWT"
+}

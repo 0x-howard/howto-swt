@@ -1,0 +1,135 @@
+{
+  "evaluation_start": "2027-06-01",
+  "evaluation_end": "2027-08-31",
+  "cny_per_usd": 7.2,
+  "available_cash_usd": 4500,
+  "emergency_reserve_usd": 500,
+  "assumptions": [
+    "所有机构、岗位和数字均为虚构，仅验证计算；不代表2027年真实工资、费用或汇率。",
+    "每个岗位工作12周，停留91天；24/32/40小时只是假设，不是合同或实际工时。",
+    "扣缴500美元仅为外部输入假设，不是按税法计算；例中全部工资于期末到账，押金期末尚未返还。",
+    "租金按周摊算，首薪前生活支付600美元已经包含在全程生活费用中；全部不退费用和押金在首薪前支付。"
+  ],
+  "offers": [
+    {
+      "id": "fictional-a",
+      "label": "虚构岗位 fictional-a",
+      "scenarios": {
+        "downside": {
+          "work_weeks": 12,
+          "regular_hours_per_week": 24,
+          "regular_hourly_usd": 13,
+          "overtime_hours_per_week": 0,
+          "overtime_hourly_usd": 0,
+          "tips_total_usd": 0,
+          "gross_pay_unreceived_usd": 0,
+          "withholding_total_usd": 500,
+          "housing_weekly_usd": 140,
+          "food_weekly_usd": 70,
+          "commute_weekly_usd": 15,
+          "other_weekly_usd": 15,
+          "upfront_nonrefundable_usd": 3000,
+          "refundable_deposit_paid_usd": 300,
+          "deposit_returned_by_end_usd": 0,
+          "cash_living_before_first_pay_usd": 600
+        },
+        "base": {
+          "work_weeks": 12,
+          "regular_hours_per_week": 32,
+          "regular_hourly_usd": 13,
+          "overtime_hours_per_week": 0,
+          "overtime_hourly_usd": 0,
+          "tips_total_usd": 0,
+          "gross_pay_unreceived_usd": 0,
+          "withholding_total_usd": 500,
+          "housing_weekly_usd": 140,
+          "food_weekly_usd": 70,
+          "commute_weekly_usd": 15,
+          "other_weekly_usd": 15,
+          "upfront_nonrefundable_usd": 3000,
+          "refundable_deposit_paid_usd": 300,
+          "deposit_returned_by_end_usd": 0,
+          "cash_living_before_first_pay_usd": 600
+        },
+        "upside": {
+          "work_weeks": 12,
+          "regular_hours_per_week": 40,
+          "regular_hourly_usd": 13,
+          "overtime_hours_per_week": 0,
+          "overtime_hourly_usd": 0,
+          "tips_total_usd": 0,
+          "gross_pay_unreceived_usd": 0,
+          "withholding_total_usd": 500,
+          "housing_weekly_usd": 140,
+          "food_weekly_usd": 70,
+          "commute_weekly_usd": 15,
+          "other_weekly_usd": 15,
+          "upfront_nonrefundable_usd": 3000,
+          "refundable_deposit_paid_usd": 300,
+          "deposit_returned_by_end_usd": 0,
+          "cash_living_before_first_pay_usd": 600
+        }
+      }
+    },
+    {
+      "id": "fictional-b",
+      "label": "虚构岗位 fictional-b",
+      "scenarios": {
+        "downside": {
+          "work_weeks": 12,
+          "regular_hours_per_week": 24,
+          "regular_hourly_usd": 18,
+          "overtime_hours_per_week": 0,
+          "overtime_hourly_usd": 0,
+          "tips_total_usd": 0,
+          "gross_pay_unreceived_usd": 0,
+          "withholding_total_usd": 500,
+          "housing_weekly_usd": 210,
+          "food_weekly_usd": 70,
+          "commute_weekly_usd": 15,
+          "other_weekly_usd": 15,
+          "upfront_nonrefundable_usd": 3000,
+          "refundable_deposit_paid_usd": 300,
+          "deposit_returned_by_end_usd": 0,
+          "cash_living_before_first_pay_usd": 600
+        },
+        "base": {
+          "work_weeks": 12,
+          "regular_hours_per_week": 32,
+          "regular_hourly_usd": 18,
+          "overtime_hours_per_week": 0,
+          "overtime_hourly_usd": 0,
+          "tips_total_usd": 0,
+          "gross_pay_unreceived_usd": 0,
+          "withholding_total_usd": 500,
+          "housing_weekly_usd": 210,
+          "food_weekly_usd": 70,
+          "commute_weekly_usd": 15,
+          "other_weekly_usd": 15,
+          "upfront_nonrefundable_usd": 3000,
+          "refundable_deposit_paid_usd": 300,
+          "deposit_returned_by_end_usd": 0,
+          "cash_living_before_first_pay_usd": 600
+        },
+        "upside": {
+          "work_weeks": 12,
+          "regular_hours_per_week": 40,
+          "regular_hourly_usd": 18,
+          "overtime_hours_per_week": 0,
+          "overtime_hourly_usd": 0,
+          "tips_total_usd": 0,
+          "gross_pay_unreceived_usd": 0,
+          "withholding_total_usd": 500,
+          "housing_weekly_usd": 210,
+          "food_weekly_usd": 70,
+          "commute_weekly_usd": 15,
+          "other_weekly_usd": 15,
+          "upfront_nonrefundable_usd": 3000,
+          "refundable_deposit_paid_usd": 300,
+          "deposit_returned_by_end_usd": 0,
+          "cash_living_before_first_pay_usd": 600
+        }
+      }
+    }
+  ]
+}

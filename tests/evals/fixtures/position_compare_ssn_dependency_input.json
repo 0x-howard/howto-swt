@@ -1,0 +1,41 @@
+{
+  "mode": "position_overview",
+  "fx_cny_per_usd": 7.0,
+  "project_cost_cny": 20000,
+  "offers": [
+    {
+      "id": "restaurant-a",
+      "label": "Restaurant A（City A）",
+      "wage_usd_per_hour": 15,
+      "hours_per_week": 32,
+      "work_weeks": 13,
+      "rent_usd_per_week": 115,
+      "food_usd_per_week": 80,
+      "second_job_note": "不计入预计收入",
+      "landing_note": "可以先开工；SSN 到手前可能延迟发薪",
+      "cautions": {
+        "SSN 与首薪": "资料称可先工作，但 SSN 到手前不发工资；延迟到账不等于工资损失",
+        "时薪": "$15–17 区间；测算取 $15",
+        "岗位地点": "City A 或 City B，无法预选",
+        "Offer 确认": "当前为示例招聘资料，需核对正式 Offer"
+      }
+    },
+    {
+      "id": "hotel-b",
+      "label": "Hotel B（City B）",
+      "wage_usd_per_hour": 17,
+      "hours_per_week": 32,
+      "work_weeks": 13,
+      "rent_usd_per_week": 132,
+      "food_usd_per_week": 100,
+      "second_job_note": "不计入预计收入",
+      "landing_note": "资料称取得 SSN 后才能开工",
+      "cautions": {
+        "SSN 与首薪": "资料称需先取得 SSN 才能开工；等待期间可能减少有薪周数",
+        "工时": "通常 32h/周；40h 取决于表现，不保证",
+        "岗位分配": "前台或客房，到岗后分配",
+        "Offer 确认": "当前为示例招聘资料，需核对正式 Offer"
+      }
+    }
+  ]
+}

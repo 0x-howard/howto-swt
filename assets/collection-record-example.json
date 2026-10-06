@@ -1,0 +1,101 @@
+{
+  "schema_version": "0.2",
+  "sources": [
+    {
+      "id": "source-demo-001",
+      "kind": "assumption",
+      "issuer": "虚构格式演示",
+      "locator": "本样例内设定，无真实机构",
+      "location": "示例费用",
+      "published_at": null,
+      "checked_at": null,
+      "applicable_year": 2027,
+      "scope": "只演示采集格式，不可推荐",
+      "permission": "可公开",
+      "notes": "所有名称和金额均为虚构"
+    }
+  ],
+  "agencies": [
+    {
+      "id": "agency-demo-001",
+      "label": "虚构机构示例",
+      "claims": [
+        {
+          "field": "fees",
+          "value": 18000,
+          "unit": "CNY/人/项目，包含项尚未提供",
+          "applicable_year": 2027,
+          "status": "pending",
+          "source_ids": ["source-demo-001"],
+          "notes": "虚构金额，仅演示；尚无合同与包含项"
+        }
+      ]
+    }
+  ],
+  "sponsors": [],
+  "relationships": [],
+  "locations": [],
+  "offers": [],
+  "cases": [],
+  "documents": [
+    {
+      "id": "document-demo-001",
+      "label": "虚构 Job Offer 示例",
+      "claims": [
+        {
+          "field": "document_type",
+          "value": "job_offer",
+          "unit": null,
+          "applicable_year": 2027,
+          "status": "pending",
+          "source_ids": ["source-demo-001"],
+          "notes": "仅演示文档实体；无真实文件和个人信息"
+        },
+        {
+          "field": "status",
+          "value": "received_pending_review",
+          "unit": null,
+          "applicable_year": 2027,
+          "status": "pending",
+          "source_ids": ["source-demo-001"],
+          "notes": "流程状态值与证据状态 pending 是不同概念"
+        }
+      ]
+    }
+  ],
+  "process_events": [
+    {
+      "id": "event-demo-001",
+      "label": "虚构收到 Offer 事件",
+      "claims": [
+        {
+          "field": "stage_id",
+          "value": "06",
+          "unit": null,
+          "applicable_year": 2027,
+          "status": "pending",
+          "source_ids": ["source-demo-001"],
+          "notes": "阶段编号来自本 Skill 路由"
+        },
+        {
+          "field": "document_id",
+          "value": "document-demo-001",
+          "unit": null,
+          "applicable_year": 2027,
+          "status": "pending",
+          "source_ids": ["source-demo-001"],
+          "notes": "收到不等于已核对或已签署"
+        },
+        {
+          "field": "next_action",
+          "value": "核对岗位、日期、工资、住房、通勤和签署截止",
+          "unit": null,
+          "applicable_year": 2027,
+          "status": "pending",
+          "source_ids": ["source-demo-001"],
+          "notes": "虚构动作，仅演示结构"
+        }
+      ]
+    }
+  ]
+}

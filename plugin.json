@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "howto-swt",
+  "version": "1.1.1",
+  "description": "明确称呼“小How”“HowTo SWT”或“howto-swt”时调用 HowTo SWT 主入口；已说明任务直接进入六个 SWT 专项 Skill，普通问候不抢占未激活的宿主。",
+  "author": {
+    "name": "Howard"
+  },
+  "keywords": [
+    "howto-swt",
+    "howto swt",
+    "小How",
+    "小how",
+    "小 HOW",
+    "summer-work-travel",
+    "j-1",
+    "swt"
+  ]
+}

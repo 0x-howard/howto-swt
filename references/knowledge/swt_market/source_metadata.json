@@ -1,0 +1,29 @@
+{
+  "dataset": "SWTDashboard",
+  "dataset_full_name": "BridgeUSA Summer Work Travel (SWT) Dashboard — participant count by state / city / status",
+  "publisher": "U.S. Department of State / BridgeUSA",
+  "source_url": "https://app.powerbigov.us/view?r=eyJrIjoiMmVkNDg1YjAtNzdiZS00MzAzLTk2YmItNTJjNmQwYzM2YTM1IiwidCI6IjY2Y2Y1MDc0LTVhZmUtNDhkMS1hNjkxLWExMmIyMTIxZjQ0YiJ9",
+  "dataset_last_refresh": "2026-07-20T19:41:07.883",
+  "retrieved_at": "2026-09-26T15:01:52",
+  "cleaning_version": "1.0.0",
+  "definitions": {
+    "active": "BridgeUSA Power BI 查询返回中 STATUS_CODE = ACTIVE 的 participant count",
+    "initial": "BridgeUSA Power BI 查询返回中 STATUS_CODE = INITIAL 的 participant count",
+    "total": "ACTIVE + INITIAL",
+    "participants": "BridgeUSA Power BI 查询返回的 participant count（按 state / city / status / 坐标 分组）。目前没有证据表明它等同于某一时期去重后的独立 SWT 参与者人数；引用时应写作 'BridgeUSA SWT Map participant count' 或 'BridgeUSA 地图参与者计数'。",
+    "top_city_record": "该州在当前 BridgeUSA SWT Map 数据中，按 city record 聚合后 participant count 最大的那条 city record。它只是当前数据集里数值最大的 city record，不代表“最热门城市”、不代表“最推荐城市”、不代表实际岗位最多、也不代表唯一参与者最多。",
+    "top_city_record_total": "上述 top_city_record 对应的 total（ACTIVE + INITIAL）数值。",
+    "support_group_record_count": "该州在 Community Support Groups 官方清单中的记录条数。包含 city / multi_city / regional / affiliate / unmatched 全部类型；不等于成功匹配到城市的数量，也不等于该州被 Support Group 覆盖的城市数量。",
+    "support_group_match_semantics": "Support Group 的 regional / county_or_region / affiliate 类记录不应被解释为某个单独城市一定拥有该组织。区域型匹配一律标为 match_type=regional 且 match_confidence=low，绝不标为 exact。",
+    "no_auto_bind": [
+      "Door County, WI —— county_or_region，保持 unmatched，不得自动绑定到某个 Wisconsin 城市",
+      "Door County Affiliate, WI —— affiliate，保持 unmatched，不得自动绑定到某个 Wisconsin 城市",
+      "Cape Cod Affiliate - Dennis, Not West Yarmouth, MA —— 保持 regional / low，不得改为 Dennis 或 West Yarmouth 的 exact",
+      "Bethany Beach and Fenwick Beach, DE —— Fenwick Beach 不得在未经外部核实的情况下自动改为 Fenwick Island"
+    ]
+  },
+  "runtime_layer": {
+    "name": "swt_market",
+    "generated_from": "externally maintained cleaned aggregates"
+  }
+}

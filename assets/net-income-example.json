@@ -1,0 +1,39 @@
+{
+  "tax_mode": "manual_rates",
+  "fx_cny_per_usd": 7.2,
+  "offers": [
+    {
+      "id": "offer-a",
+      "label": "Offer A",
+      "state": "Texas",
+      "wage_usd_per_hour": 16,
+      "hours_per_week": 40,
+      "start_date": "2027-06-01",
+      "end_date": "2027-08-30",
+      "rent_usd_per_week": 150,
+      "transport_usd_per_week": 10,
+      "food_usd_per_week": 50,
+      "other_fixed_usd": 100,
+      "tax": {
+        "federal_income_tax_percent": 10,
+        "state_income_tax_percent": 0
+      }
+    },
+    {
+      "id": "offer-b",
+      "label": "Offer B",
+      "state": "California",
+      "wage_usd_per_hour": 18,
+      "hours_per_week": 35,
+      "work_weeks": 13,
+      "rent_usd_per_week": 220,
+      "transport_usd_per_week": 12,
+      "food_usd_per_week": 50,
+      "other_fixed_usd": 100,
+      "tax": {
+        "federal_income_tax_percent": 10,
+        "state_income_tax_percent": 2
+      }
+    }
+  ]
+}
