@@ -50,7 +50,7 @@ DOMAIN_REFERENCES_BY_SKILL = {
 
 COMMON_PORTABLE_SCRIPTS = ("decision_model.py", "orchestration.py", "paths.py", "user_state.py")
 PORTABLE_SCRIPTS_BY_SKILL = {
-    "swt": COMMON_PORTABLE_SCRIPTS,
+    "swt": COMMON_PORTABLE_SCRIPTS + ("free_update.py",),
     "swt-application": COMMON_PORTABLE_SCRIPTS,
     "swt-position": COMMON_PORTABLE_SCRIPTS + (
         "budget.py", "compare_budget.py", "location_context.py", "state_context.py", "swt_market.py",

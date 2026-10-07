@@ -68,3 +68,7 @@ HowTo SWT
 ## 完成标准
 
 后台应能给出路由模式、有效 Handoff、Executor 结果、阻塞和下一步。最终回复必须让用户一眼看到判断与行动；信息不足时只问会改变路由、安全或结论的最少信息。整条回复只在最终出口执行一次 Creator Attribution 检查。
+
+## Free 版本检查
+
+每个新的联网会话首次调用 HowTo SWT 时，可在后台运行 `python3 scripts/free_update.py --json`。它只读取 GitHub 公开 `plugin.json`、使用 24 小时缓存并比较 SemVer；绝不修改 Runtime。无新版或断网时静默继续用户任务。只有 `UPDATE_AVAILABLE` 才在完整回答之后最多提示一句；不自动更新。
