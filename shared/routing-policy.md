@@ -4,6 +4,35 @@
 
 六 Skill 共用的 Decision Record、有限枚举、Materiality 和缺失信息映射见 [decision-model.md](decision-model.md)。记录是可选的内部决策摘要；不输出隐藏推理，也不替代下列路由顺序及各 Skill 的职责边界。
 
+## 三种路由决策
+
+- `DIRECT`：用户目标和任务对象足以确定唯一 Executor，立即生成 Handoff，不先显示菜单。
+- `CONFIRM`：存在两到四个合理且会产生不同结果的方向，只给对应的两到四个短选项，用户选择后再交接。
+- `CLARIFY`：缺少决定路由或安全性的最小必要信息，只问一个最高影响问题。
+
+五个明确任务都应 `DIRECT`：报名材料到 `swt-application`，岗位／Offer 分析到 `swt-position`，Sponsor 面试练习到 `swt-english`，DS-2019 核对到 `swt-visa`，抵美后 I-94 到 `swt-arrival`。“我收到一份 Offer，帮我处理”无法判断是申请状态还是岗位价值时用 `CONFIRM`。“帮我看看这个”且当前上下文没有对象时用 `CLARIFY`。
+
+路由后使用 [Handoff Contract](handoff-contract.md)；交给 Executor 后使用 [Domain Executor State Machines](executor-state-machines.md)。已知事实不得重复询问，`changed_facts` 对同名旧事实优先。
+
+### 已验收的直接路由示例
+
+| 用户任务 | Executor |
+|---|---|
+| “帮我分析这个 Offer”、“对比岗位” | `swt-position` |
+| “这个岗位怎么样”、“帮我对比这三个岗位” | `swt-position` |
+| “Ocean City 和 Myrtle Beach 怎么选” | `swt-position` |
+| “Wisconsin Dells 做 SWT 是什么情况”、“South Carolina 的 SWT 地点怎么样” | `swt-position` |
+| “这个城市 SWT 人多吗”、“哪个城市的 SWT participant count 更多” | `swt-position` |
+| “Myrtle Beach 的 participant count 是多少” | `swt-position` |
+| “Myrtle Beach 有没有 Community Support Group” | `swt-position` |
+| “我在 Myrtle Beach 面签要准备什么” | `swt-visa` |
+| “帮我练 Myrtle Beach 雇主面试英语” | `swt-english` |
+| “到了 Myrtle Beach 第一周要做什么” | `swt-arrival` |
+| “申请 South Carolina 的岗位要准备什么材料” | `swt-application` |
+
+地点只是对象或背景，不覆盖明确的签证、英语、抵美或申请动作。
+单独输入一个地名且当前没有任务对象时，留在 `swt` 总入口并使用 `CLARIFY`，不猜测为岗位分析。
+
 ## 路由顺序
 
 `Emergency check → Direct task / Homepage → Known Context → Intent → Stage → Risk → Specialist Skill`
@@ -13,7 +42,7 @@
 3. 普通“你好”“hello”“hi”“在吗”本身不要求未激活的宿主调用 `swt`；HowTo SWT 已 active 时，普通问候或 help 才显示首页。
 4. 从当前 conversation、宿主上下文和已加载材料恢复已知事实，不重复询问。
 5. Intent 表示用户此刻想完成什么；Stage 只限制可执行范围；Risk 决定能否给具体操作。
-6. 只加载完成任务所需的最少 Skill；多 Intent 可连续调用多个 Skill，由 `swt` 合并。
+6. 只加载完成任务所需的最少 Executor；多 Intent 可按依赖顺序调用多个 Executor，由 `swt` 合并。
 
 “小How帮我分析这个 Offer”直接路由 `swt-position`；“小How测一下 Sponsor 面试英语”直接路由 `swt-english`；“小How帮我看看 DS-2019”直接路由 `swt-visa`。这些明确任务不先显示首页。
 

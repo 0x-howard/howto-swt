@@ -6,10 +6,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SKILL_TEXT = (ROOT / "skills/swt/SKILL.md").read_text(encoding="utf-8")
-POSITION_SECTION = SKILL_TEXT.split("## 岗位与地点意图", 1)[1].split("## 多 Skill 协调", 1)[0]
-POSITION_INTENTS = POSITION_SECTION.split("### 专项任务优先于地点词", 1)[0]
-SPECIALIST_PRIORITY = POSITION_SECTION.split("### 专项任务优先于地点词", 1)[1].split("## 上下文不足时", 1)[0]
-CONTEXT_SECTION = POSITION_SECTION.split("## 上下文不足时", 1)[1]
+ROUTING = (ROOT / "shared/routing-policy.md").read_text(encoding="utf-8")
+POSITION_INTENTS = ROUTING
+SPECIALIST_PRIORITY = ROUTING
+CONTEXT_SECTION = SKILL_TEXT.split("## 上下文不足时", 1)[1]
 
 
 class SwtRouterPositionIntentTests(unittest.TestCase):
@@ -53,25 +53,24 @@ class SwtRouterPositionIntentTests(unittest.TestCase):
         self.assertIn("howto-swt", description)
         self.assertIn("你好，我在。你可以直接选一项：", SKILL_TEXT)
         self.assertIn("回复字母，或者直接说你要办的事。", SKILL_TEXT)
-        self.assertIn("未激活的宿主抢占", SKILL_TEXT)
+        self.assertIn("仅“你好”“hello”“hi”“在吗”不触发", SKILL_TEXT)
         self.assertIn("小How帮我看看这个岗位", SKILL_TEXT)
-        self.assertIn("直接路由到 `swt-position`", SKILL_TEXT)
+        self.assertIn("`DIRECT`", SKILL_TEXT)
 
     def test_general_swt_process_stays_in_the_main_skill(self):
         self.assertIn("SWT 全流程怎么走", CONTEXT_SECTION)
-        self.assertIn("一般总览或导航问题留在 `swt`", CONTEXT_SECTION)
-        self.assertIn("只有用户明确提出专项任务时才路由", CONTEXT_SECTION)
+        self.assertIn("导航问题留在 `swt`", CONTEXT_SECTION)
 
     def test_bare_city_name_does_not_force_position_routing(self):
-        bare_place_rule = next(line for line in CONTEXT_SECTION.splitlines() if "单独输入一个地名" in line)
+        bare_place_rule = next(line for line in CONTEXT_SECTION.splitlines() if "单独地名" in line)
         self.assertIn("Myrtle Beach", bare_place_rule)
-        self.assertIn("不触发 `swt-position`", bare_place_rule)
-        self.assertIn("继续由 `swt` 处理或询问", bare_place_rule)
+        self.assertIn("不直接触发 `swt-position`", bare_place_rule)
+        self.assertIn("`CLARIFY`", bare_place_rule)
 
     def test_router_does_not_expose_backend_names_in_user_facing_answers(self):
         for term in ("location_context.py", "swt_market.py", "state_summary.json", "Resolver", "API"):
             self.assertNotIn(term, SKILL_TEXT)
-        self.assertIn("不提内部实现、文件名或工具接口", SKILL_TEXT)
+        self.assertIn("不提内部实现、文件名、Executor 或工具接口", SKILL_TEXT)
 
 
 if __name__ == "__main__":

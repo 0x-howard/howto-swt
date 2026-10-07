@@ -22,6 +22,8 @@ COMMON_SOURCES = (
     "evidence-policy.md",
     "state-schema.md",
     "decision-model.md",
+    "handoff-contract.md",
+    "executor-state-machines.md",
     "persistence-contract.md",
 )
 
@@ -46,7 +48,7 @@ DOMAIN_REFERENCES_BY_SKILL = {
     "swt-arrival": ("predeparture-program.md",),
 }
 
-COMMON_PORTABLE_SCRIPTS = ("decision_model.py", "paths.py", "user_state.py")
+COMMON_PORTABLE_SCRIPTS = ("decision_model.py", "orchestration.py", "paths.py", "user_state.py")
 PORTABLE_SCRIPTS_BY_SKILL = {
     "swt": COMMON_PORTABLE_SCRIPTS,
     "swt-application": COMMON_PORTABLE_SCRIPTS,
@@ -87,6 +89,14 @@ def render(skill: str, sources: tuple[str, ...]) -> str:
     merged_body = merged_body.replace(
         "[persistence-contract.md](persistence-contract.md)",
         "[persistence contract](#user-data-and-persistence-contract)",
+    )
+    merged_body = merged_body.replace(
+        "[Handoff Contract](handoff-contract.md)",
+        "[Handoff Contract](#skill-to-skill-handoff-contract)",
+    )
+    merged_body = merged_body.replace(
+        "[Domain Executor State Machines](executor-state-machines.md)",
+        "[Domain Executor State Machines](#domain-executor-state-machines)",
     )
     merged_body = merged_body.replace(
         "[user-state.schema.json](../references/user-state.schema.json)",

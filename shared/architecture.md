@@ -15,7 +15,13 @@ howto-swt/
 USER_DATA_ROOT/                     用户显式配置的独立持久化目录
 ```
 
-用户安装一次 Plugin。宿主发现 `skills/` 下六个 Skill，并按各自 frontmatter 独立路由。
+用户安装一次 Plugin。宿主发现 `skills/` 下六个 Skill；`swt` 是 Orchestrator / Router，其余五个是 Domain Executor。
+
+```text
+Router -> Routing Policy -> Handoff Contract -> Domain Executor -> Executor State Machine
+```
+
+Router 只选择 `DIRECT / CONFIRM / CLARIFY`、整理已知上下文并生成统一 Handoff。业务分析属于 Executor。任务跨域时 Executor 返回 Router 交接，不直接占用另一个 Executor 的状态机。
 
 ## 共享规则策略
 
@@ -27,7 +33,7 @@ USER_DATA_ROOT/                     用户显式配置的独立持久化目录
 
 ## 责任边界
 
-- `swt`：首页、导航、状态恢复、Intent／Stage／Risk 路由、多 Skill 协调。
+- `swt`：首页、导航、状态恢复、Intent／Stage／Risk 路由、Handoff 与多 Executor 协调；不复制专项业务。
 - `swt-application`：报名与申请链、材料、系统、机构／Sponsor 合同付款和 Offer 流程完整性。
 - `swt-position`：岗位／城市／住房／通勤比较、二工可行性和预算情景。
 - `swt-english`：场景化英语 Assessment 与基于弱项的口语 Practice、Sponsor／雇主面试、工作沟通、口语模拟与纠错。

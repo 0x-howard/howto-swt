@@ -16,18 +16,13 @@ from location_context import get_location_context  # noqa: E402
 
 FIXTURE_PATH = ROOT / "tests/evals/fixtures/swt_market_e2e_cases.json"
 CASES = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))["cases"]
-ROUTER_TEXT = (ROOT / "skills/swt/SKILL.md").read_text(encoding="utf-8")
+ROUTER_TEXT = (ROOT / "shared/routing-policy.md").read_text(encoding="utf-8")
 POSITION_TEXT = (ROOT / "skills/swt-position/SKILL.md").read_text(encoding="utf-8")
 
 
 def _section_for_route(scope):
-    section = ROUTER_TEXT.split("## 岗位与地点意图", 1)[1].split("## 多 Skill 协调", 1)[0]
-    if scope == "position":
-        return section.split("### 专项任务优先于地点词", 1)[0]
-    if scope == "specialist":
-        return section.split("### 专项任务优先于地点词", 1)[1].split("## 上下文不足时", 1)[0]
-    if scope == "context":
-        return section.split("## 上下文不足时", 1)[1]
+    if scope in {"position", "specialist", "context"}:
+        return ROUTER_TEXT
     raise ValueError(f"unknown route evidence section: {scope}")
 
 

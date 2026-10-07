@@ -1,10 +1,10 @@
 # Generated Shared Runtime
 
 <!-- GENERATED FILE: DO NOT EDIT. -->
-<!-- Source: shared/interaction-protocol.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/persistence-contract.md, shared/official-sources.md -->
+<!-- Source: shared/interaction-protocol.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/persistence-contract.md, shared/official-sources.md -->
 <!-- runtime-version: 1.1.1 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt-visa; source-sha256: 462fa84f93affaa892197dfe71cea1957e3eda08c74bf53a0b7b5fd6e3511e4b -->
+<!-- skill: swt-visa; source-sha256: 7806768bff107b048dd0f13d0dfdb544e2f944707194da982909f7b5facc95af -->
 
 <!-- source: shared/interaction-protocol.md -->
 
@@ -547,6 +547,109 @@ When multiple fields are missing, record the highest-impact class and ask no mor
 - For `swt-english`, ASSESS and PRACTICE remain separate. Practice observations never overwrite a formal Assessment Result.
 - No decision record may contain chain of thought, credentials, full identifiers, full document images, or raw conversation transcripts.
 - Do not convert confidence into a guarantee or an external success probability.
+
+---
+
+<!-- source: shared/handoff-contract.md -->
+
+# Skill-to-Skill Handoff Contract
+
+HowTo SWT uses one internal handoff shape between the `swt` Router and the five Domain Executors. It is a compact semantic contract, not a user-facing form and not hidden chain of thought.
+
+## Canonical shape
+
+```yaml
+handoff_version: "1.0"
+router: swt
+executor: swt-position
+intent: DECISION
+user_goal: compare two offers and choose the safer option
+known_facts: {}
+changed_facts: {}
+missing_critical_facts: []
+constraints: []
+requested_output: decision with next action
+state: INTAKE
+```
+
+All fields are required. `known_facts` contains only facts available to the current task. `changed_facts` contains later user corrections and overrides the same keys in `known_facts`. `missing_critical_facts` contains only gaps that prevent safe routing or execution. `constraints` contains user, safety, time, output, or evidence limits that materially affect the task.
+
+## Routing modes
+
+- `DIRECT`: one Executor clearly owns the task and no fact required to choose that Executor is missing. Route immediately; do not show a menu first.
+- `CONFIRM`: two to four materially plausible routes remain. Offer two to four short choices and wait for the user's selection.
+- `CLARIFY`: a minimum fact required to choose a safe route is absent. Ask only the single highest-impact question; do not present a long intake form.
+
+Missing facts needed inside an already selected Executor do not automatically change `DIRECT` to `CLARIFY`. The Executor may continue useful work and ask only what changes its conclusion, following the interaction protocol.
+
+## Merge and evidence rules
+
+1. Current-turn `changed_facts` overrides same-key `known_facts`; unchanged facts remain available.
+2. Never request a key already present after that merge.
+3. A correction is scoped to the current handoff unless an authorized persistent context layer explicitly writes it back.
+4. Facts keep their evidence status. A correction does not automatically turn a pending or inferred value into a confirmed value.
+5. Do not include raw transcripts, credentials, full identifiers, unnecessary document contents, or hidden reasoning.
+
+## Executor contract
+
+An Executor accepts only a handoff addressed to its own Skill, starts at a valid state, performs domain work, and returns a compact result containing conclusion, material evidence or uncertainty, current state, blockers, and next action. It may request another specialist through the Router, but it must not silently take ownership of another domain.
+
+The Router may combine multiple Executor results into one response. It does not rewrite domain facts, perform the specialist's full analysis, or expose this YAML shape unless the user explicitly requests technical diagnostics.
+
+---
+
+<!-- source: shared/executor-state-machines.md -->
+
+# Domain Executor State Machines
+
+State identifies where the current task is inside its owning Executor. It is not the user's SWT lifecycle stage and is not a requirement to expose process labels in the answer. Skip a state when it adds no work; never add ceremony merely to visit every label.
+
+## `swt-application`
+
+`INTAKE -> SUBJECT_RESOLVE -> REQUIREMENTS -> MATERIAL_CHECK -> SUBMISSION_STATUS -> BLOCKER -> NEXT_ACTION`
+
+- Resolve the agency, Sponsor, employer, system, or document before applying requirements.
+- Distinguish prepared, submitted, under review, approved, and needs correction.
+- Payment, signature, and final submission remain user-controlled.
+
+## `swt-position`
+
+`INTAKE -> NORMALIZE -> LOCATION_RESOLVE -> ANALYZE -> BUDGET -> RISK -> DECISION -> NEXT_ACTION`
+
+- Normalize each offer independently; never borrow location or financial facts from another offer.
+- Location and budget states are optional for a narrow question that does not need them.
+- The Executor supports a decision but does not make the user's final value choice.
+
+## `swt-english`
+
+`ASSESS -> DIAGNOSE -> PRACTICE -> RETRY -> REASSESS`
+
+- Enter at the state matching the user's intent; ordinary roleplay need not start with `ASSESS`.
+- Practice evidence never overwrites a formal assessment.
+- Visa facts remain owned by `swt-visa`; this Executor evaluates communication only after material facts are consistent.
+
+## `swt-visa`
+
+`INTAKE -> FACT_EXTRACTION -> CONSISTENCY_CHECK -> CONFLICT_OR_MISSING -> RISK -> NEXT_ACTION`
+
+- `CONFLICT_OR_MISSING` is conditional: skip it when material facts are complete and consistent.
+- Stop fact optimization when critical documents conflict.
+- This Executor never predicts issuance or acts as the consular authority.
+
+## `swt-arrival`
+
+`SAFETY_CHECK -> INTAKE -> DEPENDENCY_ORDER -> ACTION -> CONFIRMATION -> NEXT_ACTION`
+
+- Emergency safety checks can bypass ordinary intake.
+- Order I-94, Sponsor check-in, SSN, insurance, job or housing changes by their real dependencies.
+- Distinguish notified, submitted, system-confirmed, and approved.
+
+## Transition rules
+
+- Start only at a state defined for the selected Executor.
+- Move forward, remain in the same state while gathering evidence, or return to an earlier state only when changed facts invalidate prior work.
+- End with a concrete next action, a verified completion state, or a clearly named blocker.
+- An Executor may not transition into another Executor's state machine. Cross-domain work returns to the Router as a supporting handoff.
 
 ---
 

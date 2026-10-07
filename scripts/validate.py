@@ -73,6 +73,10 @@ def validate_plugin() -> int:
         raise ValueError("canonical decision model is missing")
     if not (PLUGIN_ROOT / "shared" / "persistence-contract.md").is_file():
         raise ValueError("persistence contract is missing")
+    if not (PLUGIN_ROOT / "shared" / "handoff-contract.md").is_file():
+        raise ValueError("handoff contract is missing")
+    if not (PLUGIN_ROOT / "shared" / "executor-state-machines.md").is_file():
+        raise ValueError("executor state machines are missing")
     if not (REFERENCES_ROOT / "user-state.schema.json").is_file():
         raise ValueError("user-state schema is missing")
     paths = list(SKILLS_ROOT.glob("*/SKILL.md"))

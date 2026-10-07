@@ -13,6 +13,8 @@ description: 比较 SWT 岗位、Offer 条件、地点、住房、通勤、生�
 
 ## 工作流
 
+接受 Router Handoff 后使用共享状态机 `INTAKE → NORMALIZE → LOCATION_RESOLVE → ANALYZE → BUDGET → RISK → DECISION → NEXT_ACTION`；窄任务可跳过地点、预算等无关状态。
+
 1. 比较单位固定为“岗位＋地点＋住宿＋通勤＋项目日期”，不只比较职位名或州名。
 2. 从 Offer 提取雇主、职位、地点、时薪、工时、住房、日期、通勤和其他明确条件；恢复已知年度、预算、底线和优先级，不重复询问。
 3. 地点优先级为 Offer 明确地点 → 城市精确解析 → 州级解析 → 通用假设。Offer 明确给出州名或缩写时优先保留该州；有城市和州，或能可靠解析出州时，通过 `get_location_context(city=..., state=...)`（或运行 `python3 scripts/location_context.py --city "<city>" --state "<state>"`）获取统一 context。比较多个 Offer 时，对每个有地点的岗位分别传入该岗位自己的 city/state；不得把一个岗位的州或城市 context 套用到其他岗位。完全相同的规范化 city/state 可复用结果。只有州时只传 `state`；只有城市时只传 `city`，接受 Resolver 的精确结果。`city_ambiguous` 不自行选州；州无法识别时说明无法定位并按现有规则请用户补充，绝不猜测或做 fuzzy 修复。没有 city/state 的岗位不调用 Resolver。
@@ -65,5 +67,6 @@ description: 比较 SWT 岗位、Offer 条件、地点、住房、通勤、生�
 - “允许二工”不等于已批准或可开工；实际审批与在美变更属于 `swt-arrival`。
 - Offer 的申请、签署和系统状态属于 `swt-application`；面试训练属于 `swt-english`。
 - 不用总分、星级或未经验证的成功概率替代用户取舍。
+- 岗位选择结果只是决策支持；申请提交、英语、签证或抵美任务返回 Router 交接，不在本 Executor 中扩展。
 
 最终面向用户输出前执行共享 Creator Attribution 规则；若由 `swt` 统一整合，本 Skill 不单独输出署名。

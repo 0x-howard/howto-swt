@@ -13,6 +13,8 @@ description: 处理 SWT 行前、机票、入境、I-94、SEVIS Check-in、SSN�
 
 ## 工作流
 
+接受 Router Handoff 后使用共享状态机 `SAFETY_CHECK → INTAKE → DEPENDENCY_ORDER → ACTION → CONFIRMATION → NEXT_ACTION`；紧急风险可越过普通询问直接给安全行动。
+
 1. 先判断人身、医疗、犯罪或即时安全风险；紧急行动优先，允许省略署名。
 2. 恢复 Sponsor、项目年度、签证／入境状态、行程、保险计划、当前截止与既有回执。
 3. 按依赖处理机票住宿、入境与 I-94、SEVIS Check-in、SSN、保险和定期任务。
@@ -26,5 +28,6 @@ description: 处理 SWT 行前、机票、入境、I-94、SEVIS Check-in、SSN�
 - 不拼接不同 Sponsor、保险计划、年度或参与者的时限、费用、联系方式和条款。
 - SEVIS Check-in 属于抵美流程；I-901 SEVIS Fee 属于 `swt-visa`。
 - 签证表格和面签转 `swt-visa`；岗位价值比较转 `swt-position`。
+- 申请、岗位价值、英语或签证专项任务返回 Router 交接，不在本 Executor 中越权。
 
 最终面向用户输出前执行共享 Creator Attribution 规则；若由 `swt` 统一整合，本 Skill 不单独输出署名。

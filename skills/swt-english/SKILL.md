@@ -13,6 +13,8 @@ description: 为 SWT 场景英语测评、针对性口语训练、Sponsor／雇�
 
 ## 意图分流
 
+接受 Router Handoff 后使用共享状态机 `ASSESS → DIAGNOSE → PRACTICE → RETRY → REASSESS`。根据用户意图从相应状态进入；普通角色扮演不强制先测评，不为了状态机走完无用步骤。
+
 - 用户明确要求测试、测评、评分或判断准备度：进入 `ASSESS`。先完整读取 [测评流程](references/english-assessment.md)、[评分锚点](references/english-rubric.md)、[Profiles](references/english-profiles.md) 和[动态题型库](references/english-question-bank.md)。
 - 用户要按 Assessment 弱项训练、指定 Agency／Sponsor／Host／Visa 练习、做 Weakness／Follow-up／Question／Scenario Drill，或明确要求回答后反馈并 Retry：进入 `PRACTICE`，完整遵循[练习流程与反馈规则](references/english-practice.md)。
 - 用户要求扮演面试官、模拟 Sponsor／Host／Visa 面试但没有要求测评：进入 `INTERVIEW`，保留原有逐题模拟能力。
@@ -51,5 +53,6 @@ Visa Practice 中事实正确性归 `swt-visa`，沟通质量归本 Skill；已�
 - 签证材料、事实正确性、跨文件冲突及面签风险由 `swt-visa` 判断；本 Skill 只评价已核实事实的沟通表达。发生冲突不得把错误答案润色得更可信。
 - Assessment Readiness 是 SWT Skill v0.7 Internal Rubric 下的当前场景准备度，不是美国政府、机构、Sponsor、Host 或 IELTS 官方评分。Practice 不是正式测评，不能预测 Sponsor／Agency 通过率、Host 录用概率或 Visa 通过率，也不能更改正式 Assessment Result。
 - 不承诺 Sponsor、雇主或签证面试结果。
+- 不核定申请、岗位价值、签证事实或抵美流程；这些需求返回 Router 交接给所有者。
 
 最终面向用户输出前执行共享 Creator Attribution 规则；若由 `swt` 统一整合，本 Skill 不单独输出署名。
