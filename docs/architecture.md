@@ -1,26 +1,32 @@
 # HowTo SWT 怎样工作
 
-HowTo SWT 由六个可独立发现的 Skills 组成。主入口 `swt` 处理显式品牌调用、一般导航和跨模块分流；当用户任务明确时，直接进入最相关的 Specialist。
+HowTo SWT v1.2.0 由三个彼此分层的系统组成。
+
+## Task System
 
 ```text
-用户说明情况 → 判断阶段与任务 → 进入对应 SWT Skill → 加载所需资料或计算 → 回答当前问题
+User → Router → Routing Policy → Handoff → Domain Executor → Executor State Machine
 ```
 
-| Skill | 主要职责 |
-|---|---|
-| `swt` | 显式品牌入口、导航、风险分流与跨 Skill 协调 |
-| `swt-application` | 报名、机构／Sponsor、申请材料与 Employer Application |
-| `swt-position` | 岗位、Offer、地点、预算与收益比较 |
-| `swt-english` | SWT 英语 Assessment、Practice、Interview 与一般口语 |
-| `swt-visa` | J-1 签证材料、事实核对与面签准备 |
-| `swt-arrival` | 行前、入境、Sponsor Check-in、工作和返程 |
+`swt` 只负责理解目标、识别阶段、选择 Executor、整理上下文并决定 `DIRECT / CONFIRM / CLARIFY`。五个 Domain Executor 是 `swt-application`、`swt-position`、`swt-english`、`swt-visa`、`swt-arrival`。它们共同理解 [`shared/handoff-contract.md`](../shared/handoff-contract.md)，各自状态转移见 [`shared/executor-state-machines.md`](../shared/executor-state-machines.md)。
 
-## 运行与维护文件
+## Context System
 
-安装时每个 `skills/<name>/` 都包含对应的 `SKILL.md` 与它所需的运行资料和脚本。共享规则在 `shared/` 维护，业务参考资料在根 `references/` 维护；`scripts/sync_shared.py` 将它们生成为各 Skill 的本地运行包。Skills CLI 复制单个 Skill 文件夹时，所需内容随包安装。
+```text
+Persistent State → Context Builder → Router/Handoff → Executor → Write Back
+```
 
-开发用测试、构建脚本、源数据和本说明文档不属于 Skills CLI 的安装包。实现细节以 [共享架构说明](../shared/architecture.md)、[路由规则](../shared/routing-policy.md)和[结构化决策说明](../shared/decision-model.md)为准。
+Free 在当前会话内提供完整 task context。Pro 在 package 外管理 canonical Profile、SWT Case、Lifecycle、Domain Records 与 Events，并只向当前 Executor 提供相关切片。Confirmed Fact 与 Evidence Fact 可以写回；Inference 必须先成为 temporary hypothesis，再经用户确认。
 
-## 数据来源边界
+## Runtime System
 
-产品运行只需要随 `swt-position` 安装的规范化地点资料。完整抓取和清洗源数据位于产品目录之外；用户数据不会作为项目知识或测试数据写进 Skill 包。隐私和可选持久化规则见[数据与隐私](data-and-privacy.md)。
+```text
+Runtime Identity → Edition Guard → Update Check → Stage → Validate → Backup
+→ Replace → Verify → Cleanup | Rollback
+```
+
+公开 CLI 管理 `.howto-runtime.json`、相同 Edition 升级、跨 Edition 二次确认、WorkBuddy flat-six 安装与失败回滚。Update Check 与 Apply 永远分离；Free 的第三方 Skills CLI 安装边界见[安装说明](INSTALL.md)。
+
+## 真源与生成物
+
+共享规则在 `shared/`，业务参考在根 `references/`；`scripts/sync_shared.py` 将运行所需真源同步到六个 Skill。开发测试、构建输入和原始数据不进入 Skill runtime。用户数据不进入 package、Git、overlay 或 references。

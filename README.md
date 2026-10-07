@@ -1,84 +1,88 @@
 # HowTo SWT
 
-面向 J-1 Summer Work Travel 学生的 AI 决策、申请、岗位、英语、签证与赴美辅助工具。
+## 01 Hero
 
-**HowTo SWT Free v1.1.1** · Created by Howard
+面向 J-1 Summer Work Travel 学生的 AI 任务系统：从申请、岗位与预算，到英语、签证和抵美后的下一步。
 
-## 🚀 安装 HowTo SWT
+**HowTo SWT Free v1.2.0** · Created by Howard
 
-先确认你正在使用的 Agent，再打开统一安装入口：[《HowTo SWT 安装说明》](docs/INSTALL.md)。
+Free 不是试用壳：它能在当前会话内复用上下文并完整完成一个真实 SWT 任务。Pro 管理跨会话的完整 SWT 生命周期；SWT 陪跑营在 Pro 之上增加社群、直播与真人判断／复核／陪跑。
 
-| Agent | Free | Pro | 安装方式 |
-|---|---|---|---|
-| Codex | ◐ 包结构与调用规则已验证 | ✅ Online 安装、更新与 Runtime 已验证 | [安装说明](docs/INSTALL.md) |
-| 豆包 Work | 🧪 待完整验证 | ◐ Offline Activation 安装链路已验证；Runtime 待完整验证 | [安装说明](docs/INSTALL.md) |
-| Claude Code | ◐ 兼容 Skills CLI；待真实 Runtime 验收 | 🧪 已有适配器，待完整验证 | [安装说明](docs/INSTALL.md) |
-| WorkBuddy | 🧪 待完整验证 | 🧪 已有适配器，待完整验证 | [安装说明](docs/INSTALL.md) |
+## 02 Agent 安装
 
-状态只代表现有测试记录，不代表所有宿主版本都已完整验收。
+标准 Free 安装来自公开 GitHub source：
 
-## Free 与 Pro
+```bash
+npx -y skills add 0x-howard/howto-swt -g --all
+```
 
-| 能力 | HowTo SWT Free | HowTo SWT Pro |
+| Agent | 当前验证状态 | 入口 |
 |---|---|---|
-| SWT 全流程导航 | ✅ | ✅ |
-| 报名与申请 | ✅ | ✅ 基于同一 Free 能力基座 |
-| 岗位 / Offer 分析 | ✅ | ✅ 基于同一 Free 能力基座 |
-| 收入与回本测算 | ✅ | ✅ |
-| SWT English | ✅ 基础测评、训练与面试 | ✅ 当前与 Free 共用能力基座 |
-| Visa / Arrival | ✅ | ✅ |
-| 最新 SWT 知识与规则更新 | 基础维护 | ✅ 会员更新机制 |
-| Pro 专属工作流 | — | ✅ 授权安装、更新与 Offline Activation |
-| 受限网络 Agent 适配 | — | ✅ Offline Activation 安装链路 |
-| 持续版本更新 | 基础维护 | ✅ 会员有效期内获取新版本 |
-| 真人陪跑支持 | — | ✅ 陪跑营会员 |
-| 获取方式 | 免费使用 | 加入 SWT 陪跑营，登记会员邮箱后开通 |
+| Codex | ✅ 新会话品牌触发、岗位路由、Edition detection 与更新检查已验收 | [安装说明](docs/INSTALL.md) |
+| WorkBuddy | ◐ `~/.workbuddy/skills/` flat-six adapter、守卫与回滚已集成测试；本机无可用宿主，未做 UI Runtime 验收 | [安装说明](docs/INSTALL.md) |
+| 豆包 Work | ◐ 原有 adapter 与 Offline Activation 回归通过；本轮未做真实宿主验收 | [安装说明](docs/INSTALL.md) |
+| Claude Code | ◐ package adapter 回归通过；待真实宿主验收 | [安装说明](docs/INSTALL.md) |
 
-## 核心能力
+第三方 `skills add` 无法被 HowTo SWT 代码 100% 硬拦截：一般 Agent 依赖安装前的 Agent Preflight Guard；WorkBuddy 和 HowTo SWT CLI 路径使用代码级 Hard Guard。详情见[安装说明](docs/INSTALL.md)。
 
-- **SWT 全流程 / 下一步**（`swt`）：判断当前阶段、下一步和关键提醒。
-- **报名与申请**（`swt-application`）：机构、Sponsor、材料和雇主申请辅助。
-- **岗位 / Offer / 预算**（`swt-position`）：比较工资、住宿、交通、生活成本和预计结余。
-- **英语测评 / 练习 / 面试**（`swt-english`）：测评弱项并练习 Agency、Sponsor、Host 和 Visa 场景。
-- **Visa**（`swt-visa`）：核对 DS-2019、DS-160、SEVIS、预约与面签材料的一致性。
-- **Arrival / U.S. Life**（`swt-arrival`）：行前、入境、I-94、SSN、保险、工作与返程事项。
+## 03 Free vs Pro
 
-## 使用方式
+| 产品 | 正式边界 | 核心价值 |
+|---|---|---|
+| HowTo SWT Free | 完成一个完整 SWT 任务 | 当前会话上下文、六个领域 Executor、基础安全与签证风险、决策与下一步 |
+| HowTo SWT Pro | 管理一个完整 SWT 过程 | Persistent Profile、Lifecycle State、Offer/English/Visa history、Context Builder、Write Back、持续更新 |
+| SWT 陪跑营 | Pro + 真人服务 | 社群、直播、真人判断／复核／陪跑 |
 
-安装完成后直接用自然语言开始，例如：
+OTP、Offline Activation 和 encrypted bundle 是授权基础设施，不是 Pro 的主要用户价值。
+
+## 04 核心能力
+
+- **Orchestrator / Router**（`swt`）：识别阶段与目标，按 `DIRECT / CONFIRM / CLARIFY` 生成统一 Handoff。
+- **Application Executor**：机构、Sponsor、申请材料和 Employer Application。
+- **Position Executor**：Offer、地点、工资、住宿、交通、预算、风险与决策。
+- **English Executor / SWT English**：Assessment、Practice、Retry、Reassessment 与各类面试。
+- **Visa Executor**：事实提取、一致性检查、缺失／冲突、风险与下一步。
+- **Arrival Executor**：行前、入境、I-94、SSN、保险、工作与返程。
+
+架构详见[HowTo SWT 怎样工作](docs/architecture.md)。
+
+## 05 使用方式
+
+安装后在新会话直接说：
 
 ```text
 你好小How
-帮我看看我现在到哪一步了
-小How帮我分析这个 Offer
+小How帮我看看这个岗位
 陪我练 Sponsor 面试
 帮我核对签证材料
 ```
 
-## 数据与隐私
+明确任务自动进入对应 Executor；多个方向都合理时只给 2–4 个选择；缺少路由所需信息时只问最少关键问题。更新检查在后台 fail-open，永远先完成用户任务，且只提示、不自动安装。
 
-- Runtime Knowledge 与 User Data 分离。
-- Skill package 不应存储用户敏感个人资料。
-- `USER_DATA_ROOT` 是由外部宿主明确配置的可选能力。
-- 普通 Skill runtime 不被宣称会自动跨会话保存用户数据。
+## 06 数据与隐私
+
+- Free 使用当前会话的 ephemeral task context，不宣称自动跨会话保存。
+- Pro 的 canonical context 必须写到 package 之外的显式 `USER_DATA_ROOT`；推断不会未经确认持久化。
+- Runtime Knowledge、开发源数据和 User Data 分离；Skill package、Git、overlay 与 references 不保存用户长期数据。
+- 不要把密码、OTP、session token 或不必要的证件号码交给 Skill。
 
 详见[数据与隐私](docs/data-and-privacy.md)。
 
-## 最近更新
+## 07 最近 5 个版本
 
 <!-- CHANGELOG_LATEST_START -->
 | 版本 | 更新 |
 |---|---|
+| v1.2.0 | 建立 Orchestration、Pro Context 接口边界与 Runtime Lifecycle；Free 新增 24h fail-open 更新检查。 |
 | v1.1.1 | 修复“小How / HowTo SWT”显式调用发现，并重做公开首页与安装入口。 |
 | v1.1.0 | 统一 HowTo SWT 品牌、目录和安装标识。 |
 | v1.0.0 | 明确 Runtime、Source、Test 与 User Data 的边界。 |
 | v0.9.0 | 建立六个 Skills 的结构化决策与任务路由。 |
-| v0.8.0 | 增加 SWT English 场景训练、重答与复测闭环。 |
 <!-- CHANGELOG_LATEST_END -->
 
 [查看完整更新日志 →](docs/CHANGELOG.md)
 
-## Author
+## 08 Author
 
 HowTo SWT  
 作者：Howard  

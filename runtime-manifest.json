@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "product": "howto-swt",
+  "version": "1.2.0",
+  "released_at": "2026-10-07T06:57:11Z",
+  "summary": "Orchestration, lifecycle context boundary, and guarded runtime lifecycle.",
+  "sha256": "d450b4f8a1778208fb221c8fef63a0fb7fa7860e25658bc83fe47f34f3a61516",
+  "size": 811409,
+  "asset_url": "https://github.com/0x-howard/howto-swt/releases/download/v1.2.0/howto-swt-1.2.0.zip"
+}

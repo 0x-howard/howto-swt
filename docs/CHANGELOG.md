@@ -1,5 +1,25 @@
 # HowTo SWT Free Changelog
 
+## v1.2.0 — Task, Context & Runtime Architecture
+
+### Milestone 1 — Orchestration Architecture
+
+- 将 `swt` 收敛为 Orchestrator / Router，使用 `DIRECT / CONFIRM / CLARIFY` 三种路由模式，不再承载岗位、英语或签证等下游业务实现。
+- 建立统一 Handoff Contract，并为 Application、Position、English、Visa、Arrival 五个 Executor 定义有限状态机与越权边界。
+- 保留并回归已有 Position、English、Visa 行为；已知上下文不重复询问，`changed_facts` 明确覆盖旧事实。
+
+### Milestone 2 — Pro Lifecycle Context boundary
+
+- 固定 Free 为当前会话内的 ephemeral task context；为 Pro 定义 package 外的 canonical Profile、SWT Case、Lifecycle、Domain Records 与 Event History 接口边界。
+- Context Builder 只选取当前 Executor / intent 所需资料；Write Back 只持久化 confirmed fact 或带来源与 confidence 的 evidence fact，inference 必须先确认。
+- Pro 的实现保留在私有 overlay；Free 不依赖 Pro context，也不包含 Pro 私有源码或用户长期数据。
+
+### Milestone 3 — Distribution Guard & Runtime Lifecycle
+
+- Free 新增基于公开 `runtime-manifest.json` 的 SemVer 更新检查、24 小时 cache 与 fail-open 状态；check 与 apply 强制分离。
+- 建立跨 Edition Runtime Identity、显式替换确认、WorkBuddy flat-six adapter、stage / validate / backup / replace / verify / rollback 契约，由公开 CLI 实现受控安装。
+- 明确第三方 Skills CLI 的技术边界：一般 Agent 使用 preflight，受控 CLI 与 WorkBuddy 路径使用 hard guard。
+
 ## v1.1.1 — Runtime Activation & README Homepage Cleanup
 
 - 修复“小How / HowTo SWT”显式称呼未能触发主 Skill 的 discovery 问题；在入口 description、plugin manifest 和生成的主入口规则中加入调用别名。
