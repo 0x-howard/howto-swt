@@ -29,17 +29,18 @@ class EnglishAssessmentRoutingTests(unittest.TestCase):
     def test_known_host_context_is_reused(self):
         self.assertIn("复用已知 Position Context", ROUTING)
         self.assertIn("不重复询问", ORCHESTRATOR)
-        self.assertIn("复用当前对话中已知岗位", ENGLISH)
+        self.assertIn("恢复当前会话已知上下文", ENGLISH)
 
     def test_visa_documents_and_visa_roleplay_have_distinct_routes(self):
         self.assertRegex(ROUTING, r"签证需要什么材料.*`swt-visa`.*不因出现“英语”路由到 English")
-        self.assertRegex(ROUTING, r"模拟签证官问问题.*`swt-visa`.*`swt-english` / INTERVIEW")
+        self.assertRegex(ROUTING, r"模拟签证官问问题.*`swt-visa`.*`swt-english` / MOCK")
         self.assertIn("事实与材料由 `swt-visa` 提供", ENGLISH)
 
-    def test_assessment_does_not_replace_interview_or_general_english(self):
-        for mode in ("ASSESS", "PRACTICE", "INTERVIEW", "GENERAL ENGLISH"):
+    def test_six_modes_and_general_english_fallback(self):
+        for mode in ("ASSESS", "PRACTICE", "MOCK", "RECORDING", "RETRY", "PROGRESS"):
             self.assertIn(mode, ENGLISH)
-        self.assertIn("强制给所有普通练习打分", ENGLISH)
+        self.assertIn("GENERAL ENGLISH", ENGLISH)
+        self.assertIn("fallback", ENGLISH)
 
     def test_reassessment_weakness_practice_and_retake_are_distinct(self):
         row = next(line for line in ROUTING.splitlines() if "按刚才测评里最弱的两项陪我练" in line)

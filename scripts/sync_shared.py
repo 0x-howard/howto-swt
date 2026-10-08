@@ -42,7 +42,7 @@ DOMAIN_REFERENCES_BY_SKILL = {
     "swt-position": ("location-offer.md", "budget-method.md", "tax-estimation.md", "state-income-tax.md", "default-assumptions.json"),
     "swt-english": (
         "english-practice.md", "english-assessment.md", "english-rubric.md",
-        "english-profiles.md", "english-question-bank.md",
+        "english-profiles.md", "english-question-bank.md", "english-speaking-coach.md",
     ),
     "swt-visa": ("visa-ds2019.md",),
     "swt-arrival": ("predeparture-program.md",),
@@ -55,7 +55,7 @@ PORTABLE_SCRIPTS_BY_SKILL = {
     "swt-position": COMMON_PORTABLE_SCRIPTS + (
         "budget.py", "compare_budget.py", "location_context.py", "state_context.py", "swt_market.py",
     ),
-    "swt-english": COMMON_PORTABLE_SCRIPTS + ("speaking_score.py",),
+    "swt-english": COMMON_PORTABLE_SCRIPTS + ("speaking_score.py", "english_speaking.py"),
     "swt-visa": COMMON_PORTABLE_SCRIPTS,
     "swt-arrival": COMMON_PORTABLE_SCRIPTS,
 }

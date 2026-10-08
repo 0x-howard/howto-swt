@@ -4,7 +4,7 @@
 <!-- Source: shared/interaction-protocol.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/persistence-contract.md, shared/official-sources.md -->
 <!-- runtime-version: 1.2.0 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt-arrival; source-sha256: 6260c7b44b0cc9573b950bfd171758f55a09649682010b4cbbe1c3b3252578a5 -->
+<!-- skill: swt-arrival; source-sha256: 7da2bc5117d97a0a6d351428fc274d656012bdb9a1d2d168bdb8d567e1ea3f90 -->
 
 <!-- source: shared/interaction-protocol.md -->
 
@@ -435,6 +435,45 @@ english_practice:
 
 `focus_dimensions` 使用 v0.7 Rubric 的既有 criterion keys。Practice profile 仅表示练习路径映射，不是第五种 Assessment Profile。用户选择复测时按 v0.7 流程新建或更新 `english_assessment`，Practice State 与正式结果分别维护。
 
+## SWT English Speaking Coach State
+
+六个入口统一为 `ASSESS | PRACTICE | MOCK | RECORDING | RETRY | PROGRESS`；General English 只作 fallback。当前任务只提取所需 Interview Profile，不复制整份历史：
+
+```yaml
+interview_profile:
+  scenario: agency | sponsor | host_employer | visa | workplace
+  candidate: {}
+  swt: {}
+  employer: null
+  position: null
+  experience: []
+  english_context: {}
+  evidence_sources: []
+english_mock:
+  state: ASK_MAIN
+  main_question_index: 0
+  follow_up_count: 0
+  max_follow_ups_per_main_question: 3
+  delayed_feedback: true
+english_recording:
+  media_evidence: audio | video | transcript_only
+  timestamp_transcript: []
+  qa_pairs: []
+  pronunciation_status: assessed | not_assessed
+english_progress:
+  assessment_history: []
+  weakness_tracking: []
+  trained_questions: []
+  retry_results: []
+  preparation_stage: null
+  before_after: []
+  next_training_plan: []
+```
+
+Mock 的 clarification 也增加 `follow_up_count`；到 3 后必须回到 `ASK_MAIN` 的下一题。`ASSESS`、完成的 `MOCK` 与 `RECORDING` 共用既有七维 Assessment Result，不新建评分体系。只有真实音频／视频证据允许评价发音、语速、停顿、重复和音频相关流利度；仅文字或 transcript 时 `pronunciation_status = not_assessed`。
+
+Free 仅在当前 conversation 保留完整闭环。Pro 可把 `english_progress` 作为现有 English domain record 写入 Lifecycle Context；confirmed／evidence／inference 规则不变，inference 不得直接永久写入。
+
 ---
 
 <!-- source: shared/decision-model.md -->
@@ -458,7 +497,7 @@ This is the shared source of truth for internal task routing and decision state 
 
 Use one of the task types defined by `routing-policy.md`:
 
-`NAVIGATION | DOCUMENT_CHECK | DECISION | INTERVIEW | ENGLISH_PRACTICE | GENERAL_ENGLISH | ENGLISH_ASSESSMENT | FORM_FILLING | CONFLICT | CALCULATION | EMERGENCY | GENERAL_QA`
+`NAVIGATION | DOCUMENT_CHECK | DECISION | ENGLISH_ASSESSMENT | ENGLISH_PRACTICE | ENGLISH_MOCK | ENGLISH_RECORDING | ENGLISH_RETRY | ENGLISH_PROGRESS | GENERAL_ENGLISH | FORM_FILLING | CONFLICT | CALCULATION | EMERGENCY | GENERAL_QA`
 
 ### Skill route
 
@@ -466,7 +505,7 @@ Use one of the task types defined by `routing-policy.md`:
 
 An optional supporting route may be added when a single request genuinely needs a second specialist. Do not create Skills or route aliases here.
 
-The validator checks that obvious single-owner intents stay on their owning route: navigation and general SWT questions to `swt`; calculation to `swt-position`; Interview, English Practice, General English and English Assessment to `swt-english`; form filling to application, visa or arrival. Document checks and conflicts remain object-dependent and may use any existing Skill.
+The validator checks that obvious single-owner intents stay on their owning route: navigation and general SWT questions to `swt`; calculation to `swt-position`; all six English modes plus General English fallback to `swt-english`; form filling to application, visa or arrival. Legacy `INTERVIEW` input maps to `ENGLISH_MOCK`, not a separate runtime mode. Document checks and conflicts remain object-dependent and may use any existing Skill.
 
 ### Stage
 
@@ -500,7 +539,7 @@ These values map directly to `evidence-policy.md`. Never convert a pending or co
 
 ### Next action
 
-`answer | ask_one_question | calculate | load_known_context | route_specialist | verify_fact | pause_action | start_assessment | start_practice | start_interview | finish`
+`answer | ask_one_question | calculate | load_known_context | route_specialist | verify_fact | pause_action | start_assessment | start_practice | start_mock | analyze_recording | start_retry | resume_progress | finish`
 
 ## Optional Decision Record
 
@@ -629,10 +668,13 @@ State identifies where the current task is inside its owning Executor. It is not
 
 ## `swt-english`
 
-`ASSESS -> DIAGNOSE -> PRACTICE -> RETRY -> REASSESS`
+`PROFILE -> ASSESS | PRACTICE | MOCK | RECORDING | RETRY | PROGRESS -> RESULT | NEXT_PLAN`
 
-- Enter at the state matching the user's intent; ordinary roleplay need not start with `ASSESS`.
-- Practice evidence never overwrites a formal assessment.
+- Enter at the state matching the user's six-mode intent; `GENERAL ENGLISH` remains a fallback, not a primary state.
+- `PRACTICE` teaches immediately and may transition to `RETRY`; `MOCK` withholds teaching until its final `RESULT`.
+- A Mock main question may transition through at most `FOLLOW_UP_1`, `FOLLOW_UP_2`, and `FOLLOW_UP_3`, then must move to the next main question. Clarification counts toward the same cap.
+- `ASSESS`, completed `MOCK`, and `RECORDING` produce the same seven-dimension Assessment Result. Practice evidence never silently overwrites a formal result.
+- Text or transcript input leaves pronunciation `not_assessed`; audio-dependent observations require actual media evidence.
 - Visa facts remain owned by `swt-visa`; this Executor evaluates communication only after material facts are consistent.
 
 ## `swt-visa`

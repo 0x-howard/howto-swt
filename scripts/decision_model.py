@@ -6,17 +6,20 @@ from __future__ import annotations
 from typing import Any
 
 INTENTS = frozenset({
-    "NAVIGATION", "DOCUMENT_CHECK", "DECISION", "INTERVIEW", "ENGLISH_PRACTICE",
-    "GENERAL_ENGLISH", "ENGLISH_ASSESSMENT", "FORM_FILLING", "CONFLICT",
-    "CALCULATION", "EMERGENCY", "GENERAL_QA",
+    "NAVIGATION", "DOCUMENT_CHECK", "DECISION", "ENGLISH_ASSESSMENT", "ENGLISH_PRACTICE",
+    "ENGLISH_MOCK", "ENGLISH_RECORDING", "ENGLISH_RETRY", "ENGLISH_PROGRESS",
+    "GENERAL_ENGLISH", "FORM_FILLING", "CONFLICT", "CALCULATION", "EMERGENCY", "GENERAL_QA",
 })
 SKILLS = frozenset({"swt", "swt-application", "swt-position", "swt-english", "swt-visa", "swt-arrival"})
 INTENT_ROUTES = {
     "NAVIGATION": frozenset({"swt"}),
     "DOCUMENT_CHECK": SKILLS,
     "DECISION": frozenset({"swt", "swt-application", "swt-position"}),
-    "INTERVIEW": frozenset({"swt-english"}),
     "ENGLISH_PRACTICE": frozenset({"swt-english"}),
+    "ENGLISH_MOCK": frozenset({"swt-english"}),
+    "ENGLISH_RECORDING": frozenset({"swt-english"}),
+    "ENGLISH_RETRY": frozenset({"swt-english"}),
+    "ENGLISH_PROGRESS": frozenset({"swt-english"}),
     "GENERAL_ENGLISH": frozenset({"swt-english"}),
     "ENGLISH_ASSESSMENT": frozenset({"swt-english"}),
     "FORM_FILLING": frozenset({"swt-application", "swt-visa", "swt-arrival"}),
@@ -33,7 +36,8 @@ MATERIALITY = frozenset({"non_material", "material", "critical"})
 MISSING = frozenset({"none", "low_impact", "conclusion_changes", "safety_blocking"})
 NEXT = frozenset({
     "answer", "ask_one_question", "calculate", "load_known_context", "route_specialist",
-    "verify_fact", "pause_action", "start_assessment", "start_practice", "start_interview", "finish",
+    "verify_fact", "pause_action", "start_assessment", "start_practice", "start_mock",
+    "analyze_recording", "start_retry", "resume_progress", "finish",
 })
 REASONS = frozenset({
     "direct_answer", "context_needed", "route_by_object", "risk_pause", "fact_conflict",
@@ -108,3 +112,11 @@ def validate_decision(record: dict[str, Any]) -> None:
         raise ValueError("assessment intent must stay on the assessment path")
     if record["intent"] == "ENGLISH_PRACTICE" and record["next_action"] not in {"start_practice", "ask_one_question", "route_specialist", "verify_fact", "pause_action"}:
         raise ValueError("practice intent must stay on the practice path")
+    mode_actions = {
+        "ENGLISH_MOCK": "start_mock", "ENGLISH_RECORDING": "analyze_recording",
+        "ENGLISH_RETRY": "start_retry", "ENGLISH_PROGRESS": "resume_progress",
+    }
+    if record["intent"] in mode_actions and record["next_action"] not in {
+        mode_actions[record["intent"]], "ask_one_question", "route_specialist", "verify_fact", "pause_action",
+    }:
+        raise ValueError("English mode intent must stay on its execution path")

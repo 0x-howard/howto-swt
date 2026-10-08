@@ -17,7 +17,7 @@ This is the shared source of truth for internal task routing and decision state 
 
 Use one of the task types defined by `routing-policy.md`:
 
-`NAVIGATION | DOCUMENT_CHECK | DECISION | INTERVIEW | ENGLISH_PRACTICE | GENERAL_ENGLISH | ENGLISH_ASSESSMENT | FORM_FILLING | CONFLICT | CALCULATION | EMERGENCY | GENERAL_QA`
+`NAVIGATION | DOCUMENT_CHECK | DECISION | ENGLISH_ASSESSMENT | ENGLISH_PRACTICE | ENGLISH_MOCK | ENGLISH_RECORDING | ENGLISH_RETRY | ENGLISH_PROGRESS | GENERAL_ENGLISH | FORM_FILLING | CONFLICT | CALCULATION | EMERGENCY | GENERAL_QA`
 
 ### Skill route
 
@@ -25,7 +25,7 @@ Use one of the task types defined by `routing-policy.md`:
 
 An optional supporting route may be added when a single request genuinely needs a second specialist. Do not create Skills or route aliases here.
 
-The validator checks that obvious single-owner intents stay on their owning route: navigation and general SWT questions to `swt`; calculation to `swt-position`; Interview, English Practice, General English and English Assessment to `swt-english`; form filling to application, visa or arrival. Document checks and conflicts remain object-dependent and may use any existing Skill.
+The validator checks that obvious single-owner intents stay on their owning route: navigation and general SWT questions to `swt`; calculation to `swt-position`; all six English modes plus General English fallback to `swt-english`; form filling to application, visa or arrival. Legacy `INTERVIEW` input maps to `ENGLISH_MOCK`, not a separate runtime mode. Document checks and conflicts remain object-dependent and may use any existing Skill.
 
 ### Stage
 
@@ -59,7 +59,7 @@ These values map directly to `evidence-policy.md`. Never convert a pending or co
 
 ### Next action
 
-`answer | ask_one_question | calculate | load_known_context | route_specialist | verify_fact | pause_action | start_assessment | start_practice | start_interview | finish`
+`answer | ask_one_question | calculate | load_known_context | route_specialist | verify_fact | pause_action | start_assessment | start_practice | start_mock | analyze_recording | start_retry | resume_progress | finish`
 
 ## Optional Decision Record
 

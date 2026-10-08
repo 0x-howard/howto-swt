@@ -1,10 +1,10 @@
 # SWT English Assessment (v0.7)
 
-Assessment is the new `ASSESS` path in `swt-english`. Existing Sponsor/Host/Visa practice remains `INTERVIEW`; ordinary corrections and work/life help remain `GENERAL ENGLISH`. v0.7 does not add a long-term training system.
+Assessment is the `ASSESS` path in `swt-english`. Formal Sponsor/Host/Visa simulation uses `MOCK`; ordinary corrections and work/life help use `PRACTICE` or the `GENERAL ENGLISH` fallback. Pro long-term training state is handled only through the existing Lifecycle Context.
 
 ## Start and route
 
-Use assessment when a user asks to test, measure, assess, score, or check readiness, such as “测一下我的口语”, “机构口测”, “看看我能不能应付 Sponsor 面试”, “测我的 cashier 英语”, “测一下美签英语”, or “综合 SWT 英语测评”. A request to role-play an interview without asking for assessment remains `INTERVIEW`.
+Use assessment when a user asks to test, measure, assess, score, or check readiness, such as “测一下我的口语”, “机构口测”, “看看我能不能应付 Sponsor 面试”, “测我的 cashier 英语”, “测一下美签英语”, or “综合 SWT 英语测评”. A request for a realistic interview simulation enters `MOCK`, which delays feedback and produces the same Assessment Result at completion.
 
 Select `agency_generic`, `sponsor_generic`, `host_generic`, `visa_interview_generic`, or `comprehensive` from the user's explicit target. A named agency or Sponsor stays generic without authentic specific scoring material. For comprehensive, gather one shared evidence set and map it through each profile. Do not repeat the assessment four times.
 

@@ -5,6 +5,8 @@
 - 主入口改为严格两阶段 Router：生成包含任务、上下文、边界、节奏与输出要求的 Handoff Prompt 后停止，等待用户确认／修改／重新发送后再由 Executor 执行。
 - 扩充 HowToSWT／howtoswt／小How等入口变体；无任务问候显示六项菜单，带任务输入直接生成目标 Handoff，不再先展示首页。
 - Free 主入口在 Handoff 或菜单之后、Contract 之外最多显示一次固定两行 Pro 提示；Pro 构建会移除该区块，子 Skill 与英语执行模式均不显示。
+- 将 `swt-english` 升级为六模式 SWT AI Speaking Coach：Profile-driven Mock、每题最多三次动态追问、Practice／Mock 分离、统一七维 Assessment、Recording 证据降级、Retry 与 Progress。
+- Free 保留当前 conversation 内的完整 Profile → Mock → Assessment → Retry 闭环；Pro Progress 接入既有 Lifecycle Context，不建立第二套长期存储。
 
 ## v1.2.0 — Task, Context & Runtime Architecture
 

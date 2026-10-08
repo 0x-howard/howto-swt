@@ -52,7 +52,7 @@ class SwtRouterPositionIntentTests(unittest.TestCase):
         self.assertIn("howto swt", description)
         self.assertIn("howto-swt", description)
         self.assertIn("你好，我在。你可以直接选一项：", SKILL_TEXT)
-        self.assertIn("回复字母，或者直接说你要办的事。", SKILL_TEXT)
+        self.assertIn("回复数字，或者直接说你要办的事。", SKILL_TEXT)
         self.assertIn("仅“你好”“hello”“hi”“在吗”不触发", SKILL_TEXT)
         self.assertIn("小How帮我看看这个岗位", SKILL_TEXT)
         self.assertIn("`DIRECT`", SKILL_TEXT)
@@ -67,10 +67,10 @@ class SwtRouterPositionIntentTests(unittest.TestCase):
         self.assertIn("不直接触发 `swt-position`", bare_place_rule)
         self.assertIn("`CLARIFY`", bare_place_rule)
 
-    def test_router_does_not_expose_backend_names_in_user_facing_answers(self):
+    def test_router_exposes_only_operational_handoff_names(self):
         for term in ("location_context.py", "swt_market.py", "state_summary.json", "Resolver", "API"):
             self.assertNotIn(term, SKILL_TEXT)
-        self.assertIn("不提内部实现、文件名、Executor 或工具接口", SKILL_TEXT)
+        self.assertIn("不得暴露隐藏推理", SKILL_TEXT)
 
 
 if __name__ == "__main__":

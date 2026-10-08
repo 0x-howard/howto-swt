@@ -20,10 +20,13 @@ State identifies where the current task is inside its owning Executor. It is not
 
 ## `swt-english`
 
-`ASSESS -> DIAGNOSE -> PRACTICE -> RETRY -> REASSESS`
+`PROFILE -> ASSESS | PRACTICE | MOCK | RECORDING | RETRY | PROGRESS -> RESULT | NEXT_PLAN`
 
-- Enter at the state matching the user's intent; ordinary roleplay need not start with `ASSESS`.
-- Practice evidence never overwrites a formal assessment.
+- Enter at the state matching the user's six-mode intent; `GENERAL ENGLISH` remains a fallback, not a primary state.
+- `PRACTICE` teaches immediately and may transition to `RETRY`; `MOCK` withholds teaching until its final `RESULT`.
+- A Mock main question may transition through at most `FOLLOW_UP_1`, `FOLLOW_UP_2`, and `FOLLOW_UP_3`, then must move to the next main question. Clarification counts toward the same cap.
+- `ASSESS`, completed `MOCK`, and `RECORDING` produce the same seven-dimension Assessment Result. Practice evidence never silently overwrites a formal result.
+- Text or transcript input leaves pronunciation `not_assessed`; audio-dependent observations require actual media evidence.
 - Visa facts remain owned by `swt-visa`; this Executor evaluates communication only after material facts are consistent.
 
 ## `swt-visa`

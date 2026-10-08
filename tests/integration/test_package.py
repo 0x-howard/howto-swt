@@ -17,7 +17,7 @@ from decision_model import validate_decision  # noqa: E402
 from user_state import load_state, save_state  # noqa: E402
 
 SKILLS = {"swt", "swt-application", "swt-position", "swt-english", "swt-visa", "swt-arrival"}
-INTENTS = {"NAVIGATION", "DOCUMENT_CHECK", "DECISION", "INTERVIEW", "ENGLISH_PRACTICE", "ENGLISH_ASSESSMENT", "FORM_FILLING", "CONFLICT", "CALCULATION", "EMERGENCY", "GENERAL_QA"}
+INTENTS = {"NAVIGATION", "DOCUMENT_CHECK", "DECISION", "ENGLISH_ASSESSMENT", "ENGLISH_PRACTICE", "ENGLISH_MOCK", "ENGLISH_RECORDING", "ENGLISH_RETRY", "ENGLISH_PROGRESS", "GENERAL_ENGLISH", "FORM_FILLING", "CONFLICT", "CALCULATION", "EMERGENCY", "GENERAL_QA"}
 
 class PackageTests(unittest.TestCase):
     def test_manifests_agree(self):
@@ -193,7 +193,7 @@ class PackageTests(unittest.TestCase):
             "swt-position": {"location-offer.md", "budget-method.md", "tax-estimation.md", "state-income-tax.md", "default-assumptions.json"},
             "swt-english": {
                 "english-practice.md", "english-assessment.md", "english-rubric.md",
-                "english-profiles.md", "english-question-bank.md",
+                "english-profiles.md", "english-question-bank.md", "english-speaking-coach.md",
             },
             "swt-visa": {"visa-ds2019.md"},
             "swt-arrival": {"predeparture-program.md"},

@@ -53,9 +53,11 @@
 | `NAVIGATION` | 我在哪一步、下一步做什么、现在准备什么 | `swt` |
 | `DOCUMENT_CHECK` | 某份材料是否完整、正确或可继续使用 | 按文件对象路由 |
 | `DECISION` | 在机构、Sponsor、城市、岗位或 Offer 间选择 | 机构／申请链到 application；岗位到 position |
-| `INTERVIEW` | 准备或模拟 Sponsor／雇主面试 | `swt-english` |
 | `ENGLISH_PRACTICE` | 有目标的口语训练、测评弱项练习、反馈后 Retry | `swt-english` / PRACTICE |
-| `INTERVIEW` | 单纯扮演面试官进行 Sponsor／雇主面试角色练习，未要求结构化纠错与 Retry | `swt-english` / INTERVIEW |
+| `ENGLISH_MOCK` | Agency／Sponsor／Host Employer／Visa 正式模拟，过程中延迟教学 | `swt-english` / MOCK |
+| `ENGLISH_RECORDING` | 分析口测、面试音视频或 transcript | `swt-english` / RECORDING |
+| `ENGLISH_RETRY` | 根据反馈重答并比较 Before／After | `swt-english` / RETRY |
+| `ENGLISH_PROGRESS` | 继续上次英语训练计划 | `swt-english` / PROGRESS |
 | `GENERAL_ENGLISH` | 非结构化口语纠错、工作生活沟通或一般表达优化 | `swt-english` / GENERAL ENGLISH |
 | `ENGLISH_ASSESSMENT` | 测试、评分或判断 SWT 场景英语准备度 | `swt-english` / ASSESS；签证事实同时引用 `swt-visa` |
 | `FORM_FILLING` | 表格或系统字段怎么填 | 申请系统到 application；签证表到 visa；抵美系统到 arrival |
@@ -68,7 +70,7 @@
 
 - 简历、视频、Application、Sponsor 系统、雇主申请、Offer 前材料，以及机构／Sponsor 报名、合同与付款：`swt-application`。
 - Job Offer 的申请／签署状态到 `swt-application`；岗位、城市、工资、住宿、通勤、二工可行性和收益比较到 `swt-position`。
-- Sponsor／雇主面试、口语和工作沟通演练：`swt-english`；结构化短反馈与 Retry 走 `PRACTICE`，只做角色扮演走 `INTERVIEW`。
+- Sponsor／雇主面试、口语和工作沟通演练：`swt-english`；即时反馈走 `PRACTICE`，正式延迟反馈模拟走 `MOCK`。
 - “按刚才测评里最弱的两项陪我练”“测完后帮我逐题纠正再重答”：`swt-english` / PRACTICE；读取最近 Assessment Result 但不改其正式分数。
 - “陪我练英语”且没有测评结果或具体目标：只问一个一级选择题，让用户选 Agency、Sponsor、Host、Visa 或指定弱项；Host 缺岗位时只补问岗位。
 - “练美签口语”进入 Visa Practice：`swt-visa` 核实事实，`swt-english` 训练沟通；事实冲突时暂停优化。
@@ -89,14 +91,14 @@ SEVIS Fee 与 SEVIS Check-in 是不同任务：前者属于签证链，后者属
 - “已经拿到 Offer，下一步是什么”是 `NAVIGATION`，由 `swt` 定位阶段；不能仅因出现 Offer 就调用 position。
 - “这两个 Offer 哪个更适合我”是 `DECISION`，调用 `swt-position`。
 - “带我逐题练这个岗位的英语回答，每题反馈并让我重答”是 `ENGLISH_PRACTICE` / PRACTICE；若岗位事实尚未核验，可先调用 position。
-- “请扮演雇主提问，模拟一轮面试”但没有要求用户重答或逐题反馈，进入 `INTERVIEW`。
+- “请扮演雇主提问，模拟一轮面试”但没有要求用户重答或逐题反馈，进入 `ENGLISH_MOCK` / MOCK。
 - “按我刚才的测评弱项再练一次”“答完告诉我问题并让我重答”是 `ENGLISH_PRACTICE` / PRACTICE；反馈后先 Retry，不能直接跳下一题。
-- “陪我做一轮完整 Sponsor 面试模拟”但没有要求测评或逐题 Retry，进入 `INTERVIEW`；用户要求短反馈和 Retry 时改走 `PRACTICE`。
-- “我要参加 Sponsor 面试，帮我完整测一次”是 `ENGLISH_ASSESSMENT`，调用 `swt-english` / ASSESS；“模拟 Sponsor 面试”但未要求测评仍是 `INTERVIEW`。
+- “陪我做一轮完整 Sponsor 面试模拟”进入 `ENGLISH_MOCK`；用户要求逐题短反馈和 Retry 时改走 `PRACTICE`。
+- “我要参加 Sponsor 面试，帮我完整测一次”是 `ENGLISH_ASSESSMENT`，调用 `swt-english` / ASSESS；“模拟 Sponsor 面试”是 `ENGLISH_MOCK`。
 - “我准备面试 Retail Associate，看看我的英语够不够应付这个岗位”调用 `swt-english` / ASSESS，并复用已知 Position Context；没有岗位上下文且任务选择受影响时只问岗位。
 - “帮我测一下美签面试英语”由 Visa domain context + `swt-english` / ASSESS 协作；“签证需要什么材料”仍由 `swt-visa` 单独处理。
-- “帮我模拟签证官问问题”先由 `swt-visa` 提供／核实签证事实，再由 `swt-english` / INTERVIEW 做真实表达角色练习；没有评分请求时不启动 ASSESS。
-- “这个岗位值不值得去，再告诉我面试怎么准备”是 `DECISION + INTERVIEW`，依次调用 position 和 english，整合成一次回复。
+- “帮我模拟签证官问问题”先由 `swt-visa` 提供／核实签证事实，再由 `swt-english` / MOCK 做真实表达角色练习。
+- “这个岗位值不值得去，再告诉我面试怎么准备”先生成 position Handoff；完成并回到 Router 后再生成 English Handoff，不在 Router 轮自动执行或整合。
 - “时薪 16 刀、每周 40 小时、从 6 月 1 日到 9 月 1 日能剩多少”“把房租和税扣掉”“对比两个 Offer 最后剩得多”都是 `CALCULATION`，路由 `swt-position`。日期、周数、税务和汇率缺口按 Choice-first 逐项补足。
 
 ## 多 Skill 顺序

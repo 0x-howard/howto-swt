@@ -1,6 +1,6 @@
 # SWT 面试与英语练习
 
-本文件统一定义 `PRACTICE`（v0.8 结构化口语训练）、原有 `INTERVIEW`、`GENERAL ENGLISH` 的使用边界。要求测量、评分或准备度判断时走 [SWT English Assessment](english-assessment.md)。练习内容必须来自用户真实情况和已核验的岗位事实；这里复用 Assessment Profile 与题库，不另建 Rubric、Profile 或 Question Bank。
+本文件定义 `PRACTICE`（结构化口语训练）、`RETRY` 与 `GENERAL ENGLISH` fallback 的使用边界。正式延迟反馈模拟走 `MOCK`，要求独立测量或准备度判断时走 [SWT English Assessment](english-assessment.md)。练习内容必须来自用户真实情况和已核验的岗位事实；这里复用 Assessment Profile 与题库，不另建 Rubric、Profile 或 Question Bank。
 
 ## PRACTICE — v0.8 SWT English Practice
 
@@ -65,7 +65,7 @@ Feedback 默认只修 1–2 个对当前任务影响最大的问题，按优先�
 
 没有足够 Before / After 证据时明确说“本轮尚无可比较变化”，不编造提升。选择 C 转 `ASSESS`；Practice 的局部观察不得带入或覆盖正式测评结果。
 
-## INTERVIEW / GENERAL ENGLISH：非结构化练习
+## GENERAL ENGLISH：非结构化 fallback
 
 以下规则适用于未请求结构化 Retry 的普通面试模拟、纠错或工作生活英语；请求弱项训练、短反馈和重答时优先走上方 `PRACTICE`。
 

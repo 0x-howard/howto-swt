@@ -126,3 +126,42 @@ english_practice:
 ```
 
 `focus_dimensions` 使用 v0.7 Rubric 的既有 criterion keys。Practice profile 仅表示练习路径映射，不是第五种 Assessment Profile。用户选择复测时按 v0.7 流程新建或更新 `english_assessment`，Practice State 与正式结果分别维护。
+
+## SWT English Speaking Coach State
+
+六个入口统一为 `ASSESS | PRACTICE | MOCK | RECORDING | RETRY | PROGRESS`；General English 只作 fallback。当前任务只提取所需 Interview Profile，不复制整份历史：
+
+```yaml
+interview_profile:
+  scenario: agency | sponsor | host_employer | visa | workplace
+  candidate: {}
+  swt: {}
+  employer: null
+  position: null
+  experience: []
+  english_context: {}
+  evidence_sources: []
+english_mock:
+  state: ASK_MAIN
+  main_question_index: 0
+  follow_up_count: 0
+  max_follow_ups_per_main_question: 3
+  delayed_feedback: true
+english_recording:
+  media_evidence: audio | video | transcript_only
+  timestamp_transcript: []
+  qa_pairs: []
+  pronunciation_status: assessed | not_assessed
+english_progress:
+  assessment_history: []
+  weakness_tracking: []
+  trained_questions: []
+  retry_results: []
+  preparation_stage: null
+  before_after: []
+  next_training_plan: []
+```
+
+Mock 的 clarification 也增加 `follow_up_count`；到 3 后必须回到 `ASK_MAIN` 的下一题。`ASSESS`、完成的 `MOCK` 与 `RECORDING` 共用既有七维 Assessment Result，不新建评分体系。只有真实音频／视频证据允许评价发音、语速、停顿、重复和音频相关流利度；仅文字或 transcript 时 `pronunciation_status = not_assessed`。
+
+Free 仅在当前 conversation 保留完整闭环。Pro 可把 `english_progress` 作为现有 English domain record 写入 Lifecycle Context；confirmed／evidence／inference 规则不变，inference 不得直接永久写入。

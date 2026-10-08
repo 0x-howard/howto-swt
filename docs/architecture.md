@@ -31,3 +31,7 @@ Runtime Identity → Edition Guard → Update Check → Stage → Validate → B
 ## 真源与生成物
 
 共享规则在 `shared/`，业务参考在根 `references/`；`scripts/sync_shared.py` 将运行所需真源同步到六个 Skill。开发测试、构建输入和原始数据不进入 Skill runtime。用户数据不进入 package、Git、overlay 或 references。
+
+## English Speaking System
+
+`swt-english` 使用 `ASSESS / PRACTICE / MOCK / RECORDING / RETRY / PROGRESS` 六入口。Mock 先建立最小 Interview Profile，单题动态追问上限为 3，过程不教学，结束后复用既有七维 Assessment Result；Practice 则即时反馈并进入 Retry。Recording 只有在真实音视频证据存在时才评价发音及音频相关表现。Free 状态限当前 conversation，Pro Progress 复用既有 Lifecycle Context。
