@@ -1,11 +1,11 @@
 # Skill-to-Skill Handoff Contract
 
-HowTo SWT uses one internal handoff shape between the `swt` Router and the five Domain Executors. It is a compact semantic contract, not a user-facing form and not hidden chain of thought.
+HowTo SWT uses one semantic handoff shape between the `swt` Router and the five Domain Executors. The Router renders it as a directly-sendable user-facing prompt; it is an operational contract, not hidden chain of thought.
 
 ## Canonical shape
 
 ```yaml
-handoff_version: "1.0"
+handoff_version: "1.1"
 router: swt
 executor: swt-position
 intent: DECISION
@@ -14,15 +14,22 @@ known_facts: {}
 changed_facts: {}
 missing_critical_facts: []
 constraints: []
+execution_cadence: analyze the supplied context, ask only decision-changing gaps, then complete the requested task
 requested_output: decision with next action
 state: INTAKE
 ```
 
-All fields are required. `known_facts` contains only facts available to the current task. `changed_facts` contains later user corrections and overrides the same keys in `known_facts`. `missing_critical_facts` contains only gaps that prevent safe routing or execution. `constraints` contains user, safety, time, output, or evidence limits that materially affect the task.
+All fields are required. `known_facts` contains only facts available to the current task. `changed_facts` contains later user corrections and overrides the same keys in `known_facts`. `missing_critical_facts` contains only gaps that prevent safe routing or execution. `constraints` contains user, safety, time, output, or evidence limits that materially affect the task. `execution_cadence` defines interaction rhythm, such as one question at a time, delayed Mock feedback, or immediate Practice feedback.
+
+## User confirmation boundary
+
+The main Router follows `Router → Handoff Prompt → STOP → user confirms/modifies/resends → Executor`. Once a route is known, it renders the full contract in a clearly delimited `HOWTO_SWT_HANDOFF_V1` block and stops. It must not call the Executor or begin its first action in the same turn. Receiving that user-sent block is the Executor's authorization to start.
+
+The rendered prompt must name the selected Skill, current task, user goal, effective known facts, current corrections, constraints, execution cadence, and requested output. It may omit empty display sections but never omit their meaning. Promotional copy, edition labels, or upgrade messages are outside the block and are never part of this contract.
 
 ## Routing modes
 
-- `DIRECT`: one Executor clearly owns the task and no fact required to choose that Executor is missing. Route immediately; do not show a menu first.
+- `DIRECT`: one Executor clearly owns the task and no fact required to choose that Executor is missing. Generate its Handoff Prompt immediately; do not show a menu or execute it first.
 - `CONFIRM`: two to four materially plausible routes remain. Offer two to four short choices and wait for the user's selection.
 - `CLARIFY`: a minimum fact required to choose a safe route is absent. Ask only the single highest-impact question; do not present a long intake form.
 
@@ -38,6 +45,6 @@ Missing facts needed inside an already selected Executor do not automatically ch
 
 ## Executor contract
 
-An Executor accepts only a handoff addressed to its own Skill, starts at a valid state, performs domain work, and returns a compact result containing conclusion, material evidence or uncertainty, current state, blockers, and next action. It may request another specialist through the Router, but it must not silently take ownership of another domain.
+An Executor accepts only a user-confirmed or user-resent handoff addressed to its own Skill, starts at a valid state, performs domain work, and returns a compact result containing conclusion, material evidence or uncertainty, current state, blockers, and next action. It may request another specialist through the Router, but it must not silently take ownership of another domain.
 
-The Router may combine multiple Executor results into one response. It does not rewrite domain facts, perform the specialist's full analysis, or expose this YAML shape unless the user explicitly requests technical diagnostics.
+The Router does not combine results in the handoff turn. It does not rewrite domain facts or perform the specialist's analysis. The rendered prompt may expose the operational fields needed for user confirmation, but never hidden reasoning.

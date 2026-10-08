@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import Any, Iterable
 
 
-HANDOFF_VERSION = "1.0"
+HANDOFF_VERSION = "1.1"
 ROUTER = "swt"
 EXECUTOR_STATES = {
     "swt-application": ("INTAKE", "SUBJECT_RESOLVE", "REQUIREMENTS", "MATERIAL_CHECK", "SUBMISSION_STATUS", "BLOCKER", "NEXT_ACTION"),
@@ -18,7 +18,8 @@ EXECUTOR_STATES = {
 ROUTING_MODES = frozenset({"DIRECT", "CONFIRM", "CLARIFY"})
 REQUIRED_FIELDS = frozenset({
     "handoff_version", "router", "executor", "intent", "user_goal", "known_facts",
-    "changed_facts", "missing_critical_facts", "constraints", "requested_output", "state",
+    "changed_facts", "missing_critical_facts", "constraints", "execution_cadence",
+    "requested_output", "state",
 })
 
 
@@ -54,7 +55,7 @@ def validate_handoff(handoff: dict[str, Any]) -> None:
         raise ValueError("handoff executor must be one of the five Domain Executors")
     if handoff["state"] not in EXECUTOR_STATES[executor]:
         raise ValueError("state does not belong to the selected executor")
-    for field in ("intent", "user_goal", "requested_output"):
+    for field in ("intent", "user_goal", "execution_cadence", "requested_output"):
         if not isinstance(handoff[field], str) or not handoff[field].strip():
             raise ValueError(f"{field} must be a non-empty string")
     facts = effective_facts(handoff)
@@ -63,6 +64,27 @@ def validate_handoff(handoff: dict[str, Any]) -> None:
             raise ValueError(f"{field} must be a string list")
     if set(handoff["missing_critical_facts"]) & set(facts):
         raise ValueError("an effective known fact cannot also be requested as missing")
+
+
+def render_handoff_prompt(handoff: dict[str, Any]) -> str:
+    """Render the complete contract without edition-specific promotion."""
+    validate_handoff(handoff)
+    facts = effective_facts(handoff)
+    lines = [
+        "HOWTO_SWT_HANDOFF_V1",
+        f"使用 Skill：{handoff['executor']}",
+        f"模式／意图：{handoff['intent']}",
+        f"当前任务：{handoff['user_goal']}",
+        "已知事实：" + ("；".join(f"{key}={value}" for key, value in facts.items()) or "无"),
+        "本轮修改：" + ("；".join(f"{key}={value}" for key, value in handoff["changed_facts"].items()) or "无"),
+        "必要边界：" + ("；".join(handoff["constraints"]) or "无额外边界"),
+        f"执行节奏：{handoff['execution_cadence']}",
+        f"输出要求：{handoff['requested_output']}",
+        f"起始状态：{handoff['state']}",
+        f"请使用 {handoff['executor']} 执行。",
+        "END_HOWTO_SWT_HANDOFF_V1",
+    ]
+    return "\n".join(lines)
 
 
 def validate_transition(executor: str, current: str, next_state: str, *, facts_changed: bool = False) -> None:

@@ -60,7 +60,7 @@ class PackageTests(unittest.TestCase):
             if skill == "swt":
                 description = re.search(r"(?m)^description:\s*(.+)$", frontmatter).group(1)
                 self.assertLessEqual(len(description), 1024)
-                for alias in ("小How", "小how", "小 HOW", "HowTo SWT", "howto swt", "howto-swt"):
+                for alias in ("小How", "小how", "小 HOW", "HowToSWT", "howtoswt", "HowTo SWT", "howto swt", "howto-swt"):
                     self.assertIn(alias, description)
                 for ordinary_greeting in ("你好", "hello", "hi", "在吗"):
                     self.assertIn(ordinary_greeting, description)
@@ -93,7 +93,7 @@ class PackageTests(unittest.TestCase):
     def test_persona_and_creator_attribution_are_independent(self):
         identity = (ROOT / "shared/creator-attribution.md").read_text(encoding="utf-8")
         homepage = (ROOT / "skills/swt/SKILL.md").read_text(encoding="utf-8")
-        marker = "HowTo SWT\n作者：Howard\n@哎哟不想上早八啊（全平台同名）"
+        marker = "想让小How持续记住你的 SWT 进度并获得真人陪跑？加入 HowTo SWT Pro。\n作者：Howard｜@哎哟不想上早八啊（全平台同名）"
         self.assertIn("小How", identity)
         self.assertIn("你好，我在。你可以直接选一项：", homepage)
         self.assertNotIn("欢迎使用 HowTo SWT，我是你的 SWT 助手小How。", homepage)
@@ -107,6 +107,23 @@ class PackageTests(unittest.TestCase):
         self.assertIn("不展示首页，立即处理任务", identity)
         self.assertIn("同一 conversation 后续不重复自我介绍", identity)
         self.assertEqual(identity.count("HowTo SWT\n作者：Howard"), 1)
+
+    def test_router_is_two_stage_and_free_ad_stays_outside_handoff(self):
+        router = (ROOT / "skills/swt/SKILL.md").read_text(encoding="utf-8")
+        handoff = (ROOT / "shared/handoff-contract.md").read_text(encoding="utf-8")
+        for item in (
+            "1. 报名 / 申请", "2. 岗位 / Offer", "3. 英语测评 / 面试练习",
+            "4. Visa", "5. 行前 / 入境 / 美国生活", "6. 不确定，帮我判断下一步",
+        ):
+            self.assertIn(item, router)
+        self.assertIn("生成 Prompt 后无条件 STOP", router)
+        self.assertIn("Router → Handoff Prompt → STOP", handoff)
+        self.assertIn("HOWTO_SWT_HANDOFF_V1", handoff)
+        self.assertNotIn("加入 HowTo SWT Pro", handoff)
+        start = router.index("<!-- FREE_ROUTER_AD_START -->")
+        end = router.index("<!-- FREE_ROUTER_AD_END -->")
+        ad = router[start:end]
+        self.assertEqual(ad.count("加入 HowTo SWT Pro"), 1)
 
     def test_current_naming_and_discovery_metadata(self):
         names = ("swt", "swt-application", "swt-position", "swt-english", "swt-visa", "swt-arrival")

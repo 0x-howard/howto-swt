@@ -5,10 +5,11 @@ HowTo SWT v1.2.0 由三个彼此分层的系统组成。
 ## Task System
 
 ```text
-User → Router → Routing Policy → Handoff → Domain Executor → Executor State Machine
+User → Router → Routing Policy → Handoff Prompt → STOP
+     → User confirms/modifies/resends → Domain Executor → Executor State Machine
 ```
 
-`swt` 只负责理解目标、识别阶段、选择 Executor、整理上下文并决定 `DIRECT / CONFIRM / CLARIFY`。五个 Domain Executor 是 `swt-application`、`swt-position`、`swt-english`、`swt-visa`、`swt-arrival`。它们共同理解 [`shared/handoff-contract.md`](../shared/handoff-contract.md)，各自状态转移见 [`shared/executor-state-machines.md`](../shared/executor-state-machines.md)。
+`swt` 只负责理解目标、识别阶段、选择 Executor、整理上下文并决定 `DIRECT / CONFIRM / CLARIFY`。它生成完整、可直接发送的 Handoff Prompt 后必须停止；用户确认、修改或重新发送后，Executor 才开始。五个 Domain Executor 是 `swt-application`、`swt-position`、`swt-english`、`swt-visa`、`swt-arrival`。它们共同理解 [`shared/handoff-contract.md`](../shared/handoff-contract.md)，各自状态转移见 [`shared/executor-state-machines.md`](../shared/executor-state-machines.md)。
 
 ## Context System
 

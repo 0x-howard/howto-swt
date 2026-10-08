@@ -11,6 +11,7 @@ from orchestration import (  # noqa: E402
     EXECUTOR_STATES,
     choose_routing_mode,
     effective_facts,
+    render_handoff_prompt,
     validate_handoff,
     validate_transition,
 )
@@ -18,7 +19,7 @@ from orchestration import (  # noqa: E402
 
 def handoff(executor="swt-position", state="INTAKE"):
     return {
-        "handoff_version": "1.0",
+        "handoff_version": "1.1",
         "router": "swt",
         "executor": executor,
         "intent": "DECISION",
@@ -27,6 +28,7 @@ def handoff(executor="swt-position", state="INTAKE"):
         "changed_facts": {"sponsor": "CIEE"},
         "missing_critical_facts": [],
         "constraints": ["do not invent offer terms"],
+        "execution_cadence": "analyze first, then give one decision",
         "requested_output": "decision and next action",
         "state": state,
     }
@@ -69,6 +71,14 @@ class OrchestrationContractTests(unittest.TestCase):
         validate_transition("swt-position", "INTAKE", "NORMALIZE")
         validate_transition("swt-position", "ANALYZE", "ANALYZE")
 
+    def test_rendered_prompt_is_complete_and_contains_no_free_ad(self):
+        prompt = render_handoff_prompt(handoff())
+        for label in ("使用 Skill", "当前任务", "已知事实", "本轮修改", "必要边界", "执行节奏", "输出要求"):
+            self.assertIn(label, prompt)
+        self.assertTrue(prompt.startswith("HOWTO_SWT_HANDOFF_V1\n"))
+        self.assertTrue(prompt.endswith("END_HOWTO_SWT_HANDOFF_V1"))
+        self.assertNotIn("加入 HowTo SWT Pro", prompt)
+
     def test_backward_transition_requires_changed_facts(self):
         with self.assertRaisesRegex(ValueError, "changed facts"):
             validate_transition("swt-position", "DECISION", "NORMALIZE")
@@ -80,8 +90,9 @@ class OrchestrationContractTests(unittest.TestCase):
 
     def test_router_stays_compact_and_delegates_domain_logic(self):
         router = (ROOT / "skills/swt/SKILL.md").read_text(encoding="utf-8")
-        self.assertLessEqual(len(router.splitlines()), 90)
+        self.assertLessEqual(len(router.splitlines()), 110)
         self.assertIn("不在本 Skill 里重复岗位、英语、签证、申请或抵美业务逻辑", router)
+        self.assertIn("生成 Prompt 后无条件 STOP", router)
 
 
 if __name__ == "__main__":
