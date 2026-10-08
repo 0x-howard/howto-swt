@@ -6,6 +6,8 @@
 
 ## 三种路由决策
 
+三种模式均通过共享 Interaction Layer 落地：`DIRECT` 禁止多余弹窗；`CONFIRM` 优先宿主真实 choice／confirmation；`CLARIFY` 的有限枚举使用 choice，自由事实使用 structured/free-text input。宿主能力未知或不可用时使用编号／文本 fallback，不用 Markdown 假装原生 UI。
+
 - `DIRECT`：用户目标和任务对象足以确定唯一 Executor，立即生成 Handoff，不先显示菜单。
 - `CONFIRM`：存在两到四个合理且会产生不同结果的方向，只给对应的两到四个短选项，用户选择后再交接。
 - `CLARIFY`：缺少决定路由或安全性的最小必要信息，只问一个最高影响问题。

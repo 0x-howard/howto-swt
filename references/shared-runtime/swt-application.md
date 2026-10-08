@@ -1,20 +1,22 @@
 # Generated Shared Runtime
 
 <!-- GENERATED FILE: DO NOT EDIT. -->
-<!-- Source: shared/interaction-protocol.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md -->
+<!-- Source: shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md -->
 <!-- runtime-version: 1.2.0 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt-application; source-sha256: 95643c0749964c0594dd7f71a5241d43ec1418c0fd8f64800dc0198f33d56f9e -->
+<!-- skill: swt-application; source-sha256: 23543b436dd3ee32b579784f2e0acaa0c51b7f7f490b4ab2fa05da6ece40cde5 -->
 
 <!-- source: shared/interaction-protocol.md -->
 
 # 最少必要交互协议
 
+所有交互请求与宿主适配必须同时遵循 [Cross-Agent Interaction Capability Layer](#cross-agent-interaction-capability-layer)。本文件决定何时问，Interaction Layer 决定使用真实原生 UI 还是一致的文本 fallback；五个 Executor 不得各自硬编码宿主 API。
+
 本协议控制主 Skill 与所有子 Skill 怎样取得信息。提问不是回答的默认结尾；先利用已知信息回答能回答的部分，只有缺口会改变判断、路由或安全动作时才问。
 
 ## 默认顺序
 
-没有必须依次走完的题型阶梯。根据缺口选择最省力的形式：单一状态可用是／否或简短选择，多个具体字段可用结构化填写，需要原文或无法预设的事实才用开放题。能直接回答就不提问。
+统一优先级是 Direct Execution → Interactive Choice → Structured Input → Open-ended Text。没有必须依次走完的题型阶梯。根据缺口选择最省力的形式：单一状态可用是／否或简短选择，多个具体字段可用结构化填写，需要原文或无法预设的事实才用开放题。能直接回答就不提问。
 
 用选择题时，选项应互斥、易懂且覆盖当前相关情况，并允许“其他”或“不确定”。用户也可以直接用自然语言作答；不要要求必须回复字母。
 
@@ -104,6 +106,76 @@
 - 不把用户引向某个商业候选或风险更高的动作。
 - 不把“其他／不确定”写成失败；选择后继续帮助定位。
 - 用户已经给出明确自然语言答案时，直接映射，不要求重答字母。
+
+---
+
+<!-- source: shared/interaction-contract.md -->
+
+# Cross-Agent Interaction Capability Layer
+
+This shared semantic layer is the single source of truth for `swt` and all five Domain Executors. Skills describe an `Interaction Request`; a host adapter chooses a real UI only when the current runtime exposes it. No Skill hardcodes Codex, Claude Code, WorkBuddy, or Doubao APIs.
+
+## Priority and routing
+
+1. **Direct execution** — the task and required facts are already clear. Never show a choice merely to look interactive.
+2. **Interactive choice** — a user must select among finite alternatives.
+3. **Structured input** — one or more concrete facts must be entered.
+4. **Open-ended text** — only when the first three cannot express the needed information.
+
+`DIRECT` returns no Interaction Request. `CONFIRM` prefers a choice or explicit confirmation. For `CLARIFY`, a finite enum uses choice; a free-form fact uses free text or a structured form. Confirmed context is reused and not requested again. Conflicts, multiple reasonable actions, and high-impact authorization may still require interaction.
+
+## Interaction Request schema
+
+```json
+{
+  "interaction_version": "1.0",
+  "type": "single_choice",
+  "id": "next_action",
+  "question": "你现在想先处理哪一步？",
+  "options": [
+    {"id": "position", "label": "分析 / 对比岗位", "description": "比较收入、成本和风险"},
+    {"id": "english", "label": "准备英语面试", "description": "进入英语训练"}
+  ],
+  "fields": [],
+  "min_selections": 1,
+  "max_selections": 1,
+  "allow_other": true,
+  "recommended_option_id": null,
+  "recommendation_basis": null,
+  "sensitive_confirmation": false
+}
+```
+
+Types are `single_choice`, `multi_choice`, `free_text`, `structured_form`, and `confirmation`. A form field uses `{id, label, required}`. Options normally contain two to four items. More than four must be grouped, filtered, searched, or paged; the explicit exception is Offer ROI selection, which lists every Offer and caps selection at three. `allow_other` opens free text. A recommended option requires a concise basis derived from known facts, state, or deterministic decision logic.
+
+## Host capability contract
+
+Every runtime adapter reports booleans for `supports_single_choice`, `supports_multi_choice`, `supports_free_text`, `supports_structured_form`, and `supports_confirmation`, plus the actually exposed tool/interface name. Capabilities are observations of the current session, not permanent product claims.
+
+- If the exact requested native capability is available, map the semantic request to that interface.
+- If unavailable or unknown, use the shared numbered/text fallback.
+- Markdown checkboxes are text, not a native picker.
+- Contract/mocked adapter tests prove mapping only; live UI verification must be recorded separately.
+
+## Fallbacks
+
+Single choice is numbered and ends with “回复数字即可。” Multi-choice states its maximum and accepts comma-separated numbers. Confirmation is exactly `1. 继续 / 2. 取消`. Free text asks the concrete fact directly. Structured forms without native support list their field labels and accept a compact text response.
+
+Cancellation returns `cancelled` and performs no downstream action. Invalid or over-limit selections return a validation error and preserve the same request.
+
+## Safety and persistence
+
+Interaction UI does not weaken authorization. Edition replacement and other sensitive/high-impact actions always require a fresh explicit confirmation, even if an earlier message requested installation. Pro Context Builder suppresses questions whose answers are already confirmed; inference does not count as confirmed context.
+
+## Shared Executor uses
+
+- `swt-position`: more than three offers → `multi_choice`, maximum three.
+- `swt-english`: genuinely undecided practice mode → `single_choice`; a named mode stays direct.
+- `swt-visa`: multiple valid next actions → `single_choice`; one required next action stays direct.
+- `swt-application`: finite stage confirmation → `single_choice`; a missing document value uses free text.
+- `swt-arrival`: multiple valid action paths → `single_choice`; emergencies bypass ordinary choice.
+
+These are semantic examples, not copies to paste into five Skill files.
 
 ---
 

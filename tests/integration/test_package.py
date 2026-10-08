@@ -197,7 +197,7 @@ class PackageTests(unittest.TestCase):
             },
             "swt-visa": {"visa-ds2019.md"},
             "swt-arrival": {"predeparture-program.md"},
-            "swt": set(),
+            "swt": {"interaction-adapters.md"},
         }
         for skill, references in expected.items():
             root = ROOT / "skills" / skill

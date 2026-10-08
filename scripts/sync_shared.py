@@ -15,6 +15,7 @@ CURRENT_VERSION = json.loads((PLUGIN_ROOT / "plugin.json").read_text(encoding="u
 
 COMMON_SOURCES = (
     "interaction-protocol.md",
+    "interaction-contract.md",
     "answer-framework.md",
     "editorial-policy.md",
     "creator-attribution.md",
@@ -38,7 +39,7 @@ SOURCES_BY_SKILL = {
 }
 
 DOMAIN_REFERENCES_BY_SKILL = {
-    "swt": (),
+    "swt": ("interaction-adapters.md",),
     "swt-application": ("agency-sponsor.md", "application-materials.md"),
     "swt-position": ("location-offer.md", "budget-method.md", "tax-estimation.md", "state-income-tax.md", "default-assumptions.json"),
     "swt-english": (
@@ -49,7 +50,7 @@ DOMAIN_REFERENCES_BY_SKILL = {
     "swt-arrival": ("predeparture-program.md",),
 }
 
-COMMON_PORTABLE_SCRIPTS = ("decision_model.py", "orchestration.py", "paths.py", "user_state.py")
+COMMON_PORTABLE_SCRIPTS = ("decision_model.py", "orchestration.py", "interaction.py", "paths.py", "user_state.py")
 PORTABLE_SCRIPTS_BY_SKILL = {
     "swt": COMMON_PORTABLE_SCRIPTS + ("free_update.py",),
     "swt-application": COMMON_PORTABLE_SCRIPTS,
@@ -86,6 +87,10 @@ def render(skill: str, sources: tuple[str, ...]) -> str:
     merged_body = merged_body.replace(
         "[decision-model.md](decision-model.md)",
         "[decision model](#structured-decision-architecture)",
+    )
+    merged_body = merged_body.replace(
+        "[Cross-Agent Interaction Capability Layer](interaction-contract.md)",
+        "[Cross-Agent Interaction Capability Layer](#cross-agent-interaction-capability-layer)",
     )
     merged_body = merged_body.replace(
         "[persistence-contract.md](persistence-contract.md)",

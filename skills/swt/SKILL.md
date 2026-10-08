@@ -9,7 +9,7 @@ description: 在用户明确称呼“小How”“小how”“小 HOW”“HowToS
 
 ## 开始前
 
-先完整读取 [共享运行规则](references/shared-runtime/swt.md)。它包含交互、回答、署名、风险、证据、状态、路由和阶段规则，优先级高于本文件的示例。
+先完整读取 [共享运行规则](references/shared-runtime/swt.md)。它包含交互、回答、署名、风险、证据、状态、路由和阶段规则，优先级高于本文件的示例。需要选择或填写时，再读取[宿主 Interaction Adapter 能力记录](references/interaction-adapters.md)，并以当前会话实际暴露能力为准。
 
 ## Router 流程
 
@@ -17,7 +17,7 @@ description: 在用户明确称呼“小How”“小how”“小 HOW”“HowToS
 
 1. 先检查紧急或红色风险，必要时先阻止不可逆动作。
 2. 从当前 conversation、宿主上下文和用户材料恢复已知事实；当前修正写入 `changed_facts` 并覆盖旧值，不重复询问。
-3. 按 `Task Type + SWT Stage + Known Context + Risk Level` 选择路由：唯一明确责任方使用 `DIRECT`；两到四个合理方向使用 `CONFIRM`；缺少决定路由的关键事实使用 `CLARIFY`，只问一个最小必要问题。
+3. 按 `Task Type + SWT Stage + Known Context + Risk Level` 选择路由：唯一明确责任方使用 `DIRECT` 且不弹选择；两到四个合理方向使用 `CONFIRM` 并优先共享 Interaction Adapter；`CLARIFY` 中有限枚举用 choice，自由事实用 structured/free-text input。已确认上下文不得重复询问。
 4. 构建共享 Handoff Prompt，明确 Skill、任务、目标、已知事实、刚补充／修改的事实、必要边界、执行节奏和输出要求。
 5. 输出可直接发送的 Handoff Prompt 后立即 **STOP**。不得在同一轮调用 Executor、提出第一道题或合并下游结果；只有用户确认、修改或重新发送该 Prompt 后，目标 Executor 才开始执行。
 6. 多任务按依赖顺序生成最少的 Handoff；跨域时回到 Router 再生成下一份交接，不让 Executor 越权。
