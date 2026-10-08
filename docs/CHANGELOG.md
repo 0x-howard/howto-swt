@@ -1,6 +1,18 @@
 # HowTo SWT Free Changelog
 
-## Unreleased
+## v1.3.0 — Offer Return & Interaction Capability
+
+### Milestone 5 — Offer Return Function
+
+- `swt-position` 新增确定性岗位收益函数 `y = ax + b`：斜率表示每增加一小时的预计税后收入，截距表示每周固定生活成本基线。
+- 支持可信的最小／预期／最大工时、函数交点、关注区间 upper envelope、严格支配识别与 `Wage → Max Acceptable Rent` 边界函数；缺失估值继续明确标“估”。
+- 1–3 个岗位可比较收益曲线；超过 3 个岗位先列全量表格，再通过最多 3 项的选择进入函数比较。图形不可用时完整退化为函数、交点、区间结论和表格。
+
+### Milestone 6 — Cross-Agent Interaction Layer
+
+- 建立共享 Interaction Request / Adapter Contract，统一 `single_choice`、`multi_choice`、`free_text`、`structured_form` 与 `confirmation`，并按宿主能力选择原生 UI 或文本 fallback。
+- Router 的 `DIRECT / CONFIRM / CLARIFY` 接入交互层：已明确就执行，有限选择优先 picker，需要事实则输入；Pro 已知上下文不会重复询问。
+- Codex 当前会话、Claude Code、WorkBuddy 与豆包 Work 分别记录能力证据与降级边界；静态或 mock 验证不会冒充真实宿主 UI 验证。
 
 - 主入口改为严格两阶段 Router：生成包含任务、上下文、边界、节奏与输出要求的 Handoff Prompt 后停止，等待用户确认／修改／重新发送后再由 Executor 执行。
 - 扩充 HowToSWT／howtoswt／小How等入口变体；无任务问候显示六项菜单，带任务输入直接生成目标 Handoff，不再先展示首页。

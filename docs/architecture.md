@@ -1,6 +1,6 @@
 # HowTo SWT 怎样工作
 
-HowTo SWT v1.2.0 由三个彼此分层的系统组成。
+HowTo SWT v1.3.0 由三个彼此分层的系统组成，并在 Task System 内增加确定性 Offer Return 与共享 Interaction Capability Layer。
 
 ## Task System
 

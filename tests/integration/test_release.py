@@ -25,7 +25,7 @@ class ReleaseBuildTests(unittest.TestCase):
                     "--released-at", "2026-10-07T00:00:00Z"], capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 metadata = json.loads(manifest.read_text())
-                self.assertEqual(metadata["version"], "1.2.0")
+                self.assertEqual(metadata["version"], "1.3.0")
                 self.assertEqual(metadata["sha256"], hashlib.sha256(archive.read_bytes()).hexdigest())
                 archives.append(archive.read_bytes())
                 with zipfile.ZipFile(archive) as package:
