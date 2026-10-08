@@ -24,6 +24,7 @@ COMMON_SOURCES = (
     "decision-model.md",
     "handoff-contract.md",
     "executor-state-machines.md",
+    "visualization-policy.md",
     "persistence-contract.md",
 )
 
@@ -53,7 +54,7 @@ PORTABLE_SCRIPTS_BY_SKILL = {
     "swt": COMMON_PORTABLE_SCRIPTS + ("free_update.py",),
     "swt-application": COMMON_PORTABLE_SCRIPTS,
     "swt-position": COMMON_PORTABLE_SCRIPTS + (
-        "budget.py", "compare_budget.py", "location_context.py", "state_context.py", "swt_market.py",
+        "budget.py", "offer_return.py", "compare_budget.py", "location_context.py", "state_context.py", "swt_market.py",
     ),
     "swt-english": COMMON_PORTABLE_SCRIPTS + ("speaking_score.py", "english_speaking.py"),
     "swt-visa": COMMON_PORTABLE_SCRIPTS,

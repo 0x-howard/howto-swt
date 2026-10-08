@@ -491,20 +491,41 @@ def _overview_tax(raw: dict[str, Any], gross: Decimal, state: str | None, defaul
 def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str, Any], index: int) -> dict[str, Any]:
     path = f"input.offers[{index}]"
     allowed = {
-        "id", "label", "state", "city", "wage_usd_per_hour", "hours_per_week", "start_date", "end_date",
+        "id", "label", "state", "city", "wage_usd_per_hour", "hours_per_week", "expected_hours",
+        "min_hours", "max_hours", "hours_range_estimated", "hours_range_basis", "start_date", "end_date",
         "offer_start_date", "offer_end_date", "work_weeks", "stay_weeks", "rent_usd_per_week",
         "food_usd_per_week", "transport_usd_per_week", "other_weekly_usd", "other_fixed_usd",
         "project_cost_cny", "project_cost_usd", "tax", "second_job_note", "landing_note", "cautions",
     }
-    _exact_keys(raw, allowed, {"wage_usd_per_hour", "hours_per_week"}, path)
+    _exact_keys(raw, allowed, {"wage_usd_per_hour"}, path)
+    if "hours_per_week" not in raw and "expected_hours" not in raw:
+        raise ValueError(f"{path}: provide hours_per_week or expected_hours")
+    if "hours_per_week" in raw and "expected_hours" in raw and Decimal(str(raw["hours_per_week"])) != Decimal(str(raw["expected_hours"])):
+        raise ValueError(f"{path}: hours_per_week and expected_hours disagree")
     label = raw.get("label", f"岗位 {index + 1}")
     identifier = raw.get("id", f"offer-{index + 1}")
     if not isinstance(label, str) or not label.strip() or not isinstance(identifier, str) or not identifier.strip():
         raise ValueError(f"{path}: id and label must be nonempty strings")
     wage = _number(raw["wage_usd_per_hour"], f"{path}.wage_usd_per_hour", positive=True)
-    hours = _number(raw["hours_per_week"], f"{path}.hours_per_week", positive=True)
+    hours_key = "expected_hours" if "expected_hours" in raw else "hours_per_week"
+    hours = _number(raw[hours_key], f"{path}.{hours_key}", positive=True)
     if hours > Decimal("168"):
-        raise ValueError(f"{path}.hours_per_week: cannot exceed 168")
+        raise ValueError(f"{path}.{hours_key}: cannot exceed 168")
+    has_min, has_max = "min_hours" in raw, "max_hours" in raw
+    if has_min != has_max:
+        raise ValueError(f"{path}: min_hours and max_hours must be provided together")
+    minimum = _number(raw["min_hours"], f"{path}.min_hours") if has_min else None
+    maximum = _number(raw["max_hours"], f"{path}.max_hours") if has_max else None
+    if minimum is not None and (minimum > hours or hours > maximum or maximum > Decimal("168")):
+        raise ValueError(f"{path}: require 0 <= min_hours <= expected_hours <= max_hours <= 168")
+    estimated_range = raw.get("hours_range_estimated", False)
+    if not isinstance(estimated_range, bool):
+        raise ValueError(f"{path}.hours_range_estimated: requires true or false")
+    basis = raw.get("hours_range_basis")
+    if basis is not None and (not isinstance(basis, str) or not basis.strip()):
+        raise ValueError(f"{path}.hours_range_basis: requires nonempty text")
+    if estimated_range and (minimum is None or basis is None):
+        raise ValueError(f"{path}: an estimated hours range requires min/max and hours_range_basis")
     state = _state_code(raw["state"], f"{path}.state") if "state" in raw else None
     city = raw.get("city")
     if city is not None and (not isinstance(city, str) or not city.strip()):
@@ -583,6 +604,11 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
         "id": identifier, "label": label, "state": state, "city": city,
         "work_weeks": _money(weeks), "stay_weeks": _money(stay_weeks),
         "wage_usd_per_hour": _money(wage), "hours_per_week": _money(hours),
+        "hours_range": {
+            "min": _money(minimum), "expected": _money(hours), "max": _money(maximum),
+            "status": "estimated_range" if estimated_range else "provided_range" if minimum is not None else "point_only",
+            "basis": basis,
+        },
         "weekly_costs_usd": {key: _money(value) for key, value in costs.items()},
         "cost_sources": sources, "second_job": second_job, "landing": landing,
         "gross_income_usd": _money(gross), "estimated_taxes": taxes,
@@ -599,7 +625,7 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
 def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
     """Calculate a one-result SWT comparison with explicit provenance for every fallback."""
     _exact_keys(
-        data, {"mode", "offers", "fx_cny_per_usd", "project_cost_cny", "project_cost_usd", "tax"},
+        data, {"mode", "offers", "fx_cny_per_usd", "project_cost_cny", "project_cost_usd", "tax", "comparison_hours"},
         {"offers"}, "input",
     )
     if data.get("mode", "position_overview") != "position_overview":
@@ -611,10 +637,13 @@ def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
     ids = [item["id"] for item in offers]
     if len(ids) != len(set(ids)):
         raise ValueError("input.offers: duplicate id")
+    from offer_return import calculate_offer_return_analysis
+
     return {
         "mode": "position_overview", "assumptions_version": defaults["version"],
         "offers": offers,
         "comparison_order": [item["id"] for item in sorted(offers, key=lambda item: Decimal(item["final_project_surplus_usd"]), reverse=True)],
+        "offer_return_analysis": calculate_offer_return_analysis(offers, data.get("comparison_hours")),
     }
 
 
@@ -628,8 +657,58 @@ def _short_decimal(value: str | Decimal) -> str:
     return format(Decimal(value).normalize(), "f")
 
 
+def _format_return_analysis(analysis: dict[str, Any], labels: dict[str, str]) -> list[str]:
+    lines = ["## 3. 岗位收益函数 / ROI Comparison", ""]
+    if analysis["analysis_status"] == "selection_required":
+        lines.append("当前有超过 3 个岗位，先保留全部岗位数据，不把所有曲线堆在一张图里。请选择最多 3 个进一步比较：")
+        lines.append("")
+        for index, function in enumerate(analysis["functions"], 1):
+            housing = function["weekly_cost_components_usd"]["rent_usd_per_week"]
+            risk = "；".join(function["key_risks"]) if function["key_risks"] else "-"
+            lines.append(
+                f"{index}. {function['label']}｜时薪 ${Decimal(function['slope_after_tax_usd_per_hour']) / (Decimal('1') - Decimal(function['effective_tax_rate'])):.2f}"
+                f"｜期望工时 {function['hours']['expected']}h｜住宿 ${housing}/周｜周成本 ${function['weekly_cost_usd']}"
+                f"｜期望周净结余 ${function['expected_weekly_net_surplus_usd']}｜周收支平衡 {function['weekly_break_even_hours']}h｜风险 {risk}"
+            )
+        lines.extend(["", "回复编号即可，例如：1,3,5。"])
+        return lines
+
+    lines.append("时薪和税后工资决定收益增长速度；房租与必要生活成本决定成本起点；工时决定最终周净结余。")
+    lines.append("")
+    lines.append("| 岗位 | 收益函数 | 期望工时 | 期望周净结余 | 周收支平衡 |")
+    lines.append("|---|---|---|---|---|")
+    for function in analysis["functions"]:
+        estimate = "（含估）" if function["estimated_inputs"] else ""
+        lines.append(
+            f"| {function['label']} | `{function['formula']}`{estimate} | {function['hours']['expected']}h | "
+            f"${function['expected_weekly_net_surplus_usd']} | {function['weekly_break_even_hours']}h |"
+        )
+    if analysis["analysis_status"] == "point_only":
+        lines.extend(["", "当前只有可信的平均工时点，没有伪造上下界；图形降级为函数、期望点和表格。补充可信 min/max 后可计算交点与最优区间。"])
+        return lines
+
+    hours = analysis["hours_range"]
+    lines.extend(["", f"关注工时区间：{hours['min']}–{hours['max']}h/周。"])
+    meaningful = [item for item in analysis["intersections"] if item["meaningful_for_optimum"]]
+    if meaningful:
+        lines.append("有意义的交点：" + "；".join(
+            f"{labels[a]} / {labels[b]} 在 {item['hours_per_week']}h（约 ${item['weekly_net_surplus_usd']}/周）"
+            for item in meaningful for a, b in [item["offers"]]
+        ) + "。")
+    else:
+        lines.append("关注区间内没有改变最优岗位的有效交点。")
+    lines.append("最优区间：" + "；".join(
+        f"{region['min_hours']}–{region['max_hours']}h → " + " / ".join(labels[item] for item in region["best_offer_ids"])
+        for region in analysis["optimal_regions"]
+    ) + "。")
+    for item in analysis["dominated_offers"]:
+        lines.append(f"{labels[item['offer_id']]} 在当前假设区间内被 {labels[item['dominated_by']]} 完全支配，但仍保留在比较中。")
+    lines.append("若宿主不能渲染函数图，上述函数、交点、区间和表格就是完整分析，不影响结论。")
+    return lines
+
+
 def format_position_overview(result: dict[str, Any]) -> str:
-    """One sentence, exactly three purpose-built tables, and one top-level choice question."""
+    """One conclusion, decision tables, return-function analysis, cautions, and next choice."""
     offers = result["offers"]
     best = next(item for item in offers if item["id"] == result["comparison_order"][0])
     if len(offers) == 1:
@@ -709,7 +788,8 @@ def format_position_overview(result: dict[str, Any]) -> str:
     has_estimates = any(any(source.endswith("_estimate") for source in item["cost_sources"].values()) for item in offers)
     choice_a = "用我的真实费用重算" if has_estimates else "换工时看看回本变化"
     choice_b = f"细看 {topics[0]}" if any(item["cautions"] for item in offers) else "查看回本计算依据"
-    lines.extend(["", "；".join(footnotes) + "。", "", "## 3. 注意事项", "", *table(caution_rows, "注意点"), "", "## 4. 继续看什么？", "", "你接下来想先展开哪一项？", "", f"A. {choice_a}", f"B. {choice_b}", "C. 展开住宿费用来源", "D. 整理签约前需确认的问题"])
+    label_map = {item["id"]: item["label"] for item in offers}
+    lines.extend(["", "；".join(footnotes) + "。", "", *_format_return_analysis(result["offer_return_analysis"], label_map), "", "## 4. 注意事项", "", *table(caution_rows, "注意点"), "", "## 5. 继续看什么？", "", "你接下来想先展开哪一项？", "", f"A. {choice_a}", f"B. {choice_b}", "C. 展开住宿费用来源", "D. 整理签约前需确认的问题"])
     return "\n".join(lines)
 
 

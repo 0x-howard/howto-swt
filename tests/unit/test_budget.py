@@ -211,8 +211,9 @@ class PositionOverviewTests(unittest.TestCase):
         self.assertEqual(item["cost_sources"]["rent_usd_per_week"], "global_estimate")
         self.assertGreater(float(item["estimated_taxes"]["total_usd"]), 0)
         answer = format_position_overview(self.overview({"wage_usd_per_hour": 16, "hours_per_week": 32}))
-        self.assertEqual(re.findall(r"(?m)^## \d\. ", answer), ["## 1. ", "## 2. ", "## 3. ", "## 4. "])
-        self.assertEqual(len(re.findall(r"(?m)^\|---(?:\|---)+\|$", answer)), 3)
+        self.assertEqual(re.findall(r"(?m)^## \d\. ", answer), ["## 1. ", "## 2. ", "## 3. ", "## 4. ", "## 5. "])
+        self.assertIn("## 3. 岗位收益函数 / ROI Comparison", answer)
+        self.assertEqual(len(re.findall(r"(?m)^\|---(?:\|---)+\|$", answer)), 4)
         self.assertEqual(answer.count("?"), 0)
         self.assertEqual(answer.count("你接下来想先展开哪一项？"), 1)
         self.assertIn("最终预计结余", answer)
@@ -228,13 +229,13 @@ class PositionOverviewTests(unittest.TestCase):
         self.assertEqual(item["weekly_costs_usd"]["food_usd_per_week"], "100.00")
         self.assertEqual(item["cost_sources"]["food_usd_per_week"], "state_estimate")
 
-    def test_two_offers_produce_six_rows_and_three_parallel_tables(self):
+    def test_two_offers_produce_six_rows_and_four_parallel_tables(self):
         result = self.overview(
             {"label": "甲", "wage_usd_per_hour": 16, "hours_per_week": 32},
             {"label": "乙", "wage_usd_per_hour": 17, "hours_per_week": 35},
         )
         answer = format_position_overview(result)
-        self.assertEqual(answer.count("|---|---|---|"), 3)
+        self.assertEqual(answer.count("|---|---|---|"), 4)
         core = answer.split("## 1. 核心数据\n\n", 1)[1].split("## 2.", 1)[0]
         self.assertEqual(len(re.findall(r"(?m)^\| (?:收入|住宿|生活成本|交通|二工|落地便利) \|", core)), 6)
 

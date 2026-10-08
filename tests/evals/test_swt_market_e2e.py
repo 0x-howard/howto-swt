@@ -217,13 +217,13 @@ def _check_budget_and_structure(case, failures):
             _record_failure(failures, "P0", case, expected, actual, "Offer without a location did not retain the no-location fallback.", "presentation")
 
     expected_sections = case.get("expected_sections", [])
-    section_titles = ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？"]
+    section_titles = ["## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益函数 / ROI Comparison", "## 4. 注意事项", "## 5. 继续看什么？"]
     has_full_structure = all(title in rendered for title in section_titles)
     has_six_dimensions = all(f"| {name} |" in rendered.split("## 2. 回本测算", 1)[0] for name in ("收入", "住宿", "生活成本", "交通", "二工", "落地便利"))
     table_count = sum(1 for line in rendered.splitlines() if line.startswith("|---"))
-    structure_ok = has_full_structure and has_six_dimensions and table_count == 3
+    structure_ok = has_full_structure and has_six_dimensions and table_count == 4
     if any(section.startswith("## ") for section in expected_sections) and not structure_ok:
-        _record_failure(failures, "P3", case, "four overview sections, six dimensions, three tables", {"sections": has_full_structure, "six_dimensions": has_six_dimensions, "table_count": table_count}, "Existing complete Offer response structure was not preserved.", "presentation")
+        _record_failure(failures, "P3", case, "five overview sections, six dimensions, four tables", {"sections": has_full_structure, "six_dimensions": has_six_dimensions, "table_count": table_count}, "Complete Offer response structure was not preserved.", "presentation")
 
     # The budget renderer must not consume Market participant counts as financial inputs or add a seventh dimension.
     serialized_budget = json.dumps(result, ensure_ascii=False)

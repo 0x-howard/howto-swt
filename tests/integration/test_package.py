@@ -158,9 +158,9 @@ class PackageTests(unittest.TestCase):
         input_data = json.loads((fixture / "position_compare_ssn_dependency_input.json").read_text(encoding="utf-8"))
         self.assertEqual(after.strip(), format_position_overview(calculate_position_overview(input_data)).strip())
         self.assertEqual(re.findall(r"(?m)^## \d\. [^\n]+", after), [
-            "## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？",
+            "## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益函数 / ROI Comparison", "## 4. 注意事项", "## 5. 继续看什么？",
         ])
-        self.assertEqual(len(re.findall(r"(?m)^\|---(?:\|---)+\|$", after)), 3)
+        self.assertEqual(len(re.findall(r"(?m)^\|---(?:\|---)+\|$", after)), 4)
         self.assertIn("Hotel B（City B）的预计缺口最小", after.splitlines()[0])
         self.assertIn("最终预计结余", after)
         self.assertIn("预计税费", after)

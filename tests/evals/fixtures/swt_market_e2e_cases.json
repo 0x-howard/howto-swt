@@ -14,7 +14,7 @@
       "expected_location_match": {"A": "city_exact"},
       "expected_facts": {"locations": {"A": {"availability.state_context": true, "availability.swt_market": true, "swt_market.city_market.total": 2050, "swt_market.state_market.total": 2852, "swt_market.support.support_level": "city_exact", "swt_market.support.city_exact_support.0.support_group_name": "Myrtle Beach ISOP"}}, "offer_count": 1},
       "forbidden_claims": ["二工一定好找", "当地每年有2050个SWT学生", "participant count高所以更推荐"],
-      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？", "收入", "住宿", "生活成本", "交通", "二工", "落地便利"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益函数 / ROI Comparison", "## 4. 注意事项", "## 5. 继续看什么？", "收入", "住宿", "生活成本", "交通", "二工", "落地便利"],
       "notes": "核对 city_exact、州级背景、Market 数据和完整 Offer 概览结构。"
     },
     {
@@ -29,7 +29,7 @@
       "expected_location_match": {"A": "city_exact"},
       "expected_facts": {"locations": {"A": {"availability.state_context": true, "availability.swt_market": true, "swt_market.city_market.total": 3693, "swt_market.state_market.total": 5918, "swt_market.support.support_level": "city_exact", "swt_market.support.city_exact_support.0.support_group_name": "Ocean City Summer Work Travel Committee"}}, "offer_count": 1},
       "forbidden_claims": ["participant count高所以二工容易", "当地每年有3693个SWT学生", "市场人数证明岗位更好"],
-      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益函数 / ROI Comparison", "## 4. 注意事项", "## 5. 继续看什么？"],
       "notes": "核对 Ocean City, MD 的城市、州和 Support 记录未串用其他城市数据。"
     },
     {
@@ -44,7 +44,7 @@
       "expected_location_match": {"A": "city_exact"},
       "expected_facts": {"locations": {"A": {"availability.state_context": true, "availability.swt_market": true, "swt_market.city_market.total": 3116, "swt_market.state_market.total": 5478, "swt_market.support.support_level": "city_exact", "swt_market.support.city_exact_support.0.support_group_name": "Wisconsin Dells BridgeUSA Community Support Group"}}, "offer_count": 1},
       "forbidden_claims": ["participant count高所以工作机会多", "二工一定好找", "人数代表岗位成熟"],
-      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益函数 / ROI Comparison", "## 4. 注意事项", "## 5. 继续看什么？"],
       "notes": "核对城市精确记录及其城市级 Community Support Group。"
     },
     {
@@ -59,7 +59,7 @@
       "expected_location_match": {"A": "city_exact"},
       "expected_facts": {"locations": {"A": {"availability.state_context": false, "availability.swt_market": true, "state_context": null, "swt_market.city_market.total": 430, "swt_market.state_market.total": 1030, "swt_market.support.support_level": "none", "swt_market.support.city_exact_support": [], "swt_market.support.regional_support": []}}, "offer_count": 1, "offer_state": {"A": "RI"}, "offer_sources": {"A": {"rent_usd_per_week": "provided"}}, "offer_tax_sources": {"A": {"state": "state_planning_reserve"}}},
       "forbidden_claims": ["Rhode Island 最低工资是", "Rhode Island 州税是", "participant count高所以推荐"],
-      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益函数 / ROI Comparison", "## 4. 注意事项", "## 5. 继续看什么？"],
       "notes": "Market 可用、州级 knowledge layer 缺失时仍继续计算；不填造州税或最低工资。"
     },
     {
@@ -74,7 +74,7 @@
       "expected_location_match": {"A": "city_exact", "B": "city_exact"},
       "expected_facts": {"locations": {"A": {"swt_market.city_market.total": 2050, "swt_market.state_market.total": 2852, "swt_market.support.city_exact_support.0.support_group_name": "Myrtle Beach ISOP"}, "B": {"swt_market.city_market.total": 3693, "swt_market.state_market.total": 5918, "swt_market.support.city_exact_support.0.support_group_name": "Ocean City Summer Work Travel Committee"}}, "offer_count": 2},
       "forbidden_claims": ["A 的数据用于 B", "人数多所以更推荐", "二工一定好找"],
-      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？", "A 与 B 独立列项"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益函数 / ROI Comparison", "## 4. 注意事项", "## 5. 继续看什么？", "A 与 B 独立列项"],
       "notes": "重点检查两套地点与 Support 数据分别对应各自 Offer。"
     },
     {
@@ -89,7 +89,7 @@
       "expected_location_match": {"A": "city_exact", "B": "city_exact"},
       "expected_facts": {"locations": {"A": {"swt_market.city_market.total": 2050, "swt_market.state_market.total": 2852}, "B": {"swt_market.city_market.total": 3116, "swt_market.state_market.total": 5478}}, "offer_count": 2},
       "forbidden_claims": ["participant count直接决定排序", "participant count高所以二工容易", "participant count高所以推荐"],
-      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益函数 / ROI Comparison", "## 4. 注意事项", "## 5. 继续看什么？"],
       "notes": "地点背景只辅助解释，原有财务和 Offer 逻辑保持排序依据。"
     },
     {
@@ -104,7 +104,7 @@
       "expected_location_match": {"A": "city_exact", "B": "state_fallback"},
       "expected_facts": {"locations": {"A": {"swt_market.city_market.total": 2050}, "B": {"swt_market.city_market": null, "swt_market.state_market.total": 1791, "swt_market.support.support_level": "regional_evidence", "swt_market.support.regional_support.0.match_type": "multi_city"}}, "offer_count": 2},
       "forbidden_claims": ["Fenwick Beach 城市 participant count 为 0", "Fenwick Beach 等于 Fenwick Island", "Bethany-Fenwick 支持组是 Fenwick Beach 城市精确记录"],
-      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？", "Fenwick Beach City participant count 为 -"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益函数 / ROI Comparison", "## 4. 注意事项", "## 5. 继续看什么？", "Fenwick Beach City participant count 为 -"],
       "notes": "一个 city_exact、一个 state_fallback；DE 区域支持不得改成城市精确支持。"
     },
     {
@@ -119,7 +119,7 @@
       "expected_location_match": {"CITY": "city_exact"},
       "expected_facts": {"locations": {"CITY": {"swt_market.city_market.total": 2050, "swt_market.state_market.total": 2852}}, "offer_count": 2, "offer_inputs": {"A": {"wage_usd_per_hour": 15, "hours_per_week": 35, "rent_usd_per_week": 130}, "B": {"wage_usd_per_hour": 18, "hours_per_week": 40, "rent_usd_per_week": 170}}},
       "forbidden_claims": ["合并两个 Offer", "把 Employer A 工资套给 Employer B", "地点相同所以岗位条件相同"],
-      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？", "两个 Offer 独立列项"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益函数 / ROI Comparison", "## 4. 注意事项", "## 5. 继续看什么？", "两个 Offer 独立列项"],
       "notes": "地点查询只需一份；Offer 工资、工时和住宿仍独立计算。"
     },
     {
@@ -134,7 +134,7 @@
       "expected_location_match": {"A": "city_exact", "B": "city_exact"},
       "expected_facts": {"locations": {"A": {"swt_market.city_market.total": 2050}, "B": {"swt_market.city_market.total": 3693}}, "offer_count": 3, "unlocated_offer_id": "C"},
       "forbidden_claims": ["C 位于 Myrtle Beach", "C 位于 Ocean City", "没有地点就无法比较其他岗位"],
-      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 注意事项", "## 4. 继续看什么？", "C 使用通用估值"],
+      "expected_sections": ["## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益函数 / ROI Comparison", "## 4. 注意事项", "## 5. 继续看什么？", "C 使用通用估值"],
       "notes": "未提供地点的 Offer 不调用地点解析、不借用其他 Offer 的州或城市。"
     },
     {

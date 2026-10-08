@@ -2,7 +2,19 @@
 
 ## SWT 岗位／Offer 概览（默认）
 
-`scripts/budget.py` 的 `position_overview` 模式是岗位、Offer、城市＋岗位与回本问题的默认计算入口。最少每个岗位只需 `wage_usd_per_hour` 和 `hours_per_week`；其他普通缺口按 `references/default-assumptions.json` 的城市 → 州 → 通用值补齐。州级周租取 `state_context` 的范围中值；“每周基础开销”仅作餐饮规划代理，不冒充城市食品均价。所有回退字段在结构化结果中带来源，在用户表格中标“估”。
+`scripts/budget.py` 的 `position_overview` 模式是岗位、Offer、城市＋岗位与回本问题的默认计算入口。最少每个岗位只需 `wage_usd_per_hour` 和 `hours_per_week`（或同义 `expected_hours`）；可选 `min_hours / expected_hours / max_hours`。没有可信上下界时保留单点，不伪造范围；估算范围必须同时给出 `hours_range_estimated = true` 和依据。其他普通缺口按 `references/default-assumptions.json` 的城市 → 州 → 通用值补齐。所有回退字段在结构化结果中带来源，在用户表格中标“估”。
+
+## Offer Return Function
+
+`scripts/offer_return.py` 使用每个岗位的确定性结果生成：
+
+`y_i(x) = wage_i × (1 - effective_tax_rate_i) × x - weekly_cost_i`
+
+其中 `x` 是平均每周工时，`y` 是预计每周净结余；`weekly_cost` 至少包含住宿、餐饮、交通和其他必要周生活费。斜率是每增加一小时带来的估算税后收入，截距是负的周固定生活成本。有效税率从默认概览在 expected hours 下的税务结果取得并固定为该线性 sensitivity model 的假设，不代替最终税额。
+
+一至三个岗位可计算有效区间内的成对交点、upper envelope 最优分段和严格支配；平行线不制造交点。超过三个岗位先输出全部列表，并通过 Interaction Layer 让用户最多选择三个。无法画图时，函数、期望点、交点、最优区间、dominance 和表格构成完整 fallback。
+
+第二边界函数仅在用户询问可接受房租时使用：`rent = H(1-t)w - other_cost - target_savings`。项目 ROI 仍可作为规划指标，但不是默认主图，也不代表保证收益。
 
 输入示例见 `assets/position-overview-example.json`。默认输出固定为一句结论、六维核心数据表、回本测算表、并列注意事项表和一个选择题；`--json` 可取得全部计算字段、默认值来源与税务前提。详细口径在用户追问时展开，不把完整 JSON 倾倒到首答。
 
