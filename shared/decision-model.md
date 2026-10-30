@@ -29,7 +29,7 @@ The validator checks that obvious single-owner intents stay on their owning rout
 
 ### Stage
 
-Use the existing stage model only: `00` through `11`. Stage is optional when irrelevant or unknown; do not infer a new stage.
+For the existing internal decision validator, stage remains the legacy detail code `00` through `11` for compatibility; this is not the student-facing lifecycle stage. The intended Pro long-term memory model uses the eight stages `1` through `8` defined in `stage-model.md`; runtime integration is not yet verified. Stage is optional when irrelevant or unknown; do not infer one from vague evidence.
 
 ### Confidence
 

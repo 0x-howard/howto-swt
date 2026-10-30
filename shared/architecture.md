@@ -21,7 +21,7 @@ USER_DATA_ROOT/                     用户显式配置的独立持久化目录
 Router -> Routing Policy -> Handoff Contract -> Domain Executor -> Executor State Machine
 ```
 
-Router 只选择 `DIRECT / CONFIRM / CLARIFY`、整理已知上下文并生成统一 Handoff。业务分析属于 Executor。任务跨域时 Executor 返回 Router 交接，不直接占用另一个 Executor 的状态机。
+Router 选择 `DIRECT / CONFIRM / CLARIFY` 并整理已知上下文；明确任务直接进入对应 Executor，必要时以统一 Handoff 内部传递上下文，宿主无法调度时才使用手动交接。业务分析属于 Executor，跨域协作保留各 Executor 状态机边界。
 
 ## 共享规则策略
 

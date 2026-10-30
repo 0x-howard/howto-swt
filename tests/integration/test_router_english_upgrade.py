@@ -16,12 +16,12 @@ class RouterEnglishUpgradeBehaviorTests(unittest.TestCase):
 
     def test_greeting_has_menu_but_no_subtask_execution(self):
         self.assertIn("你好，我在。你可以直接选一项", self.router)
-        self.assertIn("生成 Prompt 后无条件 STOP", self.router)
+        self.assertIn("直接交给对应 Skill 执行", self.router)
 
-    def test_task_bearing_sponsor_request_generates_mock_handoff_then_stops(self):
+    def test_task_bearing_sponsor_request_directly_dispatches_mock(self):
         self.assertIn("mode = MOCK", self.router)
         self.assertIn("scenario = Sponsor Interview", self.router)
-        self.assertIn("不得在同一轮调用 Executor、提出第一道题", self.router)
+        self.assertIn("不要求复制 Prompt", self.router)
 
     def test_resume_and_offer_are_reused_in_employer_profile(self):
         for fact in ("Resume", "Offer", "Employer", "Position"):
@@ -29,7 +29,7 @@ class RouterEnglishUpgradeBehaviorTests(unittest.TestCase):
         self.assertIn("Interview Profile", self.english + self.contract)
 
     def test_confirmed_handoff_starts_executor_without_router_ad(self):
-        self.assertIn("用户确认／修改／重新发送", self.english)
+        self.assertIn("直接执行", self.english)
         self.assertNotIn("加入 HowTo SWT Pro", self.english)
 
     def test_practice_teaches_but_mock_delays_feedback(self):

@@ -13,7 +13,7 @@ SWT AI Speaking Coach。一级入口固定为 `ASSESS`、`PRACTICE`、`MOCK`、`
 
 ## 意图分流
 
-只在用户确认／修改／重新发送 Router 生成的 Handoff Prompt 后执行；不得把用户最初称呼小How的同一轮当作执行授权。按模式进入对应状态，不为走完状态机增加无用步骤。
+用户明确要求英语测评、训练或面试时直接执行；也接受 Router 的内部/手动交接。普通任务不需要重新发送 Handoff，敏感高风险操作仍应另行确认。按模式进入对应状态，不为走完状态机增加无用步骤。
 
 - 用户明确要求测试、测评、评分或判断准备度：进入 `ASSESS`。先完整读取 [测评流程](references/english-assessment.md)、[评分锚点](references/english-rubric.md)、[Profiles](references/english-profiles.md) 和[动态题型库](references/english-question-bank.md)。
 - 用户要按 Assessment 弱项训练、指定 Agency／Sponsor／Host／Visa 练习、做 Weakness／Follow-up／Question／Scenario Drill，或明确要求回答后反馈并 Retry：进入 `PRACTICE`，完整遵循[练习流程与反馈规则](references/english-practice.md)。

@@ -108,7 +108,7 @@ class PackageTests(unittest.TestCase):
         self.assertIn("同一 conversation 后续不重复自我介绍", identity)
         self.assertEqual(identity.count("HowTo SWT\n作者：Howard"), 1)
 
-    def test_router_is_two_stage_and_free_ad_stays_outside_handoff(self):
+    def test_direct_router_and_free_ad_stays_outside_handoff(self):
         router = (ROOT / "skills/swt/SKILL.md").read_text(encoding="utf-8")
         handoff = (ROOT / "shared/handoff-contract.md").read_text(encoding="utf-8")
         for item in (
@@ -116,8 +116,8 @@ class PackageTests(unittest.TestCase):
             "4. Visa", "5. 行前 / 入境 / 美国生活", "6. 不确定，帮我判断下一步",
         ):
             self.assertIn(item, router)
-        self.assertIn("生成 Prompt 后无条件 STOP", router)
-        self.assertIn("Router → Handoff Prompt → STOP", handoff)
+        self.assertIn("直接交给对应 Skill 执行", router)
+        self.assertIn("fallback only", handoff)
         self.assertIn("HOWTO_SWT_HANDOFF_V1", handoff)
         self.assertNotIn("加入 HowTo SWT Pro", handoff)
         start = router.index("<!-- FREE_ROUTER_AD_START -->")
@@ -157,11 +157,13 @@ class PackageTests(unittest.TestCase):
         after = (ROOT / "tests/evals/expected/position_compare_ssn_dependency_expected.md").read_text(encoding="utf-8")
         input_data = json.loads((fixture / "position_compare_ssn_dependency_input.json").read_text(encoding="utf-8"))
         self.assertEqual(after.strip(), format_position_overview(calculate_position_overview(input_data)).strip())
-        self.assertEqual(re.findall(r"(?m)^## \d\. [^\n]+", after), [
-            "## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益函数 / ROI Comparison", "## 4. 注意事项", "## 5. 继续看什么？",
-        ])
-        self.assertEqual(len(re.findall(r"(?m)^\|---(?:\|---)+\|$", after)), 4)
-        self.assertIn("Hotel B（City B）的预计缺口最小", after.splitlines()[0])
+        self.assertIn("## 1. 核心数据与分析", after)
+        self.assertIn("| 要素 | Offer 数据 | 分析 |", after)
+        self.assertIn("### 在美收入与生活开销", after)
+        self.assertIn("### 项目投入与最终收益", after)
+        self.assertIn("| 项目 | 计算公式 | 结果 |", after)
+        self.assertIn("## 5. 继续看什么？", after)
+        self.assertIn("Hotel B（City B）预计亏损最少", after.splitlines()[0])
         self.assertIn("最终预计结余", after)
         self.assertIn("预计税费", after)
         self.assertIn("¥20,000", after)

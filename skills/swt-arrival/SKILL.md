@@ -13,7 +13,7 @@ description: 处理 SWT 行前、机票、入境、I-94、SEVIS Check-in、SSN�
 
 ## 工作流
 
-接受 Router Handoff 后使用共享状态机 `SAFETY_CHECK → INTAKE → DEPENDENCY_ORDER → ACTION → CONFIRMATION → NEXT_ACTION`；紧急风险可越过普通询问直接给安全行动。
+接受用户的明确任务或 Router 的内部交接后使用共享状态机 `SAFETY_CHECK → INTAKE → DEPENDENCY_ORDER → ACTION → CONFIRMATION → NEXT_ACTION`；紧急风险可越过普通询问直接给安全行动。
 
 1. 先判断人身、医疗、犯罪或即时安全风险；紧急行动优先，允许省略署名。
 2. 恢复 Sponsor、项目年度、签证／入境状态、行程、保险计划、当前截止与既有回执。

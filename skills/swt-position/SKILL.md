@@ -13,7 +13,7 @@ description: 比较 SWT 岗位、Offer 条件、地点、住房、通勤、生�
 
 ## 工作流
 
-接受 Router Handoff 后使用共享状态机 `INTAKE → NORMALIZE → LOCATION_RESOLVE → ANALYZE → BUDGET → RISK → DECISION → NEXT_ACTION`；窄任务可跳过地点、预算等无关状态。
+接受用户的明确任务或 Router 的内部交接后使用共享状态机 `INTAKE → NORMALIZE → LOCATION_RESOLVE → ANALYZE → BUDGET → RISK → DECISION → NEXT_ACTION`；窄任务可跳过地点、预算等无关状态。
 
 1. 比较单位固定为“岗位＋地点＋住宿＋通勤＋项目日期”，不只比较职位名或州名。
 2. 从 Offer 提取雇主、职位、地点、时薪、工时、住房、日期、通勤和其他明确条件；恢复已知年度、预算、底线和优先级，不重复询问。
@@ -40,7 +40,7 @@ description: 比较 SWT 岗位、Offer 条件、地点、住房、通勤、生�
 - 引用数字时称“当前 BridgeUSA SWT Map 中的 participant count”或“BridgeUSA 地图参与者计数”，不要写成“该城市每年有 X 个 SWT 学生”。该计数目前未验证为年度去重参与者人数；排名仅相对当前数据集。
 - `city_exact` Support Group 可表述为官方清单中的明确城市记录。`regional`、`multi_city`、`county_or_region`、`affiliate` 只能作为区域基础设施 evidence；`unmatched` 不得绑定城市。区域记录不能改写为“该城市有官方支持组织”。
 - 只有完整岗位评估才在六维核心表之后按需加一个轻量的 `### SWT 地点背景`，最多 3–4 行，限于实际可用的 city/state participant count、city rank 与 Support evidence。若无 city exact 数据或仅州级命中，不填造城市行。附注 participant count 为 BridgeUSA SWT Map 查询返回的计数，不等同于年度去重参与者人数。单点问题不机械展示此块。
-- 多个 Offer 并列时，对每个不同地点分别保留 Resolver 结果。仅当岗位数不少于 2 且至少 2 个岗位的 `swt_market` 可用时，才可在六维主表之后加一张轻量 `### SWT 地点背景` 对比表；它是辅助地点资料，不替代六维主表、回本表或注意事项表。同一 city/state 的多个岗位可共用一行地点背景，但在六维、回本和注意事项表中仍各自保留。地点背景表列为 `地点`、`City participant count`、`State participant count`、`City rank`、`Community Support`。城市没有 exact market 时 City participant count 和 City rank 写 `-`；州市场缺失时 State participant count 写 `-`；未知值不写成 0。`city_exact` 支持标 `City exact`，区域支持标 `Regional evidence`，没有可用支持证据写 `-`。state_context 不可用的岗位仍可列入，只展示实际可用的 market 字段；州税、最低工资和成本仍按原缺失规则处理。整表后只加一条计数口径短注。
+- 多个 Offer 并列时，对每个不同地点分别保留 Resolver 结果。仅当岗位数不少于 2 且至少 2 个岗位的 `swt_market` 可用时，才可在六维主表之后加一张轻量 `### SWT 地点背景` 对比表；它是辅助地点资料，不替代六维主表、回本表或注意事项表。同一 city/state 的多个岗位可共用一行地点背景，但在六维和回本分析中仍各自保留，注意事项只展示六维以外的特殊情况。地点背景表列为 `地点`、`City participant count`、`State participant count`、`City rank`、`Community Support`。城市没有 exact market 时 City participant count 和 City rank 写 `-`；州市场缺失时 State participant count 写 `-`；未知值不写成 0。`city_exact` 支持标 `City exact`，区域支持标 `Regional evidence`，没有可用支持证据写 `-`。state_context 不可用的岗位仍可列入，只展示实际可用的 market 字段；州税、最低工资和成本仍按原缺失规则处理。整表后只加一条计数口径短注。
 - SWT Market 不进入任何岗位的收入、税费、生活成本或回本计算，也不用于 Offer 排序、推荐或好坏结论。多岗位比较的结论和任何既有排序只能来自 Offer 条件及原有预算／岗位分析逻辑；participant count 高低不得改变顺序、评分、二工判断或岗位成熟度判断。
 - 不新增第二张 State Reference Card。若用户追问时已展示州级参考，将 SWT Market Context 放在同一地点参考中，并区分来源：最低工资、州税等来自 state_context；participant count / rank 来自 BridgeUSA SWT Market；Support Group 来自 BridgeUSA Community Support Groups 清单。
 
@@ -53,9 +53,17 @@ description: 比较 SWT 岗位、Offer 条件、地点、住房、通勤、生�
 3. 税费列必须给规划估算值：优先本人已知税务数据，再按当前 J-1／非居民规则、可核验的州税结论和集中默认税务模型计算。默认模型有税务身份、税年、无协定优惠等前提；不能把预估税费说成最终税额或实时工资单扣缴。
 4. 只问一个用户接下来想展开的一级选择题（3–5 个选项）；用户追问某一项时只展开该项，不重复整个首答。若时薪或平均工时本身都没有，才先问最关键的一项；加班无明确薪率时不自行假设。
 
-## 默认前台结构
+## 默认前台结构（Free / Pro 共用）
 
-**一句话结论**，随后按 `## 1. 核心数据`、`## 2. 回本测算`、`## 3. 岗位收益函数 / ROI Comparison`、`## 4. 注意事项`、`## 5. 继续看什么？` 输出。核心数据仍保留收入、住宿、生活成本、交通、二工、落地便利六维；回本表保留最终预计结余与回本周数。收益函数区使用 `scripts/offer_return.py`，不要心算。1 个岗位显示单线、工时区间和净结余范围；2–3 个显示函数、有效交点、最优区间及 sensitivity；超过 3 个先列全部岗位，并通过共享 Interaction Layer 让用户最多选择 3 个。图形不可用时完整退化为函数、交点、区间结论和表格。
+一句话结论在前。完整岗位分析使用：
+
+1. `## 1. 核心数据与分析`：三列 `要素 | Offer 数据 | 分析`，保留收入、住宿、生活成本、交通、二工、落地便利六维。中列只写岗位/用户的实际输入或明确标识的参考金额；右列解释对用户的影响，不把两种内容合在同一格。
+2. `## 2. 回本测算`：分为“在美收入与生活开销”与“项目投入与最终收益”两张间隔明确的三列表格，列为 `项目 | 计算公式 | 结果`。展示工资、税费、各项生活成本、在美结余、项目投入、最终结余和回本周数；必须用 `scripts/budget.py` 的结果，不心算。
+3. `## 3. 特殊注意事项`：仅写六维以外、这份 Offer 独有且会影响选择的条款。工时、房租、交通、二工、地点等已写在六维分析列的内容，不在此重复。没有额外事项时省略整节。
+4. `## 4. 岗位收益函数`：单 Offer 默认不展示函数图；2–3 份 Offer 比较时才调用 `scripts/offer_return.py` 并根据真实宿主能力渲染图（不能渲染则展示比较结果，绝不输出图表配置代码）。超过三份先比较全部候选，用户要求深入分析时再选 2–3 份画图，不强制先筛选才能比较。
+5. `## 5. 继续看什么？`：保留 A/B/C/D 四个与当前结果相关的选项，用户可以直接选，也可以直接提出下一任务。
+
+不要在表格下另写大段“口径、预留、核验、审计”等内部报告式文案。关键不确定性自然放入对应分析列，不能因为简洁把估算写成事实。不要在开头和末尾重复同一结论。Pro 在分析列按已保存的底线和偏好优先级作判断，Free 不擅自推断用户喜好。
 
 当前汇率不是静态知识。用户指定汇率时直接使用；用户要求“当前汇率”时，先核验当轮可靠来源并显示汇率与时间，无法核验则先输出美元并标记人民币待补。
 

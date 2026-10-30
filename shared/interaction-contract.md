@@ -33,7 +33,7 @@ This shared semantic layer is the single source of truth for `swt` and all five 
 }
 ```
 
-Types are `single_choice`, `multi_choice`, `free_text`, `structured_form`, and `confirmation`. A form field uses `{id, label, required}`. Options normally contain two to four items. More than four must be grouped, filtered, searched, or paged; the explicit exception is Offer ROI selection, which lists every Offer and caps selection at three. `allow_other` opens free text. A recommended option requires a concise basis derived from known facts, state, or deterministic decision logic.
+Types are `single_choice`, `multi_choice`, `free_text`, `structured_form`, and `confirmation`. A form field uses `{id, label, required}`. Options normally contain two to four items. More than four must be grouped, filtered, searched, or paged; the explicit exception is deep Offer ROI selection: the initial comparison includes every Offer, while a later chart may ask users to select at most three. `allow_other` opens free text. A recommended option requires a concise basis derived from known facts, state, or deterministic decision logic.
 
 ## Host capability contract
 
@@ -56,7 +56,7 @@ Interaction UI does not weaken authorization. Edition replacement and other sens
 
 ## Shared Executor uses
 
-- `swt-position`: more than three offers → `multi_choice`, maximum three.
+- `swt-position`: first compare all offers; when users request a detailed return chart for more than three, use `multi_choice`, maximum three.
 - `swt-english`: genuinely undecided practice mode → `single_choice`; a named mode stays direct.
 - `swt-visa`: multiple valid next actions → `single_choice`; one required next action stays direct.
 - `swt-application`: finite stage confirmation → `single_choice`; a missing document value uses free text.

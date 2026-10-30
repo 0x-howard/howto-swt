@@ -140,7 +140,7 @@ class SwtPositionComparisonMarketTests(unittest.TestCase):
                          ("Employer A", "14.00", "110.00"))
         self.assertEqual((two["label"], two["wage_usd_per_hour"], two["weekly_costs_usd"]["rent_usd_per_week"]),
                          ("Employer B", "18.00", "160.00"))
-        self.assertIn("在六维、回本和注意事项表中仍各自保留", SKILL_TEXT)
+        self.assertIn("在六维和回本分析中仍各自保留", SKILL_TEXT)
 
     def test_offer_without_location_in_mixed_comparison_keeps_missing_location_fallback(self):
         offers = [

@@ -13,7 +13,7 @@ description: 处理 SWT 报名与申请链，包括机构／Sponsor 比较、合
 
 ## 工作流
 
-接受 Router Handoff 后使用共享状态机 `INTAKE → SUBJECT_RESOLVE → REQUIREMENTS → MATERIAL_CHECK → SUBMISSION_STATUS → BLOCKER → NEXT_ACTION`；窄任务可跳过不产生工作的状态。
+接受用户的明确任务或 Router 的内部交接后使用共享状态机 `INTAKE → SUBJECT_RESOLVE → REQUIREMENTS → MATERIAL_CHECK → SUBMISSION_STATUS → BLOCKER → NEXT_ACTION`；窄任务可跳过不产生工作的状态。
 
 1. 恢复项目年度、签约主体、Sponsor、申请对象、材料／系统版本与当前状态。
 2. 区分已准备、已提交、待审核、已通过、需更正；不把上传等同通过。

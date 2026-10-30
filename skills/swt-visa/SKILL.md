@@ -13,7 +13,7 @@ description: 处理 SWT J-1 的 DS-2019、DS-160、I-901 SEVIS Fee、签证预�
 
 ## 工作流
 
-接受 Router Handoff 后使用共享状态机 `INTAKE → FACT_EXTRACTION → CONSISTENCY_CHECK → CONFLICT_OR_MISSING → RISK → NEXT_ACTION`；事实完整且一致时可跳过 `CONFLICT_OR_MISSING`。
+接受用户的明确任务或 Router 的内部交接后使用共享状态机 `INTAKE → FACT_EXTRACTION → CONSISTENCY_CHECK → CONFLICT_OR_MISSING → RISK → NEXT_ACTION`；事实完整且一致时可跳过 `CONFLICT_OR_MISSING`。
 
 1. 恢复 Sponsor、项目年度、签证状态和已有文件；不重复询问已知 Sponsor。
 2. 以护照、学籍、Offer、DS-2019、DS-160 草稿、SEVIS Fee 收据和预约记录建立字段矩阵。

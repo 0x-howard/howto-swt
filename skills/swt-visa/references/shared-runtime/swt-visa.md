@@ -4,7 +4,7 @@
 <!-- Source: shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md, shared/official-sources.md -->
 <!-- runtime-version: 1.3.0 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt-visa; source-sha256: 858f991e240a7741fa348611f05ac6ad283477451cab712e854d5f97c62868c5 -->
+<!-- skill: swt-visa; source-sha256: 233737570a7060faf38c661279612c546b1bb1019af347db5b2451390d38874a -->
 
 <!-- source: shared/interaction-protocol.md -->
 
@@ -146,7 +146,7 @@ This shared semantic layer is the single source of truth for `swt` and all five 
 }
 ```
 
-Types are `single_choice`, `multi_choice`, `free_text`, `structured_form`, and `confirmation`. A form field uses `{id, label, required}`. Options normally contain two to four items. More than four must be grouped, filtered, searched, or paged; the explicit exception is Offer ROI selection, which lists every Offer and caps selection at three. `allow_other` opens free text. A recommended option requires a concise basis derived from known facts, state, or deterministic decision logic.
+Types are `single_choice`, `multi_choice`, `free_text`, `structured_form`, and `confirmation`. A form field uses `{id, label, required}`. Options normally contain two to four items. More than four must be grouped, filtered, searched, or paged; the explicit exception is deep Offer ROI selection: the initial comparison includes every Offer, while a later chart may ask users to select at most three. `allow_other` opens free text. A recommended option requires a concise basis derived from known facts, state, or deterministic decision logic.
 
 ## Host capability contract
 
@@ -169,7 +169,7 @@ Interaction UI does not weaken authorization. Edition replacement and other sens
 
 ## Shared Executor uses
 
-- `swt-position`: more than three offers → `multi_choice`, maximum three.
+- `swt-position`: first compare all offers; when users request a detailed return chart for more than three, use `multi_choice`, maximum three.
 - `swt-english`: genuinely undecided practice mode → `single_choice`; a named mode stays direct.
 - `swt-visa`: multiple valid next actions → `single_choice`; one required next action stays direct.
 - `swt-application`: finite stage confirmation → `single_choice`; a missing document value uses free text.
@@ -216,7 +216,7 @@ These are semantic examples, not copies to paste into five Skill files.
 
 ### `swt-position` 的默认岗位／Offer 概览
 
-岗位、Offer、城市＋岗位及回本类问题使用专项覆盖结构：**一句话结论 → 1. 核心数据（六维表）→ 2. 回本测算（税费和前期投入均入算）→ 3. 注意事项（并列表）→ 4. 继续看什么？（一个选择题）**。这是该 Specialist 的默认前台形状，不把通用四点叙述或另一张州级卡叠在其上。普通缺口由集中默认值补齐并标“估”；详细依据留待追问。若用户只问某一个字段或有即时安全问题，直接回答或先处理安全，不机械输出完整概览。
+用户需要完整岗位分析时遵循：**一句话结论 → 1. 核心数据与分析（六维三列：要素 / Offer 数据 / 分析）→ 2. 回本测算（两张三列表，项目 / 计算公式 / 结果）→ 3. 特殊注意事项（仅六维以外）→ 4. 岗位收益函数（仅 2–3 份 Offer 比较默认展示）→ 5. 继续看什么？（保留 A/B/C/D）**。若没有特殊注意事项或不需要收益函数，对应段落可省略，不强制凑数。多于三份 Offer 先比较全部，再按需选 2–3 份深入看曲线。内部要充分判断，前台不堆重复内容，不输出图表配置与计算附录。
 
 ## Edit：最后的读者视角检查
 
@@ -245,7 +245,7 @@ These are semantic examples, not copies to paste into five Skill files.
 
 简单问题和紧急指令不强制凑编号；它们仍应通过“一眼知道答案或行动”的检查。必要的高风险限制、来源冲突和未知条件不能因为压缩而消失。
 
-岗位／Offer 首答另用专项 Clarity Gate：开头是否只有一句判断；六维、回本、注意事项三张表是否依次回答用户问题；每格是否短且估值可见；表外是否只留必要的一行默认值说明；结尾是否只有一个一级选择题。若出现第五部分、州级背景卡、未扣税结果冒充回本金额或多轮追问普通缺口，重做概览。用户继续问具体字段时只给该字段的 Detail View。
+岗位／Offer 首答另用专项 Clarity Gate：开头只有一句判断；六维表严格分为“要素／Offer 数据／分析”三列；回本分成“在美收入与生活开销”和“项目投入与最终收益”两张三列表；特殊注意事项不重复六维；单 Offer 不默认展示收益函数图；结尾保留 A/B/C/D。不要将估值写成事实，也不要附加集中式的“口径／核验／预留／审计”报告段落。用户继续问具体字段时只给该字段的 Detail View。
 
 ## 语言编辑
 
@@ -581,7 +581,7 @@ The validator checks that obvious single-owner intents stay on their owning rout
 
 ### Stage
 
-Use the existing stage model only: `00` through `11`. Stage is optional when irrelevant or unknown; do not infer a new stage.
+For the existing internal decision validator, stage remains the legacy detail code `00` through `11` for compatibility; this is not the student-facing lifecycle stage. The intended Pro long-term memory model uses the eight stages `1` through `8` defined in `stage-model.md`; runtime integration is not yet verified. Stage is optional when irrelevant or unknown; do not infer one from vague evidence.
 
 ### Confidence
 
@@ -665,7 +665,7 @@ When multiple fields are missing, record the highest-impact class and ask no mor
 
 # Skill-to-Skill Handoff Contract
 
-HowTo SWT uses one semantic handoff shape between the `swt` Router and the five Domain Executors. The Router renders it as a directly-sendable user-facing prompt; it is an operational contract, not hidden chain of thought.
+HowTo SWT uses one semantic handoff shape between the `swt` Router and the five Domain Executors. The Router uses it as an internal context exchange when the host supports direct Skill dispatch; user-facing prompts are a fallback only. It is an operational contract, not hidden chain of thought.
 
 ## Canonical shape
 
@@ -686,15 +686,15 @@ state: INTAKE
 
 All fields are required. `known_facts` contains only facts available to the current task. `changed_facts` contains later user corrections and overrides the same keys in `known_facts`. `missing_critical_facts` contains only gaps that prevent safe routing or execution. `constraints` contains user, safety, time, output, or evidence limits that materially affect the task. `execution_cadence` defines interaction rhythm, such as one question at a time, delayed Mock feedback, or immediate Practice feedback.
 
-## User confirmation boundary
+## Dispatch and fallback
 
-The main Router follows `Router → Handoff Prompt → STOP → user confirms/modifies/resends → Executor`. Once a route is known, it renders the full contract in a clearly delimited `HOWTO_SWT_HANDOFF_V1` block and stops. It must not call the Executor or begin its first action in the same turn. Receiving that user-sent block is the Executor's authorization to start.
+Clear specialist requests execute that specialist directly, with no Router round-trip or compulsory user confirmation. When the host supports Skill dispatch, the Handoff carries facts internally. A fresh confirmation is still required for a genuinely high-impact or irreversible user action, never just for routing.
 
-The rendered prompt must name the selected Skill, current task, user goal, effective known facts, current corrections, constraints, execution cadence, and requested output. It may omit empty display sections but never omit their meaning. Promotional copy, edition labels, or upgrade messages are outside the block and are never part of this contract.
+If the host lacks Skill dispatch, the Router may render `HOWTO_SWT_HANDOFF_V1` for the user to copy/re-send as a compatibility fallback. The legacy `Router → Handoff Prompt → STOP → user confirms/modifies/resends → Executor` sequence is **fallback only**, not the normal flow. Free promotional text never enters the Handoff.
 
 ## Routing modes
 
-- `DIRECT`: one Executor clearly owns the task and no fact required to choose that Executor is missing. Generate its Handoff Prompt immediately; do not show a menu or execute it first.
+- `DIRECT`: one Executor clearly owns the task and no fact required to choose that Executor is missing. Dispatch the specialist immediately when available; otherwise generate a manual Handoff fallback without an unrelated menu.
 - `CONFIRM`: two to four materially plausible routes remain. Offer two to four short choices and wait for the user's selection.
 - `CLARIFY`: a minimum fact required to choose a safe route is absent. Ask only the single highest-impact question; do not present a long intake form.
 
@@ -710,7 +710,7 @@ Missing facts needed inside an already selected Executor do not automatically ch
 
 ## Executor contract
 
-An Executor accepts only a user-confirmed or user-resent handoff addressed to its own Skill, starts at a valid state, performs domain work, and returns a compact result containing conclusion, material evidence or uncertainty, current state, blockers, and next action. It may request another specialist through the Router, but it must not silently take ownership of another domain.
+An Executor accepts either a direct user task or a matching internal/manual handoff, starts at a valid state, performs domain work, and returns a compact result containing conclusion, material evidence or uncertainty, current state, blockers, and next action. It may request another specialist through the Router, but it must not silently take ownership of another domain.
 
 The Router does not combine results in the handoff turn. It does not rewrite domain facts or perform the specialist's analysis. The rendered prompt may expose the operational fields needed for user confirmation, but never hidden reasoning.
 
@@ -790,9 +790,9 @@ Runtime capability must be detected from an actually exposed interface. A Skill 
 
 ## Offer Return chart contract
 
-For one to three offers, a capable renderer receives `type = linear_offer_return`, axes, function coefficients, the user hours range, expected-hours markers, valid intersections, optimal regions, and dominated-offer annotations. Every shaded boundary must come from the deterministic intersection/upper-envelope result.
+For two to three compared offers, a capable renderer receives `type = linear_offer_return`, axes, function coefficients, the user hours range, expected-hours markers, valid intersections, optimal regions, and dominated-offer annotations. Every shaded boundary must come from the deterministic intersection/upper-envelope result.
 
-When chart rendering is absent or fails, return the complete textual fallback. More than three offers never generates the all-lines chart by default; show the offer table and request selection of at most three.
+When chart rendering is absent or fails, return the complete textual fallback. Single-offer answers do not show the ROI chart by default. More than three offers still receive a full initial comparison; offer a later choice of two or three only when the user wants a detailed chart.
 
 ## Host evidence boundary
 

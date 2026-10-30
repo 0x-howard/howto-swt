@@ -92,7 +92,8 @@ class OrchestrationContractTests(unittest.TestCase):
         router = (ROOT / "skills/swt/SKILL.md").read_text(encoding="utf-8")
         self.assertLessEqual(len(router.splitlines()), 110)
         self.assertIn("不在本 Skill 里重复岗位、英语、签证、申请或抵美业务逻辑", router)
-        self.assertIn("生成 Prompt 后无条件 STOP", router)
+        self.assertIn("直接交给对应 Skill 执行", router)
+        self.assertIn("手动回退", router)
 
 
 if __name__ == "__main__":

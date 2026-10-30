@@ -12,9 +12,9 @@ Runtime capability must be detected from an actually exposed interface. A Skill 
 
 ## Offer Return chart contract
 
-For one to three offers, a capable renderer receives `type = linear_offer_return`, axes, function coefficients, the user hours range, expected-hours markers, valid intersections, optimal regions, and dominated-offer annotations. Every shaded boundary must come from the deterministic intersection/upper-envelope result.
+For two to three compared offers, a capable renderer receives `type = linear_offer_return`, axes, function coefficients, the user hours range, expected-hours markers, valid intersections, optimal regions, and dominated-offer annotations. Every shaded boundary must come from the deterministic intersection/upper-envelope result.
 
-When chart rendering is absent or fails, return the complete textual fallback. More than three offers never generates the all-lines chart by default; show the offer table and request selection of at most three.
+When chart rendering is absent or fails, return the complete textual fallback. Single-offer answers do not show the ROI chart by default. More than three offers still receive a full initial comparison; offer a later choice of two or three only when the user wants a detailed chart.
 
 ## Host evidence boundary
 

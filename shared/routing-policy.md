@@ -8,13 +8,13 @@
 
 三种模式均通过共享 Interaction Layer 落地：`DIRECT` 禁止多余弹窗；`CONFIRM` 优先宿主真实 choice／confirmation；`CLARIFY` 的有限枚举使用 choice，自由事实使用 structured/free-text input。宿主能力未知或不可用时使用编号／文本 fallback，不用 Markdown 假装原生 UI。
 
-- `DIRECT`：用户目标和任务对象足以确定唯一 Executor，立即生成 Handoff，不先显示菜单。
+- `DIRECT`：用户目标和任务对象足以确定唯一 Executor，直接调用它执行；仅当宿主不支持调用时才生成 Handoff，不先显示菜单。
 - `CONFIRM`：存在两到四个合理且会产生不同结果的方向，只给对应的两到四个短选项，用户选择后再交接。
 - `CLARIFY`：缺少决定路由或安全性的最小必要信息，只问一个最高影响问题。
 
 五个明确任务都应 `DIRECT`：报名材料到 `swt-application`，岗位／Offer 分析到 `swt-position`，Sponsor 面试练习到 `swt-english`，DS-2019 核对到 `swt-visa`，抵美后 I-94 到 `swt-arrival`。“我收到一份 Offer，帮我处理”无法判断是申请状态还是岗位价值时用 `CONFIRM`。“帮我看看这个”且当前上下文没有对象时用 `CLARIFY`。
 
-路由后使用 [Handoff Contract](handoff-contract.md)；交给 Executor 后使用 [Domain Executor State Machines](executor-state-machines.md)。已知事实不得重复询问，`changed_facts` 对同名旧事实优先。
+必要时按 [Handoff Contract](handoff-contract.md) 内部传递上下文，或在宿主无法调度时回退到手动交接；交给 Executor 后使用 [Domain Executor State Machines](executor-state-machines.md)。已知事实不得重复询问，`changed_facts` 对同名旧事实优先。
 
 ### 已验收的直接路由示例
 
@@ -100,7 +100,7 @@ SEVIS Fee 与 SEVIS Check-in 是不同任务：前者属于签证链，后者属
 - “我准备面试 Retail Associate，看看我的英语够不够应付这个岗位”调用 `swt-english` / ASSESS，并复用已知 Position Context；没有岗位上下文且任务选择受影响时只问岗位。
 - “帮我测一下美签面试英语”由 Visa domain context + `swt-english` / ASSESS 协作；“签证需要什么材料”仍由 `swt-visa` 单独处理。
 - “帮我模拟签证官问问题”先由 `swt-visa` 提供／核实签证事实，再由 `swt-english` / MOCK 做真实表达角色练习。
-- “这个岗位值不值得去，再告诉我面试怎么准备”先生成 position Handoff；完成并回到 Router 后再生成 English Handoff，不在 Router 轮自动执行或整合。
+- “这个岗位值不值得去，再告诉我面试怎么准备”先由 position 完成分析，再把需要的岗位事实交给 English 继续；只在真正有选择或安全问题时请用户确认。
 - “时薪 16 刀、每周 40 小时、从 6 月 1 日到 9 月 1 日能剩多少”“把房租和税扣掉”“对比两个 Offer 最后剩得多”都是 `CALCULATION`，路由 `swt-position`。日期、周数、税务和汇率缺口按 Choice-first 逐项补足。
 
 ## 多 Skill 顺序

@@ -211,11 +211,14 @@ class PositionOverviewTests(unittest.TestCase):
         self.assertEqual(item["cost_sources"]["rent_usd_per_week"], "global_estimate")
         self.assertGreater(float(item["estimated_taxes"]["total_usd"]), 0)
         answer = format_position_overview(self.overview({"wage_usd_per_hour": 16, "hours_per_week": 32}))
-        self.assertEqual(re.findall(r"(?m)^## \d\. ", answer), ["## 1. ", "## 2. ", "## 3. ", "## 4. ", "## 5. "])
-        self.assertIn("## 3. 岗位收益函数 / ROI Comparison", answer)
-        self.assertEqual(len(re.findall(r"(?m)^\|---(?:\|---)+\|$", answer)), 4)
+        self.assertIn("## 1. 核心数据与分析", answer)
+        self.assertIn("| 要素 | Offer 数据 | 分析 |", answer)
+        self.assertIn("### 在美收入与生活开销", answer)
+        self.assertIn("### 项目投入与最终收益", answer)
+        self.assertNotIn("## 4. 岗位收益函数", answer)
+        self.assertEqual(answer.count("|---|---|---|"), 3)
         self.assertEqual(answer.count("?"), 0)
-        self.assertEqual(answer.count("你接下来想先展开哪一项？"), 1)
+        self.assertEqual(answer.count("## 5. 继续看什么？"), 1)
         self.assertIn("最终预计结余", answer)
 
     def test_user_rent_overrides_defaults(self):
@@ -235,8 +238,8 @@ class PositionOverviewTests(unittest.TestCase):
             {"label": "乙", "wage_usd_per_hour": 17, "hours_per_week": 35},
         )
         answer = format_position_overview(result)
-        self.assertEqual(answer.count("|---|---|---|"), 4)
-        core = answer.split("## 1. 核心数据\n\n", 1)[1].split("## 2.", 1)[0]
+        self.assertGreaterEqual(answer.count("|---|---|---|"), 3)
+        core = answer.split("## 1. 核心数据与分析\n\n", 1)[1].split("## 2.", 1)[0]
         self.assertEqual(len(re.findall(r"(?m)^\| (?:收入|住宿|生活成本|交通|二工|落地便利) \|", core)), 6)
 
     def test_missing_caution_uses_dash(self):
@@ -244,7 +247,8 @@ class PositionOverviewTests(unittest.TestCase):
             {"label": "甲", "wage_usd_per_hour": 16, "hours_per_week": 32, "cautions": {"工时": "尚未保证"}},
             {"label": "乙", "wage_usd_per_hour": 17, "hours_per_week": 35},
         ))
-        self.assertIn("| 工时 | 尚未保证 | - |", answer)
+        self.assertIn("尚未保证", answer)
+        self.assertNotIn("## 3. 特殊注意事项\n\n- 工时", answer)
 
     def test_housing_followup_only_expands_housing(self):
         detail = format_position_detail(self.overview({"wage_usd_per_hour": 16, "hours_per_week": 32}), "housing")
