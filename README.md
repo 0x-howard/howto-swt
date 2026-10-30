@@ -1,91 +1,132 @@
 # HowTo SWT
 
-## 01 Hero
+**面向 J-1 Summer Work Travel 学生的 AI Skills 工具箱**
 
-面向 J-1 Summer Work Travel 学生的 AI 任务系统：从申请、岗位与预算，到英语、签证和抵美后的下一步。
+![版本](https://img.shields.io/badge/Free-v1.4.0-blue) ![语言](https://img.shields.io/badge/语言-中文-green)
 
-**HowTo SWT Free v1.4.0** · Created by Howard
+作者：Howard · [@哎哟不想上早八啊](#作者与帮助)（全平台同名）
 
-Free 不是试用壳：它能在当前会话内复用上下文并完整完成一个真实 SWT 任务。Pro 管理跨会话的完整 SWT 生命周期；SWT 陪跑营在 Pro 之上增加社群、直播与真人判断／复核／陪跑。
+从报名到赴美，SWT 有不少信息需要自己判断。安装后，你可以在自己的 Agent 里直接问申请、岗位、英语、签证或美国生活的问题，带着已有材料一起理清下一步。
 
-## 02 Agent 安装
+[功能展示](#功能展示) · [快速安装](#快速安装) · [使用方法](#使用方法) · [最近更新](#最近更新) · [作者与帮助](#作者与帮助)
 
-标准 Free 安装来自公开 GitHub source：
+## 能力速览
+
+| 工作目标 | 主要入口 | 常见产出 |
+|---|---|---|
+| 找到当前阶段和下一步 | [`swt`](skills/swt/SKILL.md) | 问题梳理、下一步建议 |
+| 处理报名与申请 | [`swt-application`](skills/swt-application/SKILL.md) | 条件核对、申请清单 |
+| 看懂岗位与 Offer | [`swt-position`](skills/swt-position/SKILL.md) | 六维分析、回本测算 |
+| 练英语与面试 | [`swt-english`](skills/swt-english/SKILL.md) | 提问、反馈、重试 |
+| 准备签证 | [`swt-visa`](skills/swt-visa/SKILL.md) | 材料核对、冲突提醒 |
+| 准备赴美与在美生活 | [`swt-arrival`](skills/swt-arrival/SKILL.md) | 操作顺序、问题处理 |
+
+## 功能展示
+
+以下是虚构的使用示例，用来展示可能的对话，不代表真实用户记录。具体回答会随你提供的资料变化。
+
+### 01｜SWT 导航 · `swt`
+
+不知道从哪开始，或手上有几个任务需要安排顺序时，可以先找小How。
+
+> **你：** 我已经报名，Sponsor 英语面试下周进行，但还没选岗位。我现在先做什么？
+>
+> **小How：** 先准备下周的 Sponsor 面试；岗位选择可以接着处理。告诉我面试形式和你最担心的部分，我们从那里开始。
+
+已明确要做的事可以直接说，例如“分析这个岗位”，不必先经过首页。
+
+### 02｜报名申请 · `swt-application`
+
+机构、Sponsor、合同付款或申请材料有问题时，先把已知情况说清楚。
+
+> **你：** 机构让我先交项目费，但合同里没有写清退款条件，我该看什么？
+>
+> **小How：** 先查看费用明细、退款触发条件、扣款项目和截止时间；请机构提供书面条款。付款前，先把不清楚的部分确认清楚。
+
+### 03｜岗位分析 · `swt-position`
+
+拿到 Offer 后，可以一起看工资、住宿、交通、生活成本、二工和回本。
+
+> **你：** 德州餐厅岗位：时薪 $16，平均每周 32 小时，工作 13 周，住宿每周 $120。帮我看看能不能回本。
+>
+> **小How：** 会按收入、住宿、生活成本、交通、二工和落地便利六个方面整理 `要素 | Offer 数据 | 分析`；再分别测算在美收入与开销、项目投入与最终收益。工时不等于保证工时，未知税费和生活费用会标明为估算，二工收入不会默认算入。
+
+这是一份单 Offer 预览，默认不展示收益函数图；你可以继续选择调整工时、比较其他岗位、细看生活条件或判断是否值得选。
+
+### 04｜英语训练 · `swt-english`
+
+SWT English 可用于英语口测、Sponsor、雇主或签证面试准备，可以选择正式模拟或逐题练习。
+
+> **你：** 陪我模拟 Sponsor 英语面试，结束后给我反馈，再让我重答薄弱问题。
+>
+> **小How：** “Why do you want to participate in Summer Work Travel?” 你回答后，我会按面试节奏继续提问；模拟结束再反馈，并陪你重试。
+
+### 05｜签证准备 · `swt-visa`
+
+核对 DS-2019、DS-160、SEVIS Fee 和面签材料时，以本人真实文件为准。
+
+> **你：** 我的 DS-2019 和 DS-160 草稿里的雇主信息不一致，怎么办？
+>
+> **小How：** 先不要把不一致的信息当成已确认；对照文件版本和出具方，联系 Sponsor 核实，再根据实际情况更正草稿。不要在聊天里发送完整证件号码。
+
+签证事实由 `swt-visa` 核对；需要英语面签练习时，可以继续用 `swt-english`。
+
+### 06｜赴美生活 · `swt-arrival`
+
+入境、SSN、State ID、住房、工作和返程问题，可以按当前进度逐步处理。
+
+> **你：** 刚到美国，Sponsor 要我做 SEVIS Check-in，我还想申请 SSN，先做什么？
+>
+> **小How：** 先按 Sponsor 指引完成 Check-in，再确认申请 SSN 所需的状态、时间和材料；保留办理记录。如有紧迫期限，先联系 Sponsor 确认。
+
+## 快速安装
+
+**第一步：在终端执行**，不是在 Agent 的聊天框里执行：
 
 ```bash
 npx -y skills add 0x-howard/howto-swt -g --all
 ```
 
-| Agent | 当前验证状态 | 入口 |
-|---|---|---|
-| Codex | ✅ 当前 Runtime 能力清单已核对；无 structured picker 的会话自动使用文本 fallback | [安装说明](docs/INSTALL.md) |
-| WorkBuddy | ◐ 已核对本机安装 Runtime 的 structured-choice 静态证据；尚未做真实 UI E2E | [安装说明](docs/INSTALL.md) |
-| 豆包 Work | ◐ package adapter 与文本 fallback 回归通过；本轮未验证正式 choice/form UI | [安装说明](docs/INSTALL.md) |
-| Claude Code | ◐ interaction contract 与文本 fallback 回归通过；本轮未做真实宿主 UI 验收 | [安装说明](docs/INSTALL.md) |
+安装前先检查目标位置是否已有同名 Skill，避免无意覆盖。也可以把下面的话发给支持终端操作的 Agent：
 
-第三方 `skills add` 不保证运行本项目的安装前检查；替换已有 Skill 前请检查目标目录。详情见[安装说明](docs/INSTALL.md)。
+```text
+请先检查我的 Skills 目录里是否已有同名 swt Skill；确认不会覆盖后，在终端安装 0x-howard/howto-swt 的全部 Skill，然后告诉我安装结果。
+```
 
-## 03 Free vs Pro
+## 使用方法
 
-| 产品 | 正式边界 | 核心价值 |
-|---|---|---|
-| HowTo SWT Free | 完成一个完整 SWT 任务 | 当前会话上下文、六个领域 Executor、基础安全与签证风险、决策与下一步 |
-| HowTo SWT Pro | 管理一个完整 SWT 过程 | Persistent Profile、Lifecycle State、Offer/English/Visa history、Context Builder、Write Back、持续更新 |
-| SWT 陪跑营 | Pro + 真人服务 | 社群、直播、真人判断／复核／陪跑 |
-
-Pro 由项目所有者构建并自行分发。
-
-## 04 核心能力
-
-- **Orchestrator / Router**（`swt`）：识别阶段与目标，按 `DIRECT / CONFIRM / CLARIFY` 生成统一 Handoff。
-- **Application Executor**：机构、Sponsor、申请材料和 Employer Application。
-- **Position Executor**：Offer、地点、工资、住宿、交通、预算、风险与决策。
-- **English Executor / SWT English**：Assessment、Practice、Retry、Reassessment 与各类面试。
-- **Visa Executor**：事实提取、一致性检查、缺失／冲突、风险与下一步。
-- **Arrival Executor**：行前、入境、I-94、SSN、保险、工作与返程。
-
-架构详见[HowTo SWT 怎样工作](docs/architecture.md)。
-
-## 05 使用方式
-
-安装后在新会话直接说：
+**第二步：开启新会话，直接说你想做什么：**
 
 ```text
 你好小How
-小How帮我看看这个岗位
-陪我练 Sponsor 面试
-帮我核对签证材料
+帮我分析这份 SWT Offer
+陪我模拟 Sponsor 英语面试
 ```
 
-明确任务自动进入对应 Executor；多个方向都合理时只给 2–4 个选择；缺少路由所需信息时只问最少关键问题。更新检查在后台 fail-open，永远先完成用户任务，且只提示、不自动安装。
+不知道如何提问时，可以先用小How主入口；知道具体任务时，直接提出任务或调用对应 Skill。已经开始的任务，可以在当前对话继续补充材料和追问。
 
-岗位比较使用确定性的收益函数分析工时、税后工资与每周成本；超过 3 个 Offer 时先展示全量结果，再让你最多选择 3 个做曲线与交点比较。宿主没有原生选择或图表能力时，会自动使用编号选择、函数、表格和区间结论，不影响任务完成。
+**第三步：按 Agent 查看安装帮助。** [安装说明](docs/INSTALL.md)和[新手入门](docs/新手入门.md)可作为 Codex、Claude Code、WorkBuddy、豆包 Work 等环境的起点。不同宿主的安装方式和交互能力可能不同；仓库已有静态检查及文本降级测试，不能据此认定所有宿主的原生界面均已完成端到端验收。
 
-## 06 数据与隐私
+分享材料前请移除密码、验证码、完整证件号码等不必要的敏感信息。更多说明见[数据与隐私](docs/data-and-privacy.md)。
 
-- Free 使用当前会话的 ephemeral task context，不宣称自动跨会话保存。
-- Pro 的 canonical context 必须写到 package 之外的显式 `USER_DATA_ROOT`；推断不会未经确认持久化。
-- Runtime Knowledge、开发源数据和 User Data 分离；Skill package、Git、overlay 与 references 不保存用户长期数据。
-- 不要把密码、OTP、session token 或不必要的证件号码交给 Skill。
+## 最近更新
 
-详见[数据与隐私](docs/data-and-privacy.md)。
-
-## 07 最近 5 个版本
+v1.4.0 已在 GitHub main，属于当前开发版本；尚未创建正式 Release。
 
 <!-- CHANGELOG_LATEST_START -->
 | 版本 | 更新 |
 |---|---|
-| v1.3.0 | 新增 Offer Return Function、工时区间最优分析与跨 Agent Interaction Capability Layer。 |
-| v1.2.0 | 建立 Orchestration、Pro Context 接口边界与 Runtime Lifecycle；Free 新增 24h fail-open 更新检查。 |
-| v1.1.1 | 修复“小How / HowTo SWT”显式调用发现，并重做公开首页与安装入口。 |
-| v1.1.0 | 统一 HowTo SWT 品牌、目录和安装标识。 |
-| v1.0.0 | 明确 Runtime、Source、Test 与 User Data 的边界。 |
+| v1.4.0 | 明确任务直接进入对应 Skill，岗位分析改为六维和两张回本表。 |
+| v1.3.0 | 增加岗位收益函数与交互能力。 |
+| v1.2.0 | 整理任务协作、上下文和版本提示。 |
+| v1.1.1 | 修复小How入口发现并整理首页。 |
+| v1.1.0 | 统一 HowTo SWT 品牌和安装标识。 |
 <!-- CHANGELOG_LATEST_END -->
 
-[查看完整更新日志 →](docs/CHANGELOG.md)
+[查看完整更新日志](docs/CHANGELOG.md)
 
-## 08 Author
+## 作者与帮助
 
-HowTo SWT  
-作者：Howard  
-@哎哟不想上早八啊（全平台同名） · GitHub：[`0x-howard`](https://github.com/0x-howard)
+HowTo SWT 由 Howard 围绕 SWT 学生在申请、面试和赴美过程中遇到的实际问题整理。GitHub：[`0x-howard`](https://github.com/0x-howard)；@哎哟不想上早八啊（全平台同名）。
+
+遇到问题可以查看[安装说明](docs/INSTALL.md)和[新手入门](docs/新手入门.md)，或在 [GitHub Issues](https://github.com/0x-howard/howto-swt/issues) 反馈。Skill 提供信息整理与决策支持，具体申请、签证和 Sponsor 要求请以本人文件及官方信息为准。
