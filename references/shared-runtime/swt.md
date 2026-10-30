@@ -2,9 +2,9 @@
 
 <!-- GENERATED FILE: DO NOT EDIT. -->
 <!-- Source: shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md, shared/routing-policy.md, shared/stage-model.md -->
-<!-- runtime-version: 1.3.0 -->
+<!-- runtime-version: 1.4.0 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt; source-sha256: a214eae6fe1f025a3f05822dbdc4be8617001c6ea2615b32a492524801a49644 -->
+<!-- skill: swt; source-sha256: 09d12a72d8d3c8a9ae048f882d0b1fd1ed7027e9f78c04d4532fec30ffe73888 -->
 
 <!-- source: shared/interaction-protocol.md -->
 
@@ -828,6 +828,11 @@ Do not persist passwords, one-time codes, full passport or national ID numbers, 
 ## Data ownership
 
 The user controls whether data is saved and which configured directory is used. Never treat files found beside the plugin as user profile data. Never infer consent to save from a user sharing information for a one-time task.
+
+
+## Optional package extension
+
+When the host can access the complete installed package, check for the package-root `context-engine/extension.md` before starting any of the six Skills. If present, follow its instructions for optional context and interaction; suppress Free promotional text and the optional Free version check while the extension is active; if absent or inaccessible, continue the normal task without assuming persistence. Do not invent an extension or request credentials. If the host installs only individual Skill folders and cannot access the package root, the extension is unavailable; do not claim it was used. User consent for storing personal information remains required.
 
 ---
 

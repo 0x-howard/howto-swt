@@ -4,7 +4,7 @@
 
 面向 J-1 Summer Work Travel 学生的 AI 任务系统：从申请、岗位与预算，到英语、签证和抵美后的下一步。
 
-**HowTo SWT Free v1.3.0** · Created by Howard
+**HowTo SWT Free v1.4.0** · Created by Howard
 
 Free 不是试用壳：它能在当前会话内复用上下文并完整完成一个真实 SWT 任务。Pro 管理跨会话的完整 SWT 生命周期；SWT 陪跑营在 Pro 之上增加社群、直播与真人判断／复核／陪跑。
 
