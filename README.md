@@ -23,7 +23,7 @@ npx -y skills add 0x-howard/howto-swt -g --all
 | 豆包 Work | ◐ package adapter 与文本 fallback 回归通过；本轮未验证正式 choice/form UI | [安装说明](docs/INSTALL.md) |
 | Claude Code | ◐ interaction contract 与文本 fallback 回归通过；本轮未做真实宿主 UI 验收 | [安装说明](docs/INSTALL.md) |
 
-第三方 `skills add` 无法被 HowTo SWT 代码 100% 硬拦截：一般 Agent 依赖安装前的 Agent Preflight Guard；WorkBuddy 和 HowTo SWT CLI 路径使用代码级 Hard Guard。详情见[安装说明](docs/INSTALL.md)。
+第三方 `skills add` 不保证运行本项目的安装前检查；替换已有 Skill 前请检查目标目录。详情见[安装说明](docs/INSTALL.md)。
 
 ## 03 Free vs Pro
 
@@ -33,7 +33,7 @@ npx -y skills add 0x-howard/howto-swt -g --all
 | HowTo SWT Pro | 管理一个完整 SWT 过程 | Persistent Profile、Lifecycle State、Offer/English/Visa history、Context Builder、Write Back、持续更新 |
 | SWT 陪跑营 | Pro + 真人服务 | 社群、直播、真人判断／复核／陪跑 |
 
-OTP、Offline Activation 和 encrypted bundle 是授权基础设施，不是 Pro 的主要用户价值。
+Pro 由项目所有者构建并自行分发。
 
 ## 04 核心能力
 

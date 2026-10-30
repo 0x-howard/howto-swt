@@ -1,5 +1,13 @@
 # HowTo SWT Free Changelog
 
+## Unreleased
+
+- 更新现行 Pro 分发说明，移除已废弃的安装器和在线授权指引；Free 自身版本提示能力保留。
+
+- 明确任务直接进入对应 Skill，Router 为导航和模糊任务提供引导；手动 Handoff 保留为兼容回退。
+- 新增用户可见八阶段与既有内部节点的兼容规则；岗位分析改为六维三列表和两张回本表，单 Offer 不默认展示收益函数，保留 A/B/C/D。
+- 实际宿主自动调度和原生交互尚待验收，以上为本地开发状态，尚未发布。
+
 ## v1.3.0 — Offer Return & Interaction Capability
 
 ### Milestone 5 — Offer Return Function
