@@ -7,8 +7,7 @@
     "food_usd_per_week": 90,
     "transport_usd_per_week": 20,
     "other_weekly_usd": 15,
-    "project_cost_cny": 25000,
-    "planning_fx_cny_per_usd": 7.2
+    "project_cost_cny": 25000
   },
   "city_cost_overrides": {},
   "tax_planning": {

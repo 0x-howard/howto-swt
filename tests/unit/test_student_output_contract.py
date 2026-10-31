@@ -22,14 +22,14 @@ class StudentOutputContractTests(unittest.TestCase):
         self.assertIn('| 要素 | Offer 数据 | 分析 |', text)
         self.assertIn('| 项目 | 计算公式 | 结果 |', text)
         self.assertEqual(text.count('|---|---|---|'), 3)
-        self.assertNotIn('## 4. 岗位收益函数', text)
-        self.assertIn('## 5. 继续看什么？', text)
+        self.assertNotIn('岗位收益函数', text)
+        self.assertIn('## 3. 继续看什么？', text)
         for forbidden in ('口径：', '核验口径', '税费规划预留'):
             self.assertNotIn(forbidden, text)
 
     def test_two_offers_show_roi(self):
         text = format_position_overview(calculate_position_overview({"offers": [offer('A'), offer('B', 18)]}))
-        self.assertIn('## 4. 岗位收益函数', text)
+        self.assertIn('岗位收益函数', text)
         self.assertIn('### 项目投入与最终收益', text)
 
     def test_four_offers_compare_first_without_forced_picker(self):
@@ -37,7 +37,7 @@ class StudentOutputContractTests(unittest.TestCase):
         self.assertIn('0：', text)
         self.assertIn('3：', text)
         self.assertNotIn('回复编号即可', text)
-        self.assertNotIn('## 4. 岗位收益函数', text)
+        self.assertNotIn('岗位收益函数', text)
 
     def test_direct_skill_contract(self):
         router = (ROOT / 'skills/swt/SKILL.md').read_text(encoding='utf-8')

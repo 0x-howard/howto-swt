@@ -41,7 +41,7 @@ SOURCES_BY_SKILL = {
 DOMAIN_REFERENCES_BY_SKILL = {
     "swt": ("interaction-adapters.md",),
     "swt-application": ("agency-sponsor.md", "application-materials.md"),
-    "swt-position": ("location-offer.md", "budget-method.md", "tax-estimation.md", "state-income-tax.md", "default-assumptions.json"),
+    "swt-position": ("position-example.md", "location-offer.md", "budget-method.md", "tax-estimation.md", "state-income-tax.md", "default-assumptions.json"),
     "swt-english": (
         "english-practice.md", "english-assessment.md", "english-rubric.md",
         "english-profiles.md", "english-question-bank.md", "english-speaking-coach.md",

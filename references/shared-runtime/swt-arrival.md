@@ -2,9 +2,9 @@
 
 <!-- GENERATED FILE: DO NOT EDIT. -->
 <!-- Source: shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md, shared/official-sources.md -->
-<!-- runtime-version: 1.4.0 -->
+<!-- runtime-version: 1.5.0 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt-arrival; source-sha256: c23e1fbedc7aca17933e4d217961666bcd2a5893deb60813032251fadf9eb9b9 -->
+<!-- skill: swt-arrival; source-sha256: b5d74a2be73e2a00ef84cb81046092a19f09bc4af46c19e389ce5d9cb49564c6 -->
 
 <!-- source: shared/interaction-protocol.md -->
 
@@ -216,7 +216,7 @@ These are semantic examples, not copies to paste into five Skill files.
 
 ### `swt-position` 的默认岗位／Offer 概览
 
-用户需要完整岗位分析时遵循：**一句话结论 → 1. 核心数据与分析（六维三列：要素 / Offer 数据 / 分析）→ 2. 回本测算（两张三列表，项目 / 计算公式 / 结果）→ 3. 特殊注意事项（仅六维以外）→ 4. 岗位收益函数（仅 2–3 份 Offer 比较默认展示）→ 5. 继续看什么？（保留 A/B/C/D）**。若没有特殊注意事项或不需要收益函数，对应段落可省略，不强制凑数。多于三份 Offer 先比较全部，再按需选 2–3 份深入看曲线。内部要充分判断，前台不堆重复内容，不输出图表配置与计算附录。
+用户需要完整岗位分析时遵循：**一句话结论 → 1. 核心数据与分析（六维三列：要素 / Offer 数据 / 分析）→ 2. 回本测算（两张三列表，项目 / 计算公式 / 结果）→ 特殊注意事项（仅六维以外）→ 岗位收益函数（仅 2–3 份 Offer 比较默认展示）→ 继续看什么？（保留 A/B/C/D）**。若没有特殊注意事项或不需要收益函数，对应段落可省略，章节按实际出现顺序连续编号。多于三份 Offer 先比较全部，再按需选 2–3 份深入看曲线。内部要充分判断，前台不堆重复内容，不输出图表配置与计算附录。
 
 ## Edit：最后的读者视角检查
 

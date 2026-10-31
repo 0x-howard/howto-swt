@@ -12,7 +12,7 @@ import json
 import re
 import sys
 from datetime import date
-from decimal import Decimal, ROUND_CEILING, ROUND_HALF_UP
+from decimal import Decimal, InvalidOperation, ROUND_CEILING, ROUND_HALF_UP
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +21,14 @@ from paths import DEFAULT_ASSUMPTIONS_PATH
 
 ZERO = Decimal("0")
 WEEK = Decimal("7")
+
+
+def round_searched_fx(value: Any) -> Decimal:
+    """Round a searched quote up to one decimal; never apply to user rates."""
+    rate = _number(value, "searched_fx", positive=True)
+    return ((rate * 10).to_integral_value(rounding=ROUND_CEILING) / 10).quantize(Decimal(".1"))
+
+
 STATE_ALIASES = {
     "alabama": "AL", "al": "AL", "alaska": "AK", "ak": "AK",
     "arizona": "AZ", "az": "AZ", "arkansas": "AR", "ar": "AR",
@@ -552,40 +560,47 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
     ):
         costs[key], sources[key] = _overview_cost(raw, city_defaults, profile, defaults, key, state_field, path)
     other_fixed = _number(raw["other_fixed_usd"], f"{path}.other_fixed_usd") if "other_fixed_usd" in raw else ZERO
-    fx = _number(top.get("fx_cny_per_usd", defaults["global"]["planning_fx_cny_per_usd"]), "input.fx_cny_per_usd", positive=True)
+    fx = _optional_number(top, "fx_cny_per_usd", "input")
+    if fx is not None and fx <= ZERO:
+        raise ValueError("input.fx_cny_per_usd: requires a positive number")
     project_keys = [key for key in ("project_cost_cny", "project_cost_usd") if key in raw or key in top]
     if len(project_keys) > 1 or any(key in raw and key in top for key in project_keys):
         raise ValueError(f"{path}: provide one project cost and one scope only")
     if "project_cost_usd" in raw or "project_cost_usd" in top:
         project = _number(raw.get("project_cost_usd", top.get("project_cost_usd")), f"{path}.project_cost_usd")
         project_source = "provided"
+        project_cny = project * fx if fx is not None else None
     elif "project_cost_cny" in raw or "project_cost_cny" in top:
-        project = _number(raw.get("project_cost_cny", top.get("project_cost_cny")), f"{path}.project_cost_cny") / fx
+        project_cny = _number(raw.get("project_cost_cny", top.get("project_cost_cny")), f"{path}.project_cost_cny")
+        project = project_cny / fx if fx is not None else None
         project_source = "provided_converted"
     else:
-        project = _number(defaults["global"]["project_cost_cny"], "defaults.global.project_cost_cny") / fx
+        project_cny = _number(defaults["global"]["project_cost_cny"], "defaults.global.project_cost_cny")
+        project = project_cny / fx if fx is not None else None
         project_source = "global_estimate"
+    if project is not None:
+        project = project.quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
     sources["project_cost"] = project_source
-    sources["fx"] = "provided" if "fx_cny_per_usd" in top else "planning_estimate"
+    sources["fx"] = "provided" if fx is not None else "unavailable"
 
-    gross = wage * hours * weeks
+    gross = (wage * hours * weeks).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
     tax_input = raw.get("tax", top.get("tax", {}))
     if not isinstance(tax_input, dict):
         raise ValueError(f"{path}.tax: requires an object")
     taxes = _overview_tax(tax_input, gross, state, defaults, f"{path}.tax")
     total_tax = Decimal(taxes["total_usd"])
-    housing = costs["rent_usd_per_week"] * stay_weeks
-    food = costs["food_usd_per_week"] * stay_weeks
-    transport = costs["transport_usd_per_week"] * stay_weeks
-    other = costs["other_weekly_usd"] * stay_weeks + other_fixed
+    housing = (costs["rent_usd_per_week"] * stay_weeks).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
+    food = (costs["food_usd_per_week"] * stay_weeks).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
+    transport = (costs["transport_usd_per_week"] * stay_weeks).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
+    other = (costs["other_weekly_usd"] * stay_weeks + other_fixed).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
     living = housing + food + transport + other
     net_us = gross - total_tax - living
-    final = net_us - project
+    final = net_us - project if project is not None else None
     weekly_living = sum(costs.values())
     weekly_after_tax_and_living = wage * hours - total_tax / weeks - weekly_living
     fixed_living = (stay_weeks - weeks) * weekly_living + other_fixed
     break_even = None
-    if weekly_after_tax_and_living > ZERO:
+    if project is not None and weekly_after_tax_and_living > ZERO:
         break_even = ((project + fixed_living) / weekly_after_tax_and_living * Decimal("10")).to_integral_value(rounding=ROUND_CEILING) / Decimal("10")
 
     cautions = raw.get("cautions", {})
@@ -602,7 +617,8 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
     )
     return {
         "id": identifier, "label": label, "state": state, "city": city,
-        "work_weeks": _money(weeks), "stay_weeks": _money(stay_weeks),
+        "work_weeks": _money(weeks) if weeks == weeks.quantize(Decimal(".01")) else str(weeks),
+        "stay_weeks": _money(stay_weeks) if stay_weeks == stay_weeks.quantize(Decimal(".01")) else str(stay_weeks),
         "wage_usd_per_hour": _money(wage), "hours_per_week": _money(hours),
         "hours_range": {
             "min": _money(minimum), "expected": _money(hours), "max": _money(maximum),
@@ -615,23 +631,33 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
         "housing_usd": _money(housing), "food_usd": _money(food),
         "transport_usd": _money(transport), "other_living_usd": _money(other),
         "estimated_us_net_usd": _money(net_us), "project_cost_usd": _money(project),
-        "project_cost_cny": _money(project * fx), "final_project_surplus_usd": _money(final),
+        "project_cost_cny": _money(project_cny), "final_project_surplus_usd": _money(final),
         "break_even_work_weeks": _money(break_even),
-        "can_break_even_in_period": final >= ZERO,
-        "fx_cny_per_usd": _money(fx), "cautions": cautions,
+        "can_break_even_in_period": final >= ZERO if final is not None else None,
+        "fx_cny_per_usd": str(fx) if fx is not None else None, "cautions": cautions,
     }
 
 
 def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
     """Calculate a one-result SWT comparison with explicit provenance for every fallback."""
     _exact_keys(
-        data, {"mode", "offers", "fx_cny_per_usd", "project_cost_cny", "project_cost_usd", "tax", "comparison_hours"},
+        data, {"mode", "offers", "fx_cny_per_usd", "fx_source", "fx_quote_date", "project_cost_cny", "project_cost_usd", "tax", "comparison_hours"},
         {"offers"}, "input",
     )
     if data.get("mode", "position_overview") != "position_overview":
         raise ValueError("input.mode: use position_overview")
     if not isinstance(data["offers"], list) or not data["offers"]:
         raise ValueError("input.offers: requires at least one offer")
+    for key in ("fx_source", "fx_quote_date"):
+        if key in data and (not isinstance(data[key], str) or not data[key].strip()):
+            raise ValueError(f"input.{key}: requires nonempty text")
+    if "fx_quote_date" in data:
+        try:
+            date.fromisoformat(data["fx_quote_date"])
+        except ValueError as error:
+            raise ValueError("input.fx_quote_date: use YYYY-MM-DD") from error
+    if any(key in data for key in ("fx_source", "fx_quote_date")) and "fx_cny_per_usd" not in data:
+        raise ValueError("exchange rate metadata requires fx_cny_per_usd")
     defaults = _overview_defaults()
     offers = [_overview_offer(raw, data, defaults, index) for index, raw in enumerate(data["offers"])]
     ids = [item["id"] for item in offers]
@@ -642,14 +668,16 @@ def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
     return {
         "mode": "position_overview", "assumptions_version": defaults["version"],
         "offers": offers,
-        "comparison_order": [item["id"] for item in sorted(offers, key=lambda item: Decimal(item["final_project_surplus_usd"]), reverse=True)],
+        "comparison_order": [item["id"] for item in (sorted(offers, key=lambda item: Decimal(item["final_project_surplus_usd"]), reverse=True) if all(item["final_project_surplus_usd"] is not None for item in offers) else offers)],
+        "comparison_complete": all(item["final_project_surplus_usd"] is not None for item in offers),
+        "fx_source": data.get("fx_source"), "fx_quote_date": data.get("fx_quote_date"),
         "offer_return_analysis": calculate_offer_return_analysis(offers, data.get("comparison_hours")),
     }
 
 
 def _usd_display(value: str | Decimal, *, estimate: bool = False) -> str:
-    number = Decimal(value).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-    display = f"{'-' if number < ZERO else ''}${abs(number):,.0f}"
+    number = Decimal(value).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
+    display = f"{'-' if number < ZERO else ''}${abs(number):,.2f}"
     return display + ("（估）" if estimate else "")
 
 
@@ -762,14 +790,16 @@ def format_position_overview(result: dict[str, Any]) -> str:
         return [f"{topic}：{detail}" for topic, detail in item["cautions"].items()
                 if detail and not overlaps_dimension(topic)]
 
-    if many:
+    if not result["comparison_complete"]:
+        conclusion = "已计算美元收入和生活开销；缺少汇率，人民币项目费用暂不能换算，最终收益和回本暂无法判断。"
+    elif many:
         if all(not item["can_break_even_in_period"] for item in offers):
-            conclusion = f"按目前的工资、工时与费用计算，{best['label']}预计亏损最少；这些岗位都还不能覆盖项目投入。"
+            conclusion = f"按目前的工资、工时与费用计算，{best['label']}预计亏损最少，最终结余 {money(best['final_project_surplus_usd'])}；这些岗位都还不能覆盖项目投入。"
         else:
-            conclusion = f"按目前的工资、工时与费用计算，{best['label']}预计最终剩余最多；还要结合你的底线和偏好作选择。"
+            conclusion = f"按目前的工资、工时与费用计算，{best['label']}预计最终剩余最多（{money(best['final_project_surplus_usd'])}）；还要结合你的底线和偏好作选择。"
     else:
         verdict = "预计可以覆盖项目投入" if best["can_break_even_in_period"] else "目前预计不能覆盖项目投入"
-        conclusion = f"{best['label']}：按目前工时和费用计算，{verdict}；是否适合你，还要看工作及生活条件。"
+        conclusion = f"{best['label']}：按目前工时和费用计算，{verdict}，预计最终结余 {money(best['final_project_surplus_usd'])}；是否适合你，还要看工作及生活条件。"
 
     lines = [conclusion, "", "## 1. 核心数据与分析", ""]
     if many:
@@ -802,12 +832,23 @@ def format_position_overview(result: dict[str, Any]) -> str:
             ("**在美预计结余**", "工资 − 税费 − 生活开销", f"**{money(item['estimated_us_net_usd'])}**"),
         ]
         weeks_to_break_even = item["break_even_work_weeks"]
-        break_even_text = ("目前无法回本" if weeks_to_break_even is None
-                           else f"约 {Decimal(weeks_to_break_even):.1f} 周" +
-                           ("（超过工期）" if Decimal(weeks_to_break_even) > Decimal(item["work_weeks"]) else ""))
+        break_even_text = ("缺少汇率，暂无法计算" if item["project_cost_usd"] is None
+                           else "目前无法回本" if weeks_to_break_even is None
+                           else "预计工期内无法回本" if Decimal(weeks_to_break_even) > Decimal(item["work_weeks"])
+                           else f"约 {Decimal(weeks_to_break_even):.1f} 周")
+        cny = item['project_cost_cny']
+        usd = item['project_cost_usd']
+        fx = item['fx_cny_per_usd']
+        project_formula = (f"¥{Decimal(cny):,.2f} ÷ {fx}（规划汇率）" if cny is not None and fx is not None
+                           else f"¥{Decimal(cny):,.2f}；缺少汇率" if cny is not None
+                           else "美元项目费；人民币换算缺少汇率")
+        if item["cost_sources"]["project_cost"] == "global_estimate":
+            project_formula += "（项目费为估算）"
+        project_result = money(-Decimal(usd)) if usd is not None else "暂无法换算"
+        final_result = f"**{money(item['final_project_surplus_usd'])}**" if item['final_project_surplus_usd'] is not None else "暂无法计算"
         project = [
-            ("项目投入", f"约 ¥{Decimal(item['project_cost_cny']):,.0f}", money(-Decimal(item["project_cost_usd"]))),
-            ("**最终预计结余**", "在美结余 − 项目投入", f"**{money(item['final_project_surplus_usd'])}**"),
+            ("项目投入", project_formula, project_result),
+            ("**最终预计结余**", "在美结余 − 项目投入", final_result),
             ("回本时间", "按当前每周预计收入及开销计算", break_even_text),
         ]
         return [
@@ -816,6 +857,9 @@ def format_position_overview(result: dict[str, Any]) -> str:
         ]
 
     lines.extend(["", "## 2. 回本测算", ""])
+    if best["fx_cny_per_usd"] is not None:
+        provenance = "；".join(x for x in (result.get("fx_source"), result.get("fx_quote_date")) if x)
+        lines.extend([f"规划汇率：1 美元 = {best['fx_cny_per_usd']} 人民币" + (f"（{provenance}）" if provenance else "（用户提供）") + "；不代表银行结算价。", ""])
     if many:
         for item in offers:
             lines.extend([f"### {item['label']}", "", *finance_tables(item), ""])
@@ -823,15 +867,18 @@ def format_position_overview(result: dict[str, Any]) -> str:
         lines.extend(finance_tables(best))
 
     notes = [(item["label"], note) for item in offers for note in special_notes(item)]
+    section = 3
     if notes:
-        lines.extend(["", "## 3. 特殊注意事项", ""])
+        lines.extend(["", f"## {section}. 特殊注意事项", ""])
+        section += 1
         for label, note in notes:
             prefix = f"**{label}**：" if many else ""
             lines.append(f"- {prefix}{note}")
     if 2 <= len(offers) <= 3:
         analysis = result["offer_return_analysis"]
         label_map = {item["id"]: item["label"] for item in offers}
-        lines.extend(["", "## 4. 岗位收益函数", ""])
+        lines.extend(["", f"## {section}. 岗位收益函数", ""])
+        section += 1
         # Keep numerical comparisons and crossover points; the host renders a chart
         # only when it supports a real visualization, never a raw chart config.
         details = _format_return_analysis(analysis, label_map)
@@ -839,7 +886,7 @@ def format_position_overview(result: dict[str, Any]) -> str:
     elif len(offers) > 3:
         lines.extend(["", "目前已比较全部岗位；如需看收益函数图，可再挑 2–3 份深入比较。"])
 
-    lines.extend(["", "## 5. 继续看什么？", "",
+    lines.extend(["", f"## {section}. 继续看什么？", "",
                   "A. 换个工时，看看最终能剩多少钱",
                   "B. 和其他岗位放在一起比较",
                   "C. 细看住宿、工作内容与当地生活",
@@ -877,6 +924,13 @@ def format_position_detail(result: dict[str, Any], topic: str) -> str:
 
 
 def main(argv: list[str]) -> int:
+    if len(argv) == 3 and argv[1] == "--round-fx":
+        try:
+            print(round_searched_fx(Decimal(argv[2])))
+            return 0
+        except (ValueError, TypeError, InvalidOperation) as error:
+            print(f"ERROR: {error}", file=sys.stderr)
+            return 2
     detail_topic = argv[2] if len(argv) == 4 and argv[1] == "--detail" else None
     if not (len(argv) == 2 or (len(argv) == 3 and argv[1] == "--json") or detail_topic):
         print("Usage: python3 scripts/budget.py [--json | --detail housing|food|transport] INPUT.json", file=sys.stderr)

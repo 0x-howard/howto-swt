@@ -2,7 +2,7 @@
 
 **面向 J-1 Summer Work Travel 学生的 AI Skills 工具箱**
 
-![版本](https://img.shields.io/badge/Free-v1.4.0-blue) ![语言](https://img.shields.io/badge/语言-中文-green)
+![版本](https://img.shields.io/badge/Free-v1.5.0-blue) ![语言](https://img.shields.io/badge/语言-中文-green)
 
 作者：Howard · [@哎哟不想上早八啊](#作者与帮助)（全平台同名）
 
@@ -105,22 +105,32 @@ npx -y skills add 0x-howard/howto-swt -g --all
 
 不知道如何提问时，可以先用小How主入口；知道具体任务时，直接提出任务或调用对应 Skill。已经开始的任务，可以在当前对话继续补充材料和追问。
 
-**第三步：按 Agent 查看安装帮助。** [安装说明](docs/INSTALL.md)和[新手入门](docs/新手入门.md)可作为 Codex、Claude Code、WorkBuddy、豆包 Work 等环境的起点。不同宿主的安装方式和交互能力可能不同；仓库已有静态检查及文本降级测试，不能据此认定所有宿主的原生界面均已完成端到端验收。
+**第三步：选择对应 Agent 的入口。** 安装后若找不到 Skill，先检查安装位置，再开启新会话。以下为官方文档或本地环境支持的入口；本项目尚未完成四种宿主的端到端验收。
+
+| Agent | 安装与调用入口 | 验证状态 |
+|---|---|---|
+| Codex | 终端安装后在 Skill 选择器中选择，或输入 `$swt`、`$swt-position`；也可直接描述任务。 | 本会话可发现 Skill；本版本安装及自动调用待实测。 |
+| Claude Code | 安装后可尝试 `/swt`、`/swt-position`；也可直接描述任务。 | 官方文档支持 Skill 命令；本项目端到端待测。 |
+| WorkBuddy | 查看已安装技能并选择对应 Skill，或直接描述任务。 | 精确安装位置与调用语法待实测。 |
+| 豆包 Work | 使用产品提供的技能入口，或直接描述任务。 | 自定义安装与精确调用语法待实测。 |
+
+[安装说明](docs/INSTALL.md)列出各环境的检查和排错步骤；[新手入门](docs/新手入门.md)介绍常见任务。不同宿主的安装和交互能力可能不同。
 
 分享材料前请移除密码、验证码、完整证件号码等不必要的敏感信息。更多说明见[数据与隐私](docs/data-and-privacy.md)。
 
 ## 最近更新
 
-v1.4.0 已在 GitHub main，属于当前开发版本；尚未创建正式 Release。
+v1.5.0 为开发版本，尚未创建正式 Release。
 
 <!-- CHANGELOG_LATEST_START -->
 | 版本 | 更新 |
 |---|---|
+| v1.5.0 | 补充材料识别流程、宿主汇率查询和多 Agent 使用入口。 |
 | v1.4.0 | 明确任务直接进入对应 Skill，岗位分析改为六维和两张回本表。 |
 | v1.3.0 | 增加岗位收益函数与交互能力。 |
 | v1.2.0 | 整理任务协作、上下文和版本提示。 |
 | v1.1.1 | 修复小How入口发现并整理首页。 |
-| v1.1.0 | 统一 HowTo SWT 品牌和安装标识。 |
+
 <!-- CHANGELOG_LATEST_END -->
 
 [查看完整更新日志](docs/CHANGELOG.md)

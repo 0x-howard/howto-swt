@@ -194,6 +194,12 @@ class PositionOverviewTests(unittest.TestCase):
     def setUp(self):
         self.defaults = json.loads((ROOT / "tests/unit/fixtures/position_assumptions.json").read_text(encoding="utf-8"))
 
+    def test_money_precision_and_break_even_outside_work_period(self):
+        answer = format_position_overview(self.overview({"wage_usd_per_hour": 16.25, "hours_per_week": 20, "project_cost_usd": 50000}, fx_cny_per_usd=7))
+        self.assertIn("$16.25", answer)
+        self.assertIn("预计工期内无法回本", answer)
+        self.assertNotIn("（超过工期）", answer)
+
     def overview(self, *offers, **top):
         state_fixture = {
             "常见周租": "$100–150/week",
@@ -203,7 +209,7 @@ class PositionOverviewTests(unittest.TestCase):
         }
         with patch("budget._overview_defaults", return_value=copy.deepcopy(self.defaults)), \
                 patch("budget._state_reference", side_effect=lambda state: state_fixture if state else {}):
-            return calculate_position_overview({"offers": list(offers), **top})
+            return calculate_position_overview({"offers": list(offers), "fx_cny_per_usd": 10, **top})
 
     def test_minimal_wage_and_hours_generates_complete_answer(self):
         item = self.overview({"wage_usd_per_hour": 16, "hours_per_week": 32})["offers"][0]
@@ -218,8 +224,45 @@ class PositionOverviewTests(unittest.TestCase):
         self.assertNotIn("## 4. 岗位收益函数", answer)
         self.assertEqual(answer.count("|---|---|---|"), 3)
         self.assertEqual(answer.count("?"), 0)
-        self.assertEqual(answer.count("## 5. 继续看什么？"), 1)
+        self.assertEqual(answer.count("## 3. 继续看什么？"), 1)
         self.assertIn("最终预计结余", answer)
+
+    def test_missing_fx_leaves_rmb_project_and_final_unknown(self):
+        data = {"offers": [{"wage_usd_per_hour": 16, "hours_per_week": 32, "project_cost_cny": 20000}]}
+        result = calculate_position_overview(data)
+        item = result["offers"][0]
+        self.assertIsNone(item["fx_cny_per_usd"])
+        self.assertIsNone(item["project_cost_usd"])
+        self.assertIsNone(item["final_project_surplus_usd"])
+        self.assertIsNone(item["can_break_even_in_period"])
+        self.assertIsNotNone(item["estimated_us_net_usd"])
+        self.assertIn("缺少汇率", format_position_overview(result))
+
+    def test_user_rate_is_not_rounded_and_shared_across_offers(self):
+        result = calculate_position_overview({"fx_cny_per_usd": 6.831, "offers": [
+            {"wage_usd_per_hour": 16, "hours_per_week": 32, "project_cost_cny": 20000},
+            {"wage_usd_per_hour": 17, "hours_per_week": 32, "project_cost_cny": 20000}]})
+        self.assertEqual([o["fx_cny_per_usd"] for o in result["offers"]], ["6.831", "6.831"])
+        self.assertEqual([o["project_cost_usd"] for o in result["offers"]], ["2927.83", "2927.83"])
+
+    def test_searched_rate_rounding_cli(self):
+        for quote, expected in (("6.83", "6.9"), ("6.90", "6.9"), ("6.91", "7.0")):
+            result = subprocess.run([sys.executable, str(SCRIPTS / "budget.py"), "--round-fx", quote], text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout.strip(), expected)
+
+    def test_searched_rate_metadata_and_incomplete_comparison(self):
+        offers = [{"wage_usd_per_hour": 16, "hours_per_week": 32, "project_cost_cny": 20000},
+                  {"wage_usd_per_hour": 17, "hours_per_week": 32, "project_cost_usd": 3000}]
+        missing = calculate_position_overview({"offers": offers})
+        self.assertFalse(missing["comparison_complete"])
+        self.assertIsNone(missing["offers"][0]["final_project_surplus_usd"])
+        self.assertIsNotNone(missing["offers"][1]["final_project_surplus_usd"])
+        output = format_position_overview(calculate_position_overview({"offers": offers, "fx_cny_per_usd": 6.9, "fx_source": "ECB", "fx_quote_date": "2026-10-30"}))
+        self.assertIn("ECB；2026-10-30", output)
+        self.assertIn("不代表银行结算价", output)
+        with self.assertRaises(ValueError):
+            calculate_position_overview({"offers": offers, "fx_cny_per_usd": 6.9, "fx_quote_date": "invalid"})
 
     def test_user_rent_overrides_defaults(self):
         item = self.overview({"wage_usd_per_hour": 16, "hours_per_week": 32, "rent_usd_per_week": 100})["offers"][0]
