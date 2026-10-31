@@ -21,6 +21,8 @@ python3 -m unittest discover -s tests/evals -p 'test_*.py' -v
 python3 tests/test_plugin.py
 ```
 
+发布前运行 `python3 scripts/audit_public.py`；构建发行包用 `python3 scripts/build_release.py --output /path/to/howto-swt.zip`，需要发行元数据时加 `--manifest`。
+
 自动测试验证文件、路由规则和计算工具的约定，不证明不同 Agent 的真实模型一定会自动激活 Skill。发布后仍应在目标 Agent 的新 conversation 中检查品牌触发和直接任务分流。
 
 ## 市场资料更新

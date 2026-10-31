@@ -29,7 +29,7 @@ Router 选择 `DIRECT / CONFIRM / CLARIFY` 并整理已知上下文；明确任�
 
 面向用户的回答按 `shared/answer-framework.md` 的 Analyze → Compress → Present → Edit 形成。Compress 按当前用户问题把信息分为 P1–P4，复杂回答先生成通常 3–5 个有独立信息价值的编号结论；`shared/editorial-policy.md` 的 Clarity Gate 再检查只看编号和首句能否理解答案。风险、证据、状态 Schema、任务类型及州级字段均可用于后台完整核查，但不是默认可见提纲；Specialist 输出先合并、压缩，再呈现。完整州级卡仅在用户明确需要字段清单时提供。
 
-源码与部署布局分离：源码的 `skills/` 只保留六个 `SKILL.md`；扁平部署由同步脚本把 `references/`、`scripts/`、`assets/` 和对应运行时规则映射到每个 `~/.workbuddy/skills/{skill}/` 下。
+每个 `skills/{skill}/SKILL.md` 手工维护；同目录下的 `references/`、`scripts/`、`assets/` 由同步脚本从根目录真源生成，供单个 Skill 独立安装，不得手工编辑。`--runtime-root` 可把六个自包含 Skill 复制到 `~/.workbuddy/skills/` 等扁平部署目录。
 
 ## 责任边界
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail when VERSION, manifests, CHANGELOG, README, and release tag drift."""
+"""Fail when VERSION, plugin manifests, CHANGELOG, README, and release tag drift."""
 
 import argparse
 import json
@@ -11,7 +11,6 @@ ROOT = Path(__file__).resolve().parents[1]
 VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 PORTABLE = json.loads((ROOT / "plugin.json").read_text(encoding="utf-8"))["version"]
 CODEX = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))["version"]
-RUNTIME = json.loads((ROOT / "runtime-manifest.json").read_text(encoding="utf-8"))
 CURRENT = VERSION
 README = (ROOT / "README.md").read_text(encoding="utf-8")
 CHANGELOG = (ROOT / "docs" / "CHANGELOG.md").read_text(encoding="utf-8")
@@ -25,10 +24,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--tag")
 args = parser.parse_args()
 
-if not (VERSION == PORTABLE == CODEX == RUNTIME.get("version")):
-    fail(f"VERSION/plugin/codex/runtime manifest disagree: {VERSION}/{PORTABLE}/{CODEX}/{RUNTIME.get('version')}")
-if RUNTIME.get("product") != "howto-swt" or not re.fullmatch(r"[0-9a-f]{64}", RUNTIME.get("sha256", "")):
-    fail("runtime-manifest.json product or SHA-256 invalid")
+if not (VERSION == PORTABLE == CODEX):
+    fail(f"VERSION/plugin/codex manifest disagree: {VERSION}/{PORTABLE}/{CODEX}")
 if args.tag and args.tag != f"v{CURRENT}":
     fail(f"tag {args.tag} does not match v{CURRENT}")
 if not re.search(rf"^## v{re.escape(CURRENT)}(?:\s|$)", CHANGELOG, re.MULTILINE):

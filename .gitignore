@@ -1,3 +1,7 @@
+# Pro edition: local only, never published
+/context-engine/
+/content-data/
+
 # Finder and Python caches
 .DS_Store
 __pycache__/
@@ -13,13 +17,16 @@ __pycache__/
 /tests/.tmp/
 /tests/tmp/
 *.tmp
+*.zip
 swt-user-state.json
+howto-swt-pro-context.json
+USER_DATA/
 
 # Local editor state
 .idea/
 .vscode/*.log
 
-# Credentials, local state, and private exports
+# Credentials and private exports
 .env
 .env.*
 !.env.example
@@ -28,12 +35,5 @@ swt-user-state.json
 *.key
 *.p12
 *.pfx
-auth.json
-offline-device-key.json
-members.csv
 *.sqlite
 *.db
-*.zip
-*.bundle
-*.enc
-USER_DATA/

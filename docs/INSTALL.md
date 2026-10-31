@@ -16,7 +16,7 @@ npx -y skills add 0x-howard/howto-swt -g --all
 
 ## 更新检查
 
-Free 使用仓库根目录的 `runtime-manifest.json` 作为公开 canonical version metadata。每个联网 Agent 会话第一次调用时可检查一次，24 小时内使用 cache；断网静默跳过。检查只返回状态和最多一句提示，绝不自动更新或抢占当前任务。
+Free 读取公开仓库 `main` 分支的 `plugin.json` 版本号作为最新版本参考。每个联网 Agent 会话第一次调用时可检查一次，24 小时内使用 cache；断网静默跳过。检查只返回状态和最多一句提示，绝不自动更新或抢占当前任务。
 
 ## 各 Agent 的调用与排错
 

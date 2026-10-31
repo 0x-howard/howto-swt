@@ -33,7 +33,17 @@ class ReleaseBuildTests(unittest.TestCase):
                     self.assertIn("skills/swt/SKILL.md", names)
                     self.assertNotIn("runtime-manifest.json", names)
                     self.assertFalse(any(name.startswith((".git/", "tests/")) for name in names))
+                    self.assertFalse(any(name.startswith(("context-engine/", "content-data/")) for name in names))
             self.assertEqual(archives[0], archives[1])
+
+    def test_manifest_is_optional(self):
+        with tempfile.TemporaryDirectory() as directory:
+            archive = Path(directory) / "free.zip"
+            result = subprocess.run([sys.executable, str(ROOT / "scripts/build_release.py"), "--output", str(archive)],
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertNotIn("manifest", json.loads(result.stdout))
+            self.assertEqual(sorted(Path(directory).iterdir()), [archive])
 
 
 if __name__ == "__main__":
