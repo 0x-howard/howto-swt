@@ -1,12 +1,19 @@
 # 数据与隐私
 
-HowTo SWT 区分三类资料：供 Skill 任务读取的运行时知识、仅供维护使用的开发源数据，以及用户自己的项目资料。
+## 小How 会记住什么
 
-- 安装包只带任务需要的规范化运行资料；完整来源快照和清洗中间数据保存在工作区私有目录 `workspace-docs/source-data/swt-data-source/`。
-- 用户发来的个人资料不会作为产品知识或测试样本写进 Skill Repository。
-- Free 的跨 conversation 保存默认关闭，只依赖当前 conversation 的 ephemeral task context。
-- Pro 的 persistent context 只能使用 package 外、由宿主显式提供的 `USER_DATA_ROOT`；Auth Domain 与 User Context Domain 逻辑分离。
-- Pro 只允许写入用户确认事实，或带 source/document reference 与 confidence 的证据事实；模型 inference 只能作为临时假设，用户确认前不得成为永久事实。
-- 不要把密码、验证码或不必要的证件号码提供给 Skill。签证资料以本人当前文件为准。
+- 默认只在当前对话里记住你说过的信息，关掉对话就没了
+- 只有你明确同意，并且设置了保存位置，才会跨对话保存。保存的内容可以随时查看、修改或删除
+- 你发来的材料不会被写进 Skill，也不会上传到 GitHub
 
-完整的数据字段、边界和持久化条件由[状态 Schema](../shared/state-schema.md)、[持久化契约](../shared/persistence-contract.md)和 [user-state schema](../references/user-state.schema.json)维护；本文仅作用户说明，不替代这些真源。
+## 发材料前
+
+- 遮住密码、验证码、银行卡号和完整证件号码
+- 只发和当前问题有关的部分
+- 签证材料请用你本人当前的版本
+
+## Skill 里带了什么数据
+
+安装包里只有分析要用的参考资料，例如各州的工资和生活成本参考、BridgeUSA SWT 地图的统计数据。不包含任何个人信息
+
+字段和保存规则的完整定义见[状态 Schema](../shared/state-schema.md)和[持久化规则](../shared/persistence-contract.md)

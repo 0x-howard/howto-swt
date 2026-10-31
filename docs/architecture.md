@@ -1,36 +1,43 @@
 # HowTo SWT 怎样工作
 
-HowTo SWT v1.5.0 由彼此分层的任务、上下文和运行系统组成，并在任务系统内提供确定性的 Offer 回本计算与共享交互能力。
-
-## Task System
+## 任务怎么分配
 
 ```text
-User → 明确任务 → 对应专业 Skill → Executor State Machine
-User → 模糊或跨模块任务 → swt Router → Routing Policy → 内部 Handoff → 专业 Skill
+说清了任务 → 直接交给对应 Skill
+任务不清楚 / 涉及多件事 → swt 先判断阶段 → 交给对应 Skill
 ```
 
-用户已经知道要做什么时，直接由对应专业 Skill 执行，不先显示首页，也不要求复制 Prompt。`swt` 只在任务不清楚、阶段不明或涉及多个专业方向时负责理解目标、识别阶段并选择 `DIRECT / CONFIRM / CLARIFY`。宿主可调度时用内部 Handoff 传递已知事实；宿主确实无法调度另一 Skill 时，才把 `HOWTO_SWT_HANDOFF_V1` 作为手动回退。五个 Domain Executor 是 `swt-application`、`swt-position`、`swt-english`、`swt-visa`、`swt-arrival`。它们共同理解 [`shared/handoff-contract.md`](../shared/handoff-contract.md)，各自状态转移见 [`shared/executor-state-machines.md`](../shared/executor-state-machines.md)。
+`swt` 负责导航：判断阶段、选择 Skill、把已知信息传过去。其余 5 个 Skill 各管一件事：
 
-## Context System
+| Skill | 负责 |
+| --- | --- |
+| `swt-application` | 报名、机构、Sponsor、合同付款、申请材料 |
+| `swt-position` | Offer 分析与比较、回本测算 |
+| `swt-english` | 英语测评、练习、面试模拟 |
+| `swt-visa` | DS-2019、DS-160、SEVIS 费、面签 |
+| `swt-arrival` | 行前、入境、SSN、换岗、在美生活 |
 
-```text
-当前会话事实 → Context Builder → Router/Handoff → Executor
-```
+Agent 不能直接切换 Skill 时，小How 会告诉你怎么继续。交接规则见 [`shared/handoff-contract.md`](../shared/handoff-contract.md)，各 Skill 的处理步骤见 [`shared/executor-state-machines.md`](../shared/executor-state-machines.md)
 
-Free 在当前会话内提供完整 task context，跨会话保存默认关闭。包根存在可选扩展时，可在宿主显式提供的包外目录中保存经用户同意的确认事实；扩展不存在或宿主无法访问包根时，Free 照常独立工作。Inference 必须先经用户确认，才能成为事实。
+## 谁做什么
 
-## Runtime System
+- **Agent**：联网搜索、读取 PDF 和图片
+- **Skill**：规定怎样识别信息、怎样分析、怎样输出
+- **Python 脚本**：需要算准的部分，例如收入、税费、回本和汇率取整
 
-```text
-Skills CLI 安装 → 新会话发现六个 Skill → 可选版本提示（只读，不自动更新）
-```
+## 信息怎么记住
 
-公开安装使用第三方 Skills CLI，安装边界见[安装说明](INSTALL.md)。`swt` 每个联网会话最多检查一次公开版本号，24 小时缓存，断网静默跳过；检查与更新永远分离，不修改已安装文件。
+默认只在当前对话里记住。包根目录有扩展时，经用户同意后可保存到用户指定的目录；没有扩展时照常使用
 
-## 真源与生成物
+## 英语练习
 
-共享规则在 `shared/`，业务参考在根 `references/`，确定性脚本在根 `scripts/`；`scripts/sync_shared.py` 将运行所需内容生成到六个 Skill 目录，供单个 Skill 独立安装。生成文件不得手工编辑。开发测试、构建输入和原始数据不进入 Skill runtime。用户数据不进入 package 或 Git。
+`swt-english` 有 6 种模式：测评（ASSESS）、练习（PRACTICE）、模拟面试（MOCK）、录音分析（RECORDING）、重答（RETRY）、继续上次（PROGRESS）。模拟面试中途不纠错，结束后统一按 7 个维度评分；练习每题即时反馈再重答。只有真实录音才评价发音
 
-## English Speaking System
+## 文件从哪来
 
-`swt-english` 使用 `ASSESS / PRACTICE / MOCK / RECORDING / RETRY / PROGRESS` 六入口。Mock 先建立最小 Interview Profile，单题动态追问上限为 3，过程不教学，结束后复用既有七维 Assessment Result；Practice 则即时反馈并进入 Retry。Recording 只有在真实音视频证据存在时才评价发音及音频相关表现。Free 状态限当前 conversation；可选扩展存在时，Progress 复用同一份已同意保存的上下文。
+- `shared/`：共享规则
+- `references/`：业务资料和各州参考数据
+- `scripts/`：计算脚本
+- `skills/*/SKILL.md`：各 Skill 的行为规则
+
+`python3 scripts/sync_shared.py` 会把前三项复制到每个 Skill 目录，方便单独安装某个 Skill。复制出来的文件不要手改

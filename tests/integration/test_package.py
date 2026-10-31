@@ -137,9 +137,8 @@ class PackageTests(unittest.TestCase):
         for old_name in ("swt-skill", "swt-plugin", "howto-swt.skill"):
             self.assertTrue(all(old_name not in content for content in current_docs), old_name)
         self.assertIn("J-1 Summer Work Travel", readme)
-        self.assertIn("SWT English", readme)
-        self.assertIn("## 能力速览", readme)
-        self.assertIn("## 快速安装", readme)
+        self.assertIn("## 全部 Skill", readme)
+        self.assertIn("## 快速开始", readme)
         self.assertIn("swt-plugin", (ROOT / "docs/CHANGELOG.md").read_text(encoding="utf-8"))
 
     def test_structured_compression_architecture_and_fixture(self):
@@ -296,7 +295,7 @@ class PackageTests(unittest.TestCase):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         install = (ROOT / "docs/INSTALL.md").read_text(encoding="utf-8")
         self.assertIn("# HowTo SWT", readme)
-        for heading in ("## 能力速览", "## 功能展示", "## 快速安装", "## 使用方法", "## 最近更新", "## 作者与帮助"):
+        for heading in ("## HowTo SWT 是什么", "## 快速开始", "## 全部 Skill", "## 安装详情", "## 最近更新", "## 更新与帮助"):
             self.assertIn(heading, readme)
         for name in SKILLS:
             self.assertIn(f"skills/{name}/SKILL.md", readme)
@@ -304,7 +303,8 @@ class PackageTests(unittest.TestCase):
         self.assertNotIn("远端仓库改名和发布完成前", readme)
         self.assertIn("docs/data-and-privacy.md", readme)
         self.assertIn("docs/INSTALL.md", readme)
-        self.assertIn("尚未创建正式 Release", readme)
+        for audit_phrase in ("为准", "待测", "尚未"):
+            self.assertNotIn(audit_phrase, readme)
         self.assertNotIn("personal", readme.lower())
         self.assertNotIn("codex plugin add", readme.lower())
         self.assertIn("WorkBuddy", readme)
