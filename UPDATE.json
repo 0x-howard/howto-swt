@@ -1,6 +1,6 @@
 {
   "product": "howto-swt",
-  "version": "1.5.1",
-  "notice": "以后有新版本，回复 1 就能直接更新；Codex 里显示中文用途。",
+  "version": "1.5.2",
+  "notice": "岗位分析改为结论加三部分；多份 Offer 按赴美诉求对比；读不到的信息直接请你补充。",
   "details_url": "https://github.com/0x-howard/howto-swt/blob/main/docs/CHANGELOG.md"
 }

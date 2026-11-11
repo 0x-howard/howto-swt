@@ -1,6 +1,6 @@
 # HowTo SWT
 
-![版本](https://img.shields.io/badge/version-1.5.1-2563EB.svg?style=flat-square) ![语言](https://img.shields.io/badge/语言-中文-16A34A.svg?style=flat-square)
+![版本](https://img.shields.io/badge/version-1.5.2-2563EB.svg?style=flat-square) ![语言](https://img.shields.io/badge/语言-中文-16A34A.svg?style=flat-square)
 
 ## HowTo SWT 是什么
 
@@ -95,11 +95,11 @@ npx -y skills add 0x-howard/howto-swt -g --all
 <!-- CHANGELOG_LATEST_START -->
 | 版本 | 更新 |
 |---|---|
+| v1.5.2 | 岗位分析改为结论加三部分；多份 Offer 按赴美诉求对比；读不到的信息直接请你补充。 |
 | v1.5.1 | 回复 1 就能直接更新；Codex 里显示中文用途；补充 Windows 安装说明。 |
 | v1.5.0 | 读取 PDF 和截图里的 Offer，按最新汇率换算人民币，支持更多 Agent。 |
 | v1.4.0 | 说清任务就直接开始，岗位分析改为六个方面加两张回本表。 |
 | v1.3.0 | 比较多个岗位时，展示工时变化对收入的影响。 |
-| v1.2.0 | 多个任务之间自动衔接，已说过的信息不再重复问。 |
 <!-- CHANGELOG_LATEST_END -->
 
 [完整更新记录](docs/CHANGELOG.md)
