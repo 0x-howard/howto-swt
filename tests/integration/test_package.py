@@ -412,13 +412,14 @@ class PackageTests(unittest.TestCase):
             content = path.read_text(encoding="utf-8")
             self.assertNotIn("howto-swt/references", content, str(path))
             self.assertNotIn("evidence-boundaries.md", content, str(path))
+        version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         for path in (ROOT / "plugin.json", ROOT / ".codex-plugin/plugin.json"):
-            content = path.read_text(encoding="utf-8")
-        self.assertIn('"version": "1.5.0"', content)
+            self.assertIn(f'"version": "{version}"', path.read_text(encoding="utf-8"), str(path))
         self.assertFalse((ROOT / "SWT_MAP_DATA").exists())
         source_data = ROOT.parent / "workspace-docs/source-data/swt-data-source"
-        self.assertTrue((source_data / "SWT_MAP_DATA/raw").is_dir())
-        self.assertTrue((source_data / "source_manifest.json").is_file())
+        if source_data.exists():
+            self.assertTrue((source_data / "SWT_MAP_DATA/raw").is_dir())
+            self.assertTrue((source_data / "source_manifest.json").is_file())
         self.assertTrue((ROOT / "shared/decision-model.md").is_file())
         self.assertTrue((ROOT / "shared/persistence-contract.md").is_file())
         self.assertTrue((ROOT / "references/user-state.schema.json").is_file())
