@@ -57,14 +57,19 @@ STATE_ALIASES = {
     "wisconsin": "WI", "wi": "WI", "wyoming": "WY", "wy": "WY",
 }
 
-# This small list intentionally only contains a state whose wage personal-income-tax
-# status is documented by the Plugin reference. More states may be added only with
-# a dated primary source, not by guessing a rate.
+# Only states whose zero wage personal-income-tax status is documented in
+# references/state-income-tax.md. More states may be added only with a dated
+# primary source, not by guessing a rate.
 ASSISTED_ZERO_STATE_INCOME_TAX = {
-    "TX": {
-        "state": "Texas",
-        "source": "Texas Comptroller, A Field Guide to the Taxes of Texas (FY 2025): no state or local income tax.",
-    }
+    "TX": {"state": "Texas", "source": "Texas Comptroller, A Field Guide to the Taxes of Texas (FY 2025): no state or local income tax."},
+    "AK": {"state": "Alaska", "source": "Alaska Department of Revenue/Treasury: no personal income tax."},
+    "FL": {"state": "Florida", "source": "Florida Department of Revenue GT-800025: no personal income tax."},
+    "NV": {"state": "Nevada", "source": "Nevada Department of Taxation: no state tax on salaries or wages."},
+    "SD": {"state": "South Dakota", "source": "South Dakota Department of Revenue: no state income tax."},
+    "TN": {"state": "Tennessee", "source": "Tennessee Department of Revenue GEN-34: no state income tax on earned income."},
+    "WA": {"state": "Washington", "source": "Washington Department of Revenue: no individual income tax before 2028."},
+    "WY": {"state": "Wyoming", "source": "Wyoming Legislature tax structure (June 2025): individual income tax 0%."},
+    "NH": {"state": "New Hampshire", "source": "New Hampshire DRA: no income tax on W-2 wages."},
 }
 
 
@@ -500,7 +505,7 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
     path = f"input.offers[{index}]"
     allowed = {
         "id", "label", "state", "city", "wage_usd_per_hour", "hours_per_week", "expected_hours",
-        "min_hours", "max_hours", "hours_range_estimated", "hours_range_basis", "start_date", "end_date",
+        "min_hours", "max_hours", "hours_guaranteed", "hours_range_estimated", "hours_range_basis", "start_date", "end_date",
         "offer_start_date", "offer_end_date", "work_weeks", "stay_weeks", "rent_usd_per_week",
         "food_usd_per_week", "transport_usd_per_week", "other_weekly_usd", "other_fixed_usd",
         "project_cost_cny", "project_cost_usd", "tax", "second_job_note", "landing_note", "cautions",
@@ -526,9 +531,18 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
     maximum = _number(raw["max_hours"], f"{path}.max_hours") if has_max else None
     if minimum is not None and (minimum > hours or hours > maximum or maximum > Decimal("168")):
         raise ValueError(f"{path}: require 0 <= min_hours <= expected_hours <= max_hours <= 168")
+    guaranteed = raw.get("hours_guaranteed", False)
+    if not isinstance(guaranteed, bool):
+        raise ValueError(f"{path}.hours_guaranteed: requires true or false")
+    if guaranteed:
+        if minimum is not None and not (minimum == hours == maximum):
+            raise ValueError(f"{path}: guaranteed hours cannot also have a different min/max range")
+        minimum = maximum = hours
     estimated_range = raw.get("hours_range_estimated", False)
     if not isinstance(estimated_range, bool):
         raise ValueError(f"{path}.hours_range_estimated: requires true or false")
+    if guaranteed and estimated_range:
+        raise ValueError(f"{path}: guaranteed hours cannot be an estimated range")
     basis = raw.get("hours_range_basis")
     if basis is not None and (not isinstance(basis, str) or not basis.strip()):
         raise ValueError(f"{path}.hours_range_basis: requires nonempty text")
@@ -622,7 +636,8 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
         "wage_usd_per_hour": _money(wage), "hours_per_week": _money(hours),
         "hours_range": {
             "min": _money(minimum), "expected": _money(hours), "max": _money(maximum),
-            "status": "estimated_range" if estimated_range else "provided_range" if minimum is not None else "point_only",
+            "status": ("guaranteed" if guaranteed else "estimated_range" if estimated_range
+                       else "provided_range" if minimum is not None else "point_only"),
             "basis": basis,
         },
         "weekly_costs_usd": {key: _money(value) for key, value in costs.items()},
@@ -682,16 +697,18 @@ def _usd_display(value: str | Decimal, *, estimate: bool = False) -> str:
 
 
 def _short_decimal(value: str | Decimal) -> str:
-    return format(Decimal(value).normalize(), "f")
+    rounded = Decimal(value).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
+    return format(rounded.normalize(), "f")
 
 
 def _format_return_analysis(analysis: dict[str, Any], labels: dict[str, str]) -> list[str]:
     """Compact comparison for 2–3 offers; chart rendering is the host's choice."""
     lines = ["## 4. 岗位收益函数", ""]
     functions = analysis["functions"]
-    lines.extend(["| 岗位 | 每周结余函数 | 平均工时 |", "|---|---|---|"])
+    lines.extend(["| 岗位 | 每周结余函数 | 工时 |", "|---|---|---|"])
     for item in functions:
-        lines.append(f"| {item['label']} | `{item['formula']}` | {item['hours']['expected']}h |")
+        kind = "保证" if item["hours"].get("status") == "guaranteed" else "平均"
+        lines.append(f"| {item['label']} | `{item['formula']}` | {kind} {_short_decimal(item['hours']['expected'])}h |")
     if analysis["analysis_status"] == "point_only":
         lines.extend(["", "目前只有平均工时，暂时不能判断工时变化后哪份岗位更划算。"])
         return lines
@@ -703,13 +720,14 @@ def _format_return_analysis(analysis: dict[str, Any], labels: dict[str, str]) ->
     if meaningful:
         lines.append("")
         lines.extend(
-            f"- 平均工时约 {item['hours_per_week']}h 时，{labels[item['offers'][0]]} 和 {labels[item['offers'][1]]} 的每周结余接近。"
+            f"- 平均工时约 {item['hours_per_week']}h/周时，{labels[item['offers'][0]]} 和 {labels[item['offers'][1]]} 整个工期的总结余接近。"
             for item in meaningful
         )
+        lines.append("- 已按各岗位自己的工作周数计算总额；工时固定的岗位始终按固定工时计算。")
     else:
         lines.extend(["", "在这组工时范围内，领先的岗位不会因为工时变化而改变。"])
     if analysis["optimal_regions"]:
-        lines.extend(["", "不同工时下更有优势的是："])
+        lines.extend(["", "按整个工期总结余，不同工时下更有优势的是："])
         for region in analysis["optimal_regions"]:
             winner = " / ".join(labels[item] for item in region["best_offer_ids"])
             lines.append(f"- {region['min_hours']}–{region['max_hours']}h/周：{winner}")
@@ -743,7 +761,10 @@ def format_position_overview(result: dict[str, Any]) -> str:
         weeks = _short_decimal(item["work_weeks"])
         hours = _short_decimal(item["hours_per_week"])
         wage = exact(item["wage_usd_per_hour"])
-        income_comment = "收入受实际工时影响；平均工时不等于每周保证。"
+        guaranteed = item["hours_range"]["status"] == "guaranteed"
+        hours_label = f"保证 {hours}h/周" if guaranteed else f"平均 {hours}h/周"
+        income_comment = ("工时按 Offer 写明的每周保证工时计算。" if guaranteed
+                          else "收入受实际工时影响；平均工时不等于每周保证。")
         if sources["work_weeks"] == "global_estimate":
             income_comment += "工作周数暂按常见安排计算。"
         rent_comment = ("住宿费用按岗位提供的金额计算。" if sources["rent_usd_per_week"] == "provided"
@@ -755,7 +776,7 @@ def format_position_overview(result: dict[str, Any]) -> str:
                              if sources["transport_usd_per_week"] == "provided"
                              else "出行费用目前只是参考，需结合住房和工作地点判断。")
         rows = [
-            ("收入", f"{wage}/h；平均 {hours}h/周；按 {weeks} 周计算", income_comment),
+            ("收入", f"{wage}/h；{hours_label}；按 {weeks} 周计算", income_comment),
             ("住宿", money_week(item, "rent_usd_per_week"), rent_comment),
             ("生活成本", f"餐费 {money_week(item, 'food_usd_per_week')}；其他 {money_week(item, 'other_weekly_usd')}", living_comment),
             ("交通", money_week(item, "transport_usd_per_week"), transport_comment),

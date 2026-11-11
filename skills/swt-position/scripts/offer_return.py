@@ -28,8 +28,25 @@ def _s(value: Decimal | None, places: str = ".01") -> str | None:
     return None if value is None else str(value.quantize(Decimal(places), rounding=ROUND_HALF_UP))
 
 
+def _own_range(function: dict[str, Any]) -> tuple[Decimal, Decimal]:
+    hours = function["hours"]
+    expected = Decimal(hours["expected"])
+    low = Decimal(hours["min"]) if hours.get("min") is not None else expected
+    high = Decimal(hours["max"]) if hours.get("max") is not None else expected
+    return low, high
+
+
+def _season_coefficients(function: dict[str, Any]) -> tuple[Decimal, Decimal]:
+    if function.get("season_slope_usd_per_hour") is None:
+        return Decimal(function["slope_after_tax_usd_per_hour"]), Decimal(function["intercept_weekly_cost_usd"])
+    return Decimal(function["season_slope_usd_per_hour"]), Decimal(function["season_intercept_usd"])
+
+
 def _value(function: dict[str, Any], hours: Decimal) -> Decimal:
-    return Decimal(function["slope_after_tax_usd_per_hour"]) * hours + Decimal(function["intercept_weekly_cost_usd"])
+    """Season surplus; hours are held inside the offer's own range."""
+    low, high = _own_range(function)
+    slope, intercept = _season_coefficients(function)
+    return slope * min(max(hours, low), high) + intercept
 
 
 def build_offer_function(offer: dict[str, Any]) -> dict[str, Any]:
@@ -46,6 +63,11 @@ def build_offer_function(offer: dict[str, Any]) -> dict[str, Any]:
     intercept = -weekly_cost
     expected_net = slope * expected + intercept
     break_even_hours = weekly_cost / slope if slope > ZERO else None
+    season_slope = season_intercept = None
+    if offer.get("work_weeks") is not None and offer.get("estimated_us_net_usd") is not None:
+        season_slope = slope * _d(offer["work_weeks"], "offer.work_weeks", positive=True)
+        season_net = Decimal(str(offer["estimated_us_net_usd"]))
+        season_intercept = season_net - season_slope * expected
     return {
         "id": offer["id"],
         "label": offer["label"],
@@ -58,6 +80,8 @@ def build_offer_function(offer: dict[str, Any]) -> dict[str, Any]:
         "hours": dict(offer["hours_range"]),
         "expected_weekly_net_surplus_usd": _s(expected_net),
         "weekly_break_even_hours": _s(break_even_hours),
+        "season_slope_usd_per_hour": _s(season_slope, ".0001"),
+        "season_intercept_usd": _s(season_intercept, ".0001"),
         "estimated_inputs": sorted(
             key for key, source in offer["cost_sources"].items()
             if source not in {"provided", "provided_rate", "provided_weeks", "user_dates", "offer_dates"}
@@ -66,22 +90,32 @@ def build_offer_function(offer: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _breakpoints(functions: list[dict[str, Any]], minimum: Decimal, maximum: Decimal) -> list[Decimal]:
+    points = {minimum, maximum}
+    for function in functions:
+        points.update(point for point in _own_range(function) if minimum < point < maximum)
+    return sorted(points)
+
+
 def pairwise_intersections(functions: list[dict[str, Any]], minimum: Decimal, maximum: Decimal) -> list[dict[str, Any]]:
-    intersections: list[dict[str, Any]] = []
+    """Hours where two offers' season surplus is equal; each value is piecewise linear."""
+    found: dict[tuple[str, str, str], dict[str, Any]] = {}
+    points = _breakpoints(functions, minimum, maximum)
     for left_index, left in enumerate(functions):
         for right in functions[left_index + 1:]:
-            a1, a2 = Decimal(left["slope_after_tax_usd_per_hour"]), Decimal(right["slope_after_tax_usd_per_hour"])
-            b1, b2 = Decimal(left["intercept_weekly_cost_usd"]), Decimal(right["intercept_weekly_cost_usd"])
-            if abs(a1 - a2) <= EPSILON:
-                continue
-            hours = (b2 - b1) / (a1 - a2)
-            if minimum <= hours <= maximum:
-                intersections.append({
+            for start, end in zip(points, points[1:]):
+                d_start = _value(left, start) - _value(right, start)
+                d_end = _value(left, end) - _value(right, end)
+                if abs(d_start - d_end) <= EPSILON or d_start * d_end > ZERO:
+                    continue
+                hours = start + (end - start) * d_start / (d_start - d_end)
+                key = (left["id"], right["id"], _s(hours))
+                found[key] = {
                     "offers": [left["id"], right["id"]],
                     "hours_per_week": _s(hours),
-                    "weekly_net_surplus_usd": _s(a1 * hours + b1),
-                })
-    return sorted(intersections, key=lambda item: (Decimal(item["hours_per_week"]), item["offers"]))
+                    "season_net_surplus_usd": _s(_value(left, hours)),
+                }
+    return sorted(found.values(), key=lambda item: (Decimal(item["hours_per_week"]), item["offers"]))
 
 
 def _winners(functions: list[dict[str, Any]], hours: Decimal) -> list[str]:
@@ -91,7 +125,7 @@ def _winners(functions: list[dict[str, Any]], hours: Decimal) -> list[str]:
 
 
 def upper_envelope(functions: list[dict[str, Any]], minimum: Decimal, maximum: Decimal, intersections: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    points = sorted({minimum, maximum, *(Decimal(item["hours_per_week"]) for item in intersections)})
+    points = sorted({*_breakpoints(functions, minimum, maximum), *(Decimal(item["hours_per_week"]) for item in intersections)})
     regions: list[dict[str, Any]] = []
     for left, right in zip(points, points[1:]):
         if right - left <= EPSILON:
@@ -107,12 +141,13 @@ def upper_envelope(functions: list[dict[str, Any]], minimum: Decimal, maximum: D
 
 
 def dominated_offers(functions: list[dict[str, Any]], minimum: Decimal, maximum: Decimal) -> list[dict[str, str]]:
+    points = _breakpoints(functions, minimum, maximum)
     dominated: list[dict[str, str]] = []
     for target in functions:
         for challenger in functions:
             if target is challenger:
                 continue
-            if all(_value(target, x) < _value(challenger, x) - EPSILON for x in (minimum, maximum)):
+            if all(_value(target, x) < _value(challenger, x) - EPSILON for x in points):
                 dominated.append({"offer_id": target["id"], "dominated_by": challenger["id"]})
                 break
     return dominated

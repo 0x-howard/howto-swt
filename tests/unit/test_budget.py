@@ -15,7 +15,7 @@ SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 from compare_budget import calculate  # noqa: E402
 from budget import (  # noqa: E402
-    calculate_net_income, calculate_position_overview, format_calculation,
+    ASSISTED_ZERO_STATE_INCOME_TAX, calculate_net_income, calculate_position_overview, format_calculation,
     format_position_detail, format_position_overview,
 )
 
@@ -210,6 +210,32 @@ class PositionOverviewTests(unittest.TestCase):
         with patch("budget._overview_defaults", return_value=copy.deepcopy(self.defaults)), \
                 patch("budget._state_reference", side_effect=lambda state: state_fixture if state else {}):
             return calculate_position_overview({"offers": list(offers), "fx_cny_per_usd": 10, **top})
+
+    def test_guaranteed_hours_are_labeled_and_fixed(self):
+        result = self.overview({"wage_usd_per_hour": 14, "hours_per_week": 40, "hours_guaranteed": True})
+        self.assertEqual(result["offers"][0]["hours_range"], {"min": "40.00", "expected": "40.00", "max": "40.00",
+                                                              "status": "guaranteed", "basis": None})
+        answer = format_position_overview(result)
+        self.assertIn("保证 40h/周", answer)
+        self.assertNotIn("平均工时不等于每周保证", answer)
+        with self.assertRaises(ValueError):
+            self.overview({"wage_usd_per_hour": 14, "hours_per_week": 40, "hours_guaranteed": True,
+                           "min_hours": 32, "max_hours": 40})
+
+    def test_week_counts_are_rounded_for_display(self):
+        answer = format_position_overview(self.overview(
+            {"wage_usd_per_hour": 15.5, "hours_per_week": 36, "start_date": "2027-06-10", "end_date": "2027-09-10"}))
+        self.assertIn("13.29", answer)
+        self.assertNotIn("13.2857", answer)
+
+    def test_documented_zero_wage_tax_states_use_zero(self):
+        real = json.loads((ROOT / "references/default-assumptions.json").read_text(encoding="utf-8"))
+        documented = {"TX", "AK", "FL", "NV", "SD", "TN", "WA", "WY", "NH"}
+        self.assertEqual(set(real["zero_wage_income_tax_states"]), documented)
+        self.assertEqual(set(ASSISTED_ZERO_STATE_INCOME_TAX), documented)
+        self.defaults["zero_wage_income_tax_states"] = real["zero_wage_income_tax_states"]
+        item = self.overview({"state": "WY", "wage_usd_per_hour": 15, "hours_per_week": 40})["offers"][0]
+        self.assertEqual(item["estimated_taxes"]["state_income_tax_usd"], "0.00")
 
     def test_minimal_wage_and_hours_generates_complete_answer(self):
         item = self.overview({"wage_usd_per_hour": 16, "hours_per_week": 32})["offers"][0]

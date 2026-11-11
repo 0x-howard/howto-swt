@@ -60,6 +60,13 @@ def _read_cache(path: Path) -> dict[str, Any]:
 
 
 def _write_cache(path: Path, value: dict[str, Any]) -> None:
+    try:
+        _write_cache_file(path, value)
+    except OSError:
+        pass
+
+
+def _write_cache_file(path: Path, value: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     descriptor, temporary = tempfile.mkstemp(prefix=".free-update-", suffix=".tmp", dir=path.parent)
     try:
@@ -106,7 +113,6 @@ def check_update(*, env: dict[str, str] | None = None, now: float | None = None,
                 "last_checked": cached.get("last_checked")}
 
     timestamp = _timestamp(moment)
-    _write_cache(cache_path, {**cached, "last_checked_epoch": moment, "last_checked": timestamp})
     url = metadata_url or source_env.get("HOWTO_FREE_METADATA_URL") or DEFAULT_METADATA_URL
     try:
         if fetch_json is None:

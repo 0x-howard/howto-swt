@@ -17,11 +17,12 @@ from offer_return import (  # noqa: E402
 )
 
 
-def offer(identifier, wage, cost, *, expected=32, minimum=20, maximum=40, rate=0, estimated=False):
-    gross = Decimal(str(wage)) * Decimal(str(expected)) * Decimal("10")
+def offer(identifier, wage, cost, *, expected=32, minimum=20, maximum=40, rate=0, estimated=False, weeks=10):
+    gross = Decimal(str(wage)) * Decimal(str(expected)) * Decimal(str(weeks))
     tax = gross * Decimal(str(rate))
     return {
         "id": identifier, "label": f"Offer {identifier}",
+        "work_weeks": str(weeks), "estimated_us_net_usd": str(gross - tax - Decimal(str(cost)) * Decimal(str(weeks))),
         "wage_usd_per_hour": str(wage), "gross_income_usd": str(gross),
         "estimated_taxes": {"total_usd": str(tax)},
         "weekly_costs_usd": {
@@ -78,6 +79,22 @@ class OfferReturnFunctionTests(unittest.TestCase):
         result = calculate_offer_return_analysis([offer("A", 10, 200), offer("B", 12, 100)])
         self.assertEqual(result["dominated_offers"], [{"offer_id": "A", "dominated_by": "B"}])
         self.assertEqual(len(result["functions"]), 2)
+
+    def test_longer_season_is_counted(self):
+        shorter = offer("A", 12, 100, expected=40, minimum=40, maximum=40, weeks=10)
+        longer = offer("B", 12, 100, expected=40, minimum=40, maximum=40, weeks=12)
+        result = calculate_offer_return_analysis([shorter, longer])
+        self.assertEqual(result["dominated_offers"], [{"offer_id": "A", "dominated_by": "B"}])
+
+    def test_fixed_hours_offer_is_not_judged_at_other_hours(self):
+        variable = offer("A", 15.5, 150, expected=36, minimum=32, maximum=40, weeks=13)
+        fixed = offer("B", 14, 125, expected=40, minimum=40, maximum=40, weeks=12)
+        result = calculate_offer_return_analysis([variable, fixed])
+        self.assertEqual(result["dominated_offers"], [])
+        self.assertEqual(len(result["intersections"]), 1)
+        crossing = Decimal(result["intersections"][0]["hours_per_week"])
+        self.assertTrue(Decimal("32") < crossing < Decimal("40"))
+        self.assertEqual(result["optimal_regions"][-1]["best_offer_ids"], ["A"])
 
     def test_expected_hours_point(self):
         function = build_offer_function(offer("A", 10, 100, expected=32))

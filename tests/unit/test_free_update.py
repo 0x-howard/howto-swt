@@ -73,6 +73,25 @@ class FreeUpdateTests(unittest.TestCase):
         result = check_update(env=self.env, now=1000, fetch_json=lambda _url: (_ for _ in ()).throw(OSError("offline")))
         self.assertEqual(result["status"], "CHECK_SKIPPED_UNAVAILABLE")
 
+    def test_failed_fetch_does_not_start_the_cache_window(self):
+        check_update(env=self.env, now=1000, fetch_json=lambda _url: (_ for _ in ()).throw(OSError("offline")))
+        result = check_update(env=self.env, now=1001, fetch_json=payload("99.0.0"))
+        self.assertEqual(result["status"], "UPDATE_AVAILABLE")
+
+    def test_unwritable_cache_is_ignored(self):
+        blocker = Path(self.temp.name) / "not-a-directory"
+        blocker.write_text("x", encoding="utf-8")
+        env = {"HOWTO_HOME": str(blocker)}
+        result = check_update(env=env, now=1000, fetch_json=payload("99.0.0"))
+        self.assertEqual(result["status"], "UPDATE_AVAILABLE")
+        mark_updated(env=env, now=1000)
+        cli = subprocess.run(
+            [sys.executable, str(ROOT / "scripts/free_update.py"), "--local-version", "1.0.0"],
+            env={"HOWTO_HOME": str(blocker), "HOWTO_FREE_METADATA_URL": "http://127.0.0.1:9/UPDATE.json"},
+            text=True, capture_output=True, check=False,
+        )
+        self.assertEqual((cli.returncode, cli.stdout, cli.stderr), (0, "", ""))
+
     def test_cli_prints_nothing_when_offline(self):
         result = subprocess.run(
             [sys.executable, str(ROOT / "scripts/free_update.py"), "--local-version", "1.0.0"],

@@ -32,6 +32,13 @@
   },
   "zero_wage_income_tax_states": {
     "TX": "https://comptroller.texas.gov/transparency/revenue/docs/96-1774.pdf",
-    "AK": "https://treasury.dor.alaska.gov/docs/treasurydivisionlibraries/debt-management/meetings-minutes/packets/2024_03_26_sbc_packet.pdf"
+    "AK": "https://treasury.dor.alaska.gov/docs/treasurydivisionlibraries/debt-management/meetings-minutes/packets/2024_03_26_sbc_packet.pdf",
+    "FL": "https://www.floridarevenue.com/Forms_library/current/brochure/gt800025.pdf",
+    "NV": "https://tax.nv.gov/about-nevada-department-of-taxation/income-tax-in-nevada/",
+    "SD": "https://dor.sd.gov/individuals/taxes/",
+    "TN": "https://revenue.support.tn.gov/hc/en-us/articles/360057595051-GEN-34-Income-Tax-Withholding",
+    "WA": "https://dor.wa.gov/taxes-rates/income-tax",
+    "WY": "https://wyoleg.gov/InterimCommittee/2025/03-202506032-01WyomingtaxstructureratesandcollectionsJune32025.pdf",
+    "NH": "https://www.revenue.nh.gov/taxes-glance/interest-dividends-tax"
   }
 }
