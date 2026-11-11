@@ -36,14 +36,14 @@ class StudentOutputContractTests(unittest.TestCase):
     def test_two_offers_show_roi(self):
         text = format_position_overview(calculate_position_overview({"offers": [offer('A'), offer('B', 18)]}))
         self.assertIn('岗位收益对比', text)
-        self.assertIn('| 要素 | 项目 | A | B | 分析 |', text)
+        self.assertIn('| 要素 | 项目 | A | B |', text)
         self.assertIn('| 项目 | A | B |', text)
         self.assertIn('| **最终预计结余** |', text)
         self.assertIn('| 回本进度 |', text)
 
     def test_four_offers_compare_first_without_forced_picker(self):
         text = format_position_overview(calculate_position_overview({"offers": [offer(str(i), 15 + i) for i in range(4)]}))
-        self.assertIn('| 要素 | 项目 | 0 | 1 | 2 | 3 | 分析 |', text)
+        self.assertIn('| 要素 | 项目 | 0 | 1 | 2 | 3 |', text)
         self.assertNotIn('回复编号即可', text)
         self.assertNotIn('岗位收益对比', text)
 

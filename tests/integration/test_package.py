@@ -158,7 +158,7 @@ class PackageTests(unittest.TestCase):
         input_data = json.loads((fixture / "position_compare_ssn_dependency_input.json").read_text(encoding="utf-8"))
         self.assertEqual(after.strip(), format_position_overview(calculate_position_overview(input_data)).strip())
         self.assertIn("## 1. 六维分析", after)
-        self.assertIn("| 要素 | 项目 | Restaurant A（City A） | Hotel B（City B） | 分析 |", after)
+        self.assertIn("| 要素 | 项目 | Restaurant A（City A） | Hotel B（City B） |", after)
         self.assertIn("## 2. 回本测算", after)
         self.assertIn("**岗位收益对比**", after)
         self.assertIn("## 3. 特殊注意事项", after)

@@ -1060,11 +1060,6 @@ def _row_comparison(offers: list[dict[str, Any]], row: str) -> str:
                       ("其他开销", "other_weekly_usd"), ("交通费", "transport_usd_per_week")):
         if row == name:
             return _leader(offers, weekly(key), higher=False, verb="每周少", unit="$")
-    if row == "二工":
-        return "二工收入不计入回本"
-    if row == "SSN":
-        first = [item["label"] for item in offers if item.get("details", {}).get("ssn_required_before_work")]
-        return f"{'、'.join(first)} 需先有 SSN 才能开工" if first and len(first) < len(offers) else ""
     return ""
 
 
@@ -1201,6 +1196,7 @@ def format_position_overview(result: dict[str, Any]) -> str:
     offers = result["offers"]
     many = len(offers) > 1
     lines = [_conclusion(result)]
+    comparisons: list[tuple[str, str]] = []
 
     def cost_cell(item: dict[str, Any], key: str) -> str:
         return f"{_cents_usd(item['weekly_costs_usd'][key])}/周" + ("（估）" if _estimated(item, key) else "")
@@ -1222,9 +1218,10 @@ def format_position_overview(result: dict[str, Any]) -> str:
     section = 1
     lines.extend(["", f"## {section}. 六维分析", ""])
     if many:
-        lines.extend(["| 要素 | 项目 | " + " | ".join(item["label"] for item in offers) + " | 分析 |",
-                      "|---|---|" + "---|" * (len(offers) + 1)])
+        lines.extend(["| 要素 | 项目 | " + " | ".join(item["label"] for item in offers) + " |",
+                      "|---|---|" + "---|" * len(offers)])
         facts = [_offer_facts(item) for item in offers]
+        comparisons: list[tuple[str, str]] = []
         shown_group = None
         for group, row in COMPARE_ROWS:
             values = [fact[row] for fact in facts]
@@ -1233,8 +1230,10 @@ def format_position_overview(result: dict[str, Any]) -> str:
             label = group if group != shown_group else ""
             shown_group = group
             name = "" if row == group else row
-            lines.append(f"| {label} | {name} | " + " | ".join(value or "—" for value in values)
-                         + f" | {_row_comparison(offers, row)} |")
+            lines.append(f"| {label} | {name} | " + " | ".join(value or "—" for value in values) + " |")
+            gap = _row_comparison(offers, row)
+            if gap:
+                comparisons.append((row, gap))
     else:
         lines.extend(["| 要素 | Offer 数据 | 分析 |", "|---|---|---|"])
         lines.extend(f"| {name} | {data} | {note} |" for name, data, note in dimensions(offers[0]))
@@ -1288,10 +1287,12 @@ def format_position_overview(result: dict[str, Any]) -> str:
         lines.extend(_fx_line(result))
 
     per_offer = [_special_notes(item) for item in offers]
-    if any(per_offer):
+    if any(per_offer) or (many and comparisons):
         section += 1
         lines.extend(["", f"## {section}. 特殊注意事项", ""])
         if many:
+            if comparisons:
+                lines.extend(["**对比要点**", "", *(f"- **{row}**：{gap}。" for row, gap in comparisons), ""])
             shared = [note for note in per_offer[0] if all(note in notes for notes in per_offer[1:])]
             count = "两三四五六七八九"[len(offers) - 2] if len(offers) <= 9 else str(len(offers))
             if shared:
