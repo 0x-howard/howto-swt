@@ -56,7 +56,7 @@ Interaction UI does not weaken authorization. Edition replacement and other sens
 
 ## Shared Executor uses
 
-- `swt-position`: first compare all offers; when users request a detailed return chart for more than three, use `multi_choice`, maximum three.
+- `swt-position`: with four or more offers, first ask the core goal (`single_choice`, A–D); for experience or English goals, ask the user to pick three offers (`multi_choice`, maximum three).
 - `swt-english`: genuinely undecided practice mode → `single_choice`; a named mode stays direct.
 - `swt-visa`: multiple valid next actions → `single_choice`; one required next action stays direct.
 - `swt-application`: finite stage confirmation → `single_choice`; a missing document value uses free text.

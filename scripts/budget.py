@@ -701,7 +701,8 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
 def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
     """Calculate a one-result SWT comparison with explicit provenance for every fallback."""
     _exact_keys(
-        data, {"mode", "offers", "fx_cny_per_usd", "fx_source", "fx_quote_date", "project_cost_cny", "project_cost_usd", "tax", "comparison_hours"},
+        data, {"mode", "offers", "fx_cny_per_usd", "fx_source", "fx_quote_date", "project_cost_cny", "project_cost_usd", "tax",
+               "comparison_hours", "core_goal", "selected_offer_ids"},
         {"offers"}, "input",
     )
     if data.get("mode", "position_overview") != "position_overview":
@@ -723,6 +724,8 @@ def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
     ids = [item["id"] for item in offers]
     if len(ids) != len(set(ids)):
         raise ValueError("input.offers: duplicate id")
+    if len(offers) > 3:
+        return _narrow_offers(data, offers, defaults)
     from offer_return import calculate_offer_return_analysis
 
     return {
@@ -733,6 +736,94 @@ def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
         "fx_source": data.get("fx_source"), "fx_quote_date": data.get("fx_quote_date"),
         "offer_return_analysis": calculate_offer_return_analysis(offers, data.get("comparison_hours")),
     }
+
+
+CORE_GOALS = {
+    "money": "多赚钱，尽快回本",
+    "convenience": "生活便利：住宿、通勤和落地省心",
+    "experience": "旅行与体验",
+    "english": "提升英语与文化交流",
+}
+
+
+def _convenience_score(item: dict[str, Any]) -> int:
+    details = item.get("details", {})
+    return sum((
+        bool(details.get("housing_utilities_included")),
+        details.get("employer_transport") in ("provided", "assist"),
+        details.get("housing_deposit_usd") == 0,
+        details.get("ssn_required_before_work") is False,
+        details.get("meals") in ("free_at_work", "discount"),
+        item["cost_sources"]["rent_usd_per_week"] == "provided",
+    ))
+
+
+def _narrow_offers(data: dict[str, Any], offers: list[dict[str, Any]], defaults: dict[str, Any]) -> dict[str, Any]:
+    goal = data.get("core_goal")
+    if goal is not None and goal not in CORE_GOALS:
+        raise ValueError(f"input.core_goal: must be one of {sorted(CORE_GOALS)}")
+    money = [Decimal(item["final_project_surplus_usd"] if item["final_project_surplus_usd"] is not None
+                     else item["estimated_us_net_usd"]) for item in offers]
+    from offer_return import calculate_offer_return_analysis
+
+    base = {"mode": "position_overview", "assumptions_version": defaults["version"], "offers": offers,
+            "comparison_order": [item["id"] for item in offers],
+            "comparison_complete": all(item["final_project_surplus_usd"] is not None for item in offers),
+            "core_goal": goal, "fx_source": data.get("fx_source"), "fx_quote_date": data.get("fx_quote_date"),
+            "offer_return_analysis": calculate_offer_return_analysis(offers, data.get("comparison_hours"))}
+    selected = data.get("selected_offer_ids")
+    if selected is not None:
+        ids = [item["id"] for item in offers]
+        if isinstance(selected, list):
+            selected = [ids[choice - 1] if isinstance(choice, int) and not isinstance(choice, bool) and 1 <= choice <= len(ids)
+                        else choice for choice in selected]
+        if not isinstance(selected, list) or not 2 <= len(selected) <= 3 or len(set(selected)) != len(selected) \
+                or any(choice not in ids for choice in selected):
+            raise ValueError("input.selected_offer_ids: choose 2–3 distinct offer ids")
+        chosen = selected
+    elif goal is None:
+        return {**base, "stage": "ask_core_goal"}
+    elif goal == "money":
+        chosen = [item["id"] for _, item in sorted(zip(money, offers), key=lambda pair: pair[0], reverse=True)[:3]]
+    elif goal == "convenience":
+        ranked = sorted(zip(money, offers), key=lambda pair: (_convenience_score(pair[1]), pair[0]), reverse=True)
+        chosen = [item["id"] for _, item in ranked[:3]]
+    else:
+        return {**base, "stage": "ask_selection"}
+    raws = {item["id"]: raw for item, raw in zip(offers, data["offers"])}
+    subset = {key: value for key, value in data.items() if key not in ("core_goal", "selected_offer_ids")}
+    subset["offers"] = [{**raws[choice], "id": choice} for choice in chosen]
+    result = calculate_position_overview(subset)
+    result["core_goal"] = goal
+    result["other_offers"] = [{"id": item["id"], "label": item["label"], "final_project_surplus_usd": item["final_project_surplus_usd"],
+                               "estimated_us_net_usd": item["estimated_us_net_usd"]} for item in offers if item["id"] not in chosen]
+    result["total_offer_count"] = len(offers)
+    return result
+
+
+def _format_narrowing(result: dict[str, Any]) -> str:
+    offers = result["offers"]
+    if result["stage"] == "ask_core_goal":
+        names = "  ".join(f"{index}. {item['label']}" for index, item in enumerate(offers, 1))
+        return "\n".join([
+            f"共收到 {len(offers)} 份岗位：{names}", "",
+            "比较前先确认：你的赴美核心诉求是什么？", "",
+            *(f"{letter}. {label}" for letter, label in zip("ABCD", CORE_GOALS.values())), "",
+            "回复字母或直接说明，将按你的诉求选出 3 份岗位深入对比。",
+        ])
+    areas = any(item.get("details", {}).get("area") for item in offers)
+    lines = [f"按你的核心诉求（{CORE_GOALS[result['core_goal']]}），请从下面 {len(offers)} 份岗位中选 3 份深入对比。", "",
+             "| 编号 | 岗位 | 地点 | 时薪 | 在美净剩 |" + (" 地域特色 |" if areas else ""),
+             "|---|---|---|---|---|" + ("---|" if areas else "")]
+    for index, item in enumerate(offers, 1):
+        place = "，".join(x for x in (item.get("city"), item.get("state")) if x) or "—"
+        row = (f"| {index} | {item['label']} | {place} | {_cents_usd(item['wage_usd_per_hour'])}/h | "
+               f"{_whole_usd(item['estimated_us_net_usd'])} |")
+        if areas:
+            row += f" {item.get('details', {}).get('area', '—')} |"
+        lines.append(row)
+    lines.extend(["", "回复 3 个编号。"])
+    return "\n".join(lines)
 
 
 def _usd_display(value: str | Decimal, *, estimate: bool = False) -> str:
@@ -1193,9 +1284,17 @@ def _fx_line(result: dict[str, Any]) -> list[str]:
 
 def format_position_overview(result: dict[str, Any]) -> str:
     """Student-facing answer: six dimensions, payback, special notes, options."""
+    if result.get("stage"):
+        return _format_narrowing(result)
     offers = result["offers"]
     many = len(offers) > 1
-    lines = [_conclusion(result)]
+    lines = []
+    if result.get("other_offers"):
+        others = "、".join(f"{item['label']}（{_whole_usd(item['final_project_surplus_usd'] or item['estimated_us_net_usd'])}）"
+                          for item in result["other_offers"])
+        basis = (f"按你的核心诉求（{CORE_GOALS[result['core_goal']]}），" if result.get("core_goal") else "")
+        lines.extend([f"{basis}从 {result['total_offer_count']} 份岗位中选出以下 {len(offers)} 份深入对比；其余：{others}。", ""])
+    lines.append(_conclusion(result))
     comparisons: list[tuple[str, str]] = []
 
     def cost_cell(item: dict[str, Any], key: str) -> str:

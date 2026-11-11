@@ -41,11 +41,33 @@ class StudentOutputContractTests(unittest.TestCase):
         self.assertIn('| **最终预计结余** |', text)
         self.assertIn('| 回本进度 |', text)
 
-    def test_four_offers_compare_first_without_forced_picker(self):
-        text = format_position_overview(calculate_position_overview({"offers": [offer(str(i), 15 + i) for i in range(4)]}))
-        self.assertIn('| 要素 | 项目 | 0 | 1 | 2 | 3 |', text)
-        self.assertNotIn('回复编号即可', text)
-        self.assertNotIn('岗位收益对比', text)
+    def test_four_offers_ask_core_goal_first(self):
+        offers = [offer(str(i), 15 + i) for i in range(4)]
+        text = format_position_overview(calculate_position_overview({"offers": offers}))
+        self.assertIn('比较前先确认：你的赴美核心诉求是什么？', text)
+        self.assertIn('A. 多赚钱，尽快回本', text)
+        self.assertNotIn('六维分析', text)
+
+    def test_four_offers_money_goal_compares_top_three(self):
+        offers = [offer(str(i), 15 + i) for i in range(4)]
+        text = format_position_overview(calculate_position_overview({"offers": offers, "core_goal": "money"}))
+        self.assertTrue(text.startswith('按你的核心诉求（多赚钱，尽快回本），从 4 份岗位中选出以下 3 份深入对比；其余：0（'))
+        self.assertIn('| 要素 | 项目 | 3 | 2 | 1 |', text)
+        self.assertIn('岗位收益对比', text)
+
+    def test_four_offers_experience_goal_asks_selection_then_compares(self):
+        offers = [offer(str(i), 15 + i) for i in range(4)]
+        ask = format_position_overview(calculate_position_overview({"offers": offers, "core_goal": "experience"}))
+        self.assertIn('请从下面 4 份岗位中选 3 份深入对比', ask)
+        self.assertTrue(ask.endswith('回复 3 个编号。'))
+        text = format_position_overview(calculate_position_overview(
+            {"offers": offers, "core_goal": "experience", "selected_offer_ids": [1, 2, 4]}))
+        self.assertIn('| 要素 | 项目 | 0 | 1 | 3 |', text)
+        self.assertIn('**三份岗位共同**', text)
+        with self.assertRaises(ValueError):
+            calculate_position_overview({"offers": offers, "selected_offer_ids": [1, 1]})
+        with self.assertRaises(ValueError):
+            calculate_position_overview({"offers": offers, "core_goal": "fun"})
 
     def test_direct_skill_contract(self):
         router = (ROOT / 'skills/swt/SKILL.md').read_text(encoding='utf-8')

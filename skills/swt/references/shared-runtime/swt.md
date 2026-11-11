@@ -4,7 +4,7 @@
 <!-- Source: shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md, shared/routing-policy.md, shared/stage-model.md -->
 <!-- runtime-version: 1.5.1 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt; source-sha256: 018caf00b17b7ee7f4ebcdd80ff87430001a461f684acd60bea96dfb02235b72 -->
+<!-- skill: swt; source-sha256: 9a503cd55d84e988f1bc8f6e75b057374f511a63b6f432d6ba38155bf464da22 -->
 
 <!-- source: shared/interaction-protocol.md -->
 
@@ -169,7 +169,7 @@ Interaction UI does not weaken authorization. Edition replacement and other sens
 
 ## Shared Executor uses
 
-- `swt-position`: first compare all offers; when users request a detailed return chart for more than three, use `multi_choice`, maximum three.
+- `swt-position`: with four or more offers, first ask the core goal (`single_choice`, A–D); for experience or English goals, ask the user to pick three offers (`multi_choice`, maximum three).
 - `swt-english`: genuinely undecided practice mode → `single_choice`; a named mode stays direct.
 - `swt-visa`: multiple valid next actions → `single_choice`; one required next action stays direct.
 - `swt-application`: finite stage confirmation → `single_choice`; a missing document value uses free text.
@@ -216,7 +216,7 @@ These are semantic examples, not copies to paste into five Skill files.
 
 ### `swt-position` 的默认岗位／Offer 概览
 
-用户需要完整岗位分析时遵循：**加粗一句话结论 → 1. 六维分析（要素 / Offer 数据 / 分析，只写六维）→ 2. 回本测算（每周账、回本进度、汇率；2–3 份 Offer 加 Mermaid 收益对比图）→ 3. 特殊注意事项（六维以外的条款与地点背景）→ 后续选项（A–D）**。没有特殊注意事项时省略该节，章节顺延编号。多于三份 Offer 先比较全部，再按需选 2–3 份深入看曲线。内部要充分判断，前台不堆重复内容，不输出计算附录；收益对比的 Mermaid 图是唯一默认图表。
+用户需要完整岗位分析时遵循：**加粗一句话结论 → 1. 六维分析（要素 / Offer 数据 / 分析，只写六维）→ 2. 回本测算（每周账、回本进度、汇率；2–3 份 Offer 加 Mermaid 收益对比图）→ 3. 特殊注意事项（六维以外的条款与地点背景）→ 后续选项（A–D）**。没有特殊注意事项时省略该节，章节顺延编号。4 份及以上 Offer 先问用户的赴美核心诉求，再按诉求缩到 3 份深入对比。内部要充分判断，前台不堆重复内容，不输出计算附录；收益对比的 Mermaid 图是唯一默认图表。
 
 ## Edit：最后的读者视角检查
 
