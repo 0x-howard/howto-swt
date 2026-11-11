@@ -40,8 +40,8 @@ class SwtPositionLocationContextTests(unittest.TestCase):
             }],
         }
         rendered = format_position_overview(calculate_position_overview(offer))
-        core = rendered.split("**回本测算**", 1)[0]
-        for dimension in ("工资", "住宿", "餐饮", "通勤", "落地"):
+        core = rendered.split("## 2. 回本测算", 1)[0]
+        for dimension in ("收入", "住宿", "生活成本", "交通", "二工", "落地便利"):
             self.assertIn(f"| {dimension} |", core)
         self.assertNotIn("年度有 2050 名学生", rendered)
 

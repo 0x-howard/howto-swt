@@ -240,7 +240,7 @@ class PositionOverviewTests(unittest.TestCase):
         answer = format_position_overview(result)
         self.assertIn("40h/周", answer)
         self.assertIn("每周保证 40 小时", answer)
-        self.assertIn("| 工时保证 |", answer)
+        self.assertIn("| 工时保证；", answer)
         self.assertNotIn("工时不保证", answer)
         with self.assertRaises(ValueError):
             self.overview({"wage_usd_per_hour": 14, "hours_per_week": 40, "hours_guaranteed": True,
@@ -267,14 +267,14 @@ class PositionOverviewTests(unittest.TestCase):
         self.assertEqual(item["cost_sources"]["rent_usd_per_week"], "global_estimate")
         self.assertGreater(float(item["estimated_taxes"]["total_usd"]), 0)
         answer = format_position_overview(self.overview({"wage_usd_per_hour": 16, "hours_per_week": 32}))
-        self.assertIn("**岗位概况**", answer)
-        self.assertIn("| 要素 | 内容 | 注意事项 |", answer)
-        self.assertIn("**回本测算**", answer)
+        self.assertIn("## 1. 六维分析", answer)
+        self.assertIn("| 要素 | Offer 数据 | 分析 |", answer)
+        self.assertIn("## 2. 回本测算", answer)
         self.assertIn("$100/周（估）", answer)
         self.assertNotIn("岗位收益对比", answer)
-        self.assertEqual(answer.count("|---|---|---|"), 1)
+        self.assertEqual(answer.count("|---|---|---|"), 2)
         self.assertEqual(answer.count("?"), 0)
-        self.assertEqual(answer.count("**后续选项**"), 1)
+        self.assertEqual(answer.count("## 3. 后续选项"), 1)
         self.assertIn("最终预计结余", answer)
 
     def test_missing_fx_leaves_rmb_project_and_final_unknown(self):
@@ -330,9 +330,9 @@ class PositionOverviewTests(unittest.TestCase):
             {"label": "乙", "wage_usd_per_hour": 17, "hours_per_week": 35},
         )
         answer = format_position_overview(result)
-        self.assertIn("| 要素 | 甲 | 乙 |", answer)
-        table = answer.split("**岗位对比**\n\n", 1)[1].split("\n\n", 1)[0]
-        self.assertEqual(len(re.findall(r"(?m)^\| (?:时薪|工时|工期|住宿|餐饮|通勤|在美预计结余) \|", table)), 7)
+        self.assertIn("| 要素 | 甲 | 乙 | 分析 |", answer)
+        table = answer.split("## 1. 六维分析\n\n", 1)[1].split("\n\n", 1)[0]
+        self.assertEqual(len(re.findall(r"(?m)^\| (?:收入|住宿|生活成本|交通|二工|落地便利) \|", table)), 6)
 
     def test_missing_caution_uses_dash(self):
         answer = format_position_overview(self.overview(
