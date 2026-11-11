@@ -107,11 +107,13 @@ npx -y skills add 0x-howard/howto-swt -g --all
 
 ## 更新与帮助
 
-有新版本时，小How 会在回答后提醒一句。更新时在终端运行：
+有新版本时，小How 会在回答最后提醒一句，并说明新版本多了什么。回复 `1`，小How 就帮你更新。也可以随时对小How说：
 
-```bash
-npx skills update
+```text
+更新小How
 ```
+
+更新只换 HowTo SWT 自己的 6 个 Skill，你装的其他 Skill 和保存的资料都不动
 
 - [新手入门](docs/新手入门.md)
 - [安装说明](docs/INSTALL.md)

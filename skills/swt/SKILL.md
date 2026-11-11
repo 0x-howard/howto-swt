@@ -77,4 +77,31 @@ description: 在用户明确称呼“小How”“小how”“小 HOW”“HowToS
 
 ## Free 版本检查
 
-每个新的联网会话首次调用 HowTo SWT 时，可在后台运行 `python3 scripts/free_update.py --json`。它只读取 GitHub 公开 `plugin.json`、使用 24 小时缓存并比较 SemVer；绝不修改 Runtime。无新版或断网时静默继续用户任务。只有 `UPDATE_AVAILABLE` 才在完整回答之后最多提示一句；不自动更新。
+每个新的联网会话首次调用 HowTo SWT 时，定位本 `SKILL.md` 所在目录，运行：
+
+```bash
+python3 "<本 SKILL.md 所在目录>/scripts/free_update.py" --local-version 1.5.0
+```
+
+- 命令有输出时，把输出原样放在本次完整回答的最末尾，单独一段：`> 🔔 {输出内容}`。同一次回复只放一次。
+- 命令无输出、失败或超时，直接继续，不提版本。不要编造提醒。
+- 脚本 24 小时内最多联网一次，只读取 GitHub 上公开的 `UPDATE.json`，不修改已安装的文件。
+- 包根目录的扩展已启用时，不运行本检查。
+
+## 更新小How
+
+以下两种情况直接执行更新，不再文字确认；宿主要求 Shell 权限时，由用户在权限窗口里决定：
+
+- 用户明确说“更新小How”“更新 HowTo SWT”“升级 howto-swt”等；
+- 上一条回复里有 🔔 更新提醒，用户紧接着只回复 `1`。没有这条提醒时，不把 `1` 当成更新。
+
+包根目录的扩展已启用时不执行，告诉用户：Pro 版更新请找 Howard 获取新的安装包。
+
+步骤：
+
+1. 运行 `npx -y skills add 0x-howard/howto-swt -g --all`。
+2. 成功后运行 `python3 "<本 SKILL.md 所在目录>/scripts/free_update.py" --mark-updated`，避免当前对话重复提醒。
+3. 告诉用户：更新完成，开一个新对话就能用新版本。
+4. 失败时用一句话说明原因和需要用户处理的事，例如网络或权限；不贴完整终端日志。
+
+只更新 HowTo SWT 的 6 个 Skill，不动用户装的其他 Skill，也不动用户保存的资料。

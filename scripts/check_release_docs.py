@@ -26,6 +26,12 @@ args = parser.parse_args()
 
 if not (VERSION == PORTABLE == CODEX):
     fail(f"VERSION/plugin/codex manifest disagree: {VERSION}/{PORTABLE}/{CODEX}")
+UPDATE = json.loads((ROOT / "UPDATE.json").read_text(encoding="utf-8"))
+if UPDATE.get("version") != CURRENT:
+    fail(f"UPDATE.json version {UPDATE.get('version')} does not match {CURRENT}")
+ROUTER = (ROOT / "skills" / "swt" / "SKILL.md").read_text(encoding="utf-8")
+if re.findall(r"--local-version (\S+)", ROUTER) != [CURRENT]:
+    fail(f"skills/swt/SKILL.md --local-version does not match {CURRENT}")
 if args.tag and args.tag != f"v{CURRENT}":
     fail(f"tag {args.tag} does not match v{CURRENT}")
 if not re.search(rf"^## v{re.escape(CURRENT)}(?:\s|$)", CHANGELOG, re.MULTILINE):
