@@ -382,6 +382,35 @@ def _overview_defaults() -> dict[str, Any]:
     return json.loads(DEFAULT_ASSUMPTIONS_PATH.read_text(encoding="utf-8"), parse_float=Decimal)
 
 
+DETAIL_TYPES: dict[str, tuple[type, ...]] = {
+    "sponsor": (str,), "tips": (bool,), "meals": (str,), "meal_discount_percent": (int, float),
+    "housing_utilities_included": (bool,), "housing_deducted_from_pay": (bool,), "housing_furnished_kitchen": (bool,),
+    "housing_deposit_usd": (int, float), "housing_deposit_refundable": (bool,), "housing_people_per_room": (str,),
+    "housing_contract": (bool,), "commute_walk_minutes": (int, float), "commute_bike_minutes": (int, float),
+    "commute_drive_minutes": (int, float), "employer_transport": (str,), "second_job_allowed": (bool,),
+    "ssn_required_before_work": (bool,), "ssn_employer_assist": (bool,), "ssn_office": (str,),
+    "ssn_office_miles": (int, float), "start": (str,), "training_reduced_hours": (bool,),
+    "open_availability": (bool,), "multiple_locations": (int,), "dress_code": (str,), "arrival": (str,), "area": (str,),
+}
+DETAIL_CHOICES = {"meals": {"free_at_work", "discount", "none"}, "employer_transport": {"provided", "assist", "none"}}
+
+
+def _offer_details(raw: Any, path: str) -> dict[str, Any]:
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise ValueError(f"{path}: requires an object")
+    for key, value in raw.items():
+        if key not in DETAIL_TYPES:
+            raise ValueError(f"{path}.{key}: unknown field")
+        types = DETAIL_TYPES[key]
+        if not isinstance(value, types) or (bool not in types and isinstance(value, bool)):
+            raise ValueError(f"{path}.{key}: wrong type")
+        if key in DETAIL_CHOICES and value not in DETAIL_CHOICES[key]:
+            raise ValueError(f"{path}.{key}: must be one of {sorted(DETAIL_CHOICES[key])}")
+    return dict(raw)
+
+
 STATE_REFERENCE_KEYS = ("常见时薪", "常见周租", "每周基础开销", "销售税", "公共交通", "通勤")
 
 
@@ -511,7 +540,7 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
         "min_hours", "max_hours", "hours_guaranteed", "hours_range_estimated", "hours_range_basis", "start_date", "end_date",
         "offer_start_date", "offer_end_date", "work_weeks", "stay_weeks", "rent_usd_per_week",
         "food_usd_per_week", "transport_usd_per_week", "other_weekly_usd", "other_fixed_usd",
-        "project_cost_cny", "project_cost_usd", "tax", "second_job_note", "landing_note", "cautions",
+        "project_cost_cny", "project_cost_usd", "tax", "second_job_note", "landing_note", "cautions", "details",
     }
     _exact_keys(raw, allowed, {"wage_usd_per_hour"}, path)
     if "hours_per_week" not in raw and "expected_hours" not in raw:
@@ -626,6 +655,14 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
     for key in ("second_job_note", "landing_note"):
         if key in raw and not isinstance(raw[key], str):
             raise ValueError(f"{path}.{key}: requires text")
+    details = _offer_details(raw.get("details"), f"{path}.details")
+    if details.get("second_job_allowed") is not None and "second_job_note" not in raw:
+        sponsor = details.get("sponsor")
+        raw = {**raw, "second_job_note": ("可以" + (f"（需 {sponsor} 批准）" if sponsor else "（需 Sponsor 批准）"))
+               if details["second_job_allowed"] else "不允许"}
+    if details.get("ssn_required_before_work") is not None and "landing_note" not in raw:
+        note = "需先有 SSN 才能开工" if details["ssn_required_before_work"] else "可先开工，再办 SSN"
+        raw = {**raw, "landing_note": note + ("；雇主协助办理" if details.get("ssn_employer_assist") else "")}
     second_job = raw.get("second_job_note") or (
         f"州级：{profile['好不好找']}（估）" if profile.get("好不好找") not in (None, "暂无可靠数据") else "不计入收益（估）"
     )
@@ -655,6 +692,7 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
         "fx_cny_per_usd": str(fx) if fx is not None else None, "cautions": cautions,
         "start_date": raw.get("start_date") or raw.get("offer_start_date"),
         "end_date": raw.get("end_date") or raw.get("offer_end_date"),
+        "details": details,
         "state_reference": {key: value for key, value in profile.items()
                             if key in STATE_REFERENCE_KEYS and isinstance(value, str) and "暂无可靠数据" not in value},
     }
@@ -880,6 +918,10 @@ def _dimension_analysis(item: dict[str, Any]) -> dict[str, str]:
         income.append(f"无州所得税，约 {rate}% 的联邦税费")
     else:
         income.append(f"约 {rate}% 的联邦和州税费")
+    details = item.get("details", {})
+    housing_parts = [text for flag, text in (("housing_utilities_included", "水电网全包"),
+                                              ("housing_deducted_from_pay", "从工资扣除"),
+                                              ("housing_furnished_kitchen", "带家具和厨房")) if details.get(flag)]
     housing = ""
     if sources["rent_usd_per_week"] == "provided" and "常见周租" in reference:
         housing = _compare_reference(Decimal(item["weekly_costs_usd"]["rent_usd_per_week"]), reference["常见周租"], state, "常见周租")
@@ -887,16 +929,28 @@ def _dimension_analysis(item: dict[str, Any]) -> dict[str, str]:
         housing = f"按 {state} 常见周租 {reference.get('常见周租', '').replace('/week', '')} 估算"
     elif sources["rent_usd_per_week"] != "provided":
         housing = "按通用规划值估算"
+    housing = "；".join(x for x in ("，".join(housing_parts), housing) if x)
     living = []
+    if details.get("meals") == "free_at_work":
+        living.append("上班期间免费餐饮")
+    elif details.get("meals") == "discount" and details.get("meal_discount_percent"):
+        off = Decimal(str(details["meal_discount_percent"]))
+        living.append(f"员工餐 {(10 - off / 10).normalize():f} 折")
     if "每周基础开销" in reference:
         living.append(f"{state} 每周基础开销{reference['每周基础开销'].replace('/week', '').replace('低于', '低于 ').replace('  ', ' ')}")
     if "销售税" in reference:
         sales = reference["销售税"].split("；")[0]
         living.append("无州销售税" if sales.startswith("0%") else f"州销售税 {sales.split(' ')[0]}")
     transport = []
+    commute = "，".join(f"{name}约 {_short_decimal(Decimal(str(details[key])))} 分钟" for key, name in (
+        ("commute_walk_minutes", "步行"), ("commute_bike_minutes", "骑车"), ("commute_drive_minutes", "开车")) if key in details)
+    if commute:
+        transport.append(f"住处到岗{commute}")
+    if details.get("employer_transport") in ("provided", "assist"):
+        transport.append("雇主提供交通" if details["employer_transport"] == "provided" else "雇主协助安排交通")
     if "公共交通" in reference:
         transport.append(f"公共交通{reference['公共交通']}")
-    if "通勤" in reference:
+    if "通勤" in reference and not commute:
         transport.append(f"常见通勤 {reference['通勤'].replace('分钟', ' 分钟')}")
     return {
         "收入": "；".join(x for x in income if x),
@@ -904,8 +958,84 @@ def _dimension_analysis(item: dict[str, Any]) -> dict[str, str]:
         "生活成本": "；".join(living),
         "交通": "；".join(transport),
         "二工": "二工收入不计入回本",
-        "落地便利": "",
+        "落地便利": "；".join(x for x in (
+            (f"最近的 SSA 在 {details['ssn_office']}" + (f"（约 {_short_decimal(Decimal(str(details['ssn_office_miles'])))} 英里）"
+                                                       if "ssn_office_miles" in details else "")) if "ssn_office" in details else "",
+            f"到岗时间：{details['start']}" if "start" in details else "") if x),
     }
+
+
+def _special_notes(item: dict[str, Any]) -> list[tuple[str, str]]:
+    details = item.get("details", {})
+    sources = item["cost_sources"]
+    notes: list[tuple[str, str]] = []
+    defaults = []
+    if sources["project_cost"] == "global_estimate" and item["project_cost_cny"] is not None:
+        defaults.append(f"项目费 ¥{Decimal(item['project_cost_cny']):,.0f}")
+    if sources["work_weeks"] == "global_estimate":
+        defaults.append(f"工期 {_short_decimal(item['work_weeks'])} 周")
+    if defaults:
+        notes.append(("项目费与工期" if len(defaults) == 2 else defaults[0].split(" ")[0],
+                      f"Offer 未写明，测算按{'、'.join(defaults)}估算，填入实际数字后可重新测算。"))
+    if details.get("ssn_required_before_work"):
+        notes.append(("SSN 与开工", "必须先拿到 SSN 才能上班，等待期间没有收入，到岗后应尽快办理。"))
+    if details.get("training_reduced_hours"):
+        notes.append(("培训期工时", "培训期每周工时通常低于平均值，前几周收入会偏少。"))
+    if details.get("tips"):
+        notes.append(("小费", "岗位有小费，金额不固定，未计入回本。"))
+    schedule = []
+    if details.get("open_availability"):
+        schedule.append("须接受夜班、周末和节假日排班")
+    if details.get("multiple_locations"):
+        schedule.append(f"雇主有 {details['multiple_locations']} 家门店，到岗后可能调整工作地点")
+    if schedule:
+        notes.append(("排班与门店" if details.get("multiple_locations") else "排班", "；".join(schedule) + "。"))
+    if details.get("second_job_allowed"):
+        notes.append(("二工审批", f"须先取得 {details.get('sponsor', 'Sponsor')} 书面批准才能开始，且不得影响一工工时。"))
+    housing = []
+    if "housing_deposit_usd" in details:
+        deposit = Decimal(str(details["housing_deposit_usd"]))
+        housing.append("不收押金" if deposit == ZERO else
+                       f"押金 {_cents_usd(deposit)}，首薪前需备现金" + ("，离开时可退" if details.get("housing_deposit_refundable") else ""))
+    if details.get("housing_people_per_room"):
+        housing.append(f"{details['housing_people_per_room']} 人一间")
+    if details.get("housing_contract"):
+        housing.append("到岗时签住房合同")
+    if housing:
+        notes.append(("住房合同与押金" if details.get("housing_contract") else "住房", "；".join(housing) + "。"))
+    for key, title in (("dress_code", "着装自备"), ("arrival", "抵达路线")):
+        if details.get(key):
+            notes.append((title, details[key]))
+    market = _market_note(item)
+    if market:
+        notes.append(("SWT 地点背景", market))
+    if details.get("area"):
+        notes.append(("地域特色", details["area"]))
+    notes.extend((topic, detail) for topic, detail in item["cautions"].items() if detail)
+    return notes
+
+
+def _market_note(item: dict[str, Any]) -> str:
+    if not item.get("state"):
+        return ""
+    try:
+        from location_context import get_location_context
+        context = get_location_context(city=item.get("city"), state=item["state"])
+    except (ImportError, OSError, ValueError):
+        return ""
+    market = context.get("swt_market") or {}
+    city, state_market = market.get("city_market"), market.get("state_market")
+    if not context.get("matched") or not (city or state_market):
+        return ""
+    parts = []
+    if city and item.get("city"):
+        parts.append(f"{item['city']} 的参与者计数为 {city['total']:,}（全国城市第 {city['national_rank_by_total']} 位）")
+    if state_market:
+        parts.append(f"{item['state']} 共 {state_market['total']:,}（全国第 {state_market['national_rank_by_total']} 位）")
+    support = market.get("support") or {}
+    if support.get("matched") and context.get("match_level") == "city_exact" and item.get("city"):
+        parts.append("当地有官方 Community Support Group" if support.get("has_support_group") else "当地没有官方 Community Support Group")
+    return "BridgeUSA SWT 地图上，" + "；".join(parts) + "。计数不等同于年度去重人数。"
 
 
 def _conclusion(result: dict[str, Any]) -> str:
@@ -1040,7 +1170,7 @@ def format_position_overview(result: dict[str, Any]) -> str:
         lines.append(_payback_sentence(result, item))
         lines.extend(_fx_line(result))
 
-    notes = [(item["label"], topic, detail) for item in offers for topic, detail in item["cautions"].items() if detail]
+    notes = [(item["label"], topic, detail) for item in offers for topic, detail in _special_notes(item)]
     if notes:
         section += 1
         lines.extend(["", f"## {section}. 特殊注意事项", ""])

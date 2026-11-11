@@ -27,7 +27,8 @@ class StudentOutputContractTests(unittest.TestCase):
         self.assertIn('| 项目 | 每周 | 13 周合计 |', text)
         self.assertIn('回本进度：', text)
         self.assertNotIn('岗位收益对比', text)
-        self.assertIn('## 3. 后续选项', text)
+        self.assertIn('## 3. 特殊注意事项', text)
+        self.assertIn('## 4. 后续选项', text)
         self.assertTrue(text.endswith('回复字母或直接提问。'))
         for forbidden in ('口径：', '核验口径', '税费规划预留', '要注意', '问我就展开', '关键因素'):
             self.assertNotIn(forbidden, text)

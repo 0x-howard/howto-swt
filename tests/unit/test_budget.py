@@ -200,6 +200,35 @@ class PositionOverviewTests(unittest.TestCase):
         self.assertIn("单靠本岗位无法回本", answer)
         self.assertNotIn("（超过工期）", answer)
 
+    def test_offer_details_write_analysis_and_special_notes(self):
+        details = {"sponsor": "CHI", "tips": True, "meals": "free_at_work", "housing_utilities_included": True,
+                   "housing_deducted_from_pay": True, "housing_deposit_usd": 0, "housing_contract": True,
+                   "commute_bike_minutes": 40, "employer_transport": "assist", "second_job_allowed": True,
+                   "ssn_required_before_work": True, "ssn_employer_assist": True, "ssn_office": "Concord, NH",
+                   "ssn_office_miles": 30, "training_reduced_hours": True, "open_availability": True,
+                   "multiple_locations": 3, "dress_code": "自备防滑鞋。"}
+        answer = format_position_overview(calculate_position_overview({"fx_cny_per_usd": 6.8, "offers": [{
+            "label": "Dunkin", "city": "Meredith", "state": "NH", "wage_usd_per_hour": 14.5, "hours_per_week": 32,
+            "rent_usd_per_week": 100, "details": details}]}))
+        self.assertTrue(answer.startswith("**假设项目费 ¥25,000，按 $14.50/h、平均每周 32 小时计算"))
+        self.assertIn("| 收入 | $14.50/h；平均 32h/周；约 13 周（估） | 无州所得税，约 10% 的联邦税费 |", answer)
+        self.assertIn("水电网全包，从工资扣除", answer)
+        self.assertIn("上班期间免费餐饮", answer)
+        self.assertIn("住处到岗骑车约 40 分钟；雇主协助安排交通", answer)
+        self.assertIn("| 二工 | 可以（需 CHI 批准） |", answer)
+        self.assertIn("| 落地便利 | 需先有 SSN 才能开工；雇主协助办理 | 最近的 SSA 在 Concord, NH（约 30 英里） |", answer)
+        notes = answer.split("特殊注意事项", 1)[1]
+        for title in ("项目费与工期", "SSN 与开工", "培训期工时", "小费", "排班与门店", "二工审批", "住房合同与押金", "着装自备", "SWT 地点背景"):
+            self.assertIn(f"**{title}**", notes)
+        self.assertIn("Meredith 的参与者计数", notes)
+        self.assertNotIn("工时不保证", answer)
+
+    def test_offer_details_are_validated(self):
+        base = {"wage_usd_per_hour": 14, "hours_per_week": 32}
+        for bad in ({"unknown": True}, {"tips": "yes"}, {"meals": "sometimes"}, {"multiple_locations": True}):
+            with self.assertRaises(ValueError):
+                calculate_position_overview({"offers": [{**base, "details": bad}]})
+
     def overview(self, *offers, **top):
         state_fixture = {
             "常见周租": "$100–150/week",
@@ -274,7 +303,7 @@ class PositionOverviewTests(unittest.TestCase):
         self.assertNotIn("岗位收益对比", answer)
         self.assertEqual(answer.count("|---|---|---|"), 2)
         self.assertEqual(answer.count("?"), 0)
-        self.assertEqual(answer.count("## 3. 后续选项"), 1)
+        self.assertEqual(len(re.findall(r"(?m)^## \d\. 后续选项$", answer)), 1)
         self.assertIn("最终预计结余", answer)
 
     def test_missing_fx_leaves_rmb_project_and_final_unknown(self):
