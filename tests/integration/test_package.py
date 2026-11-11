@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+CURRENT_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 from budget import calculate_position_overview, format_position_overview  # noqa: E402
@@ -29,7 +30,7 @@ class PackageTests(unittest.TestCase):
             else:
                 self.assertEqual(portable[key], compat[key])
         self.assertEqual(portable["name"], "howto-swt")
-        self.assertEqual(portable["version"], "1.5.0")
+        self.assertEqual(portable["version"], CURRENT_VERSION)
         self.assertEqual(compat["skills"], "./skills/")
         self.assertEqual(compat["author"]["name"], "Howard")
         self.assertEqual(compat["interface"]["displayName"], "HowTo SWT")
@@ -37,12 +38,12 @@ class PackageTests(unittest.TestCase):
         changelog = (ROOT / "docs/CHANGELOG.md").read_text(encoding="utf-8")
         eval_spec = json.loads((ROOT / "tests/evals/cases/evals.json").read_text(encoding="utf-8"))
         self.assertIn("# HowTo SWT", readme)
-        self.assertIn("v1.5.0", readme)
+        self.assertIn(f"v{CURRENT_VERSION}", readme)
         self.assertIn("## v1.0.0 — howto-swt.skill Production Architecture", changelog)
         self.assertIn("## v0.9.0 — Structured Decision Architecture", changelog)
         self.assertEqual(eval_spec["product"], "HowTo SWT")
         self.assertEqual(eval_spec["plugin"], "howto-swt")
-        self.assertEqual(eval_spec["version"], "1.5.0")
+        self.assertEqual(eval_spec["version"], CURRENT_VERSION)
         install = (ROOT / "docs/INSTALL.md").read_text(encoding="utf-8")
         self.assertIn("0x-howard/howto-swt", install)
         self.assertNotIn("远端仓库改名和发布完成前", readme)
@@ -85,7 +86,7 @@ class PackageTests(unittest.TestCase):
             runtime = (ROOT / "references/shared-runtime" / f"{skill}.md").read_text(encoding="utf-8")
             self.assertEqual(runtime.count(marker), 1)
             self.assertIn("GENERATED FILE: DO NOT EDIT", runtime)
-            self.assertIn("runtime-version: 1.5.0", runtime)
+            self.assertIn(f"runtime-version: {CURRENT_VERSION}", runtime)
             self.assertIn("Structured Decision Architecture", runtime)
             self.assertIn("USER_DATA_ROOT", runtime)
             self.assertIn("source: shared/editorial-policy.md", runtime)

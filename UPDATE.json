@@ -1,6 +1,6 @@
 {
   "product": "howto-swt",
-  "version": "1.5.0",
-  "notice": "可以直接发 Offer 的 PDF 或截图，人民币按当天汇率换算。",
+  "version": "1.5.1",
+  "notice": "以后有新版本，回复 1 就能直接更新；Codex 里显示中文用途。",
   "details_url": "https://github.com/0x-howard/howto-swt/blob/main/docs/CHANGELOG.md"
 }
