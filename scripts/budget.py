@@ -703,35 +703,54 @@ def _short_decimal(value: str | Decimal) -> str:
 
 def _format_return_analysis(analysis: dict[str, Any], labels: dict[str, str]) -> list[str]:
     """Compact comparison for 2–3 offers; chart rendering is the host's choice."""
-    lines = ["## 4. 岗位收益函数", ""]
-    functions = analysis["functions"]
-    lines.extend(["| 岗位 | 每周结余函数 | 工时 |", "|---|---|---|"])
-    for item in functions:
-        kind = "保证" if item["hours"].get("status") == "guaranteed" else "平均"
-        lines.append(f"| {item['label']} | `{item['formula']}` | {kind} {_short_decimal(item['hours']['expected'])}h |")
-    if analysis["analysis_status"] == "point_only":
-        lines.extend(["", "目前只有平均工时，暂时不能判断工时变化后哪份岗位更划算。"])
-        return lines
+    lines = ["## 4. 岗位收益对比", ""]
     if analysis["analysis_status"] != "complete":
-        lines.extend(["", "如需深入比较工时变化，可以挑两到三份岗位。"])
+        lines.append("如需深入比较工时变化，可以挑两到三份岗位。")
         return lines
+
+    chart = analysis["chart"]
+    final = chart["y_basis"] == "final_project_surplus"
+    y_title = "最终预计结余（美元）" if final else "在美预计结余（美元）"
+    values = [int(value) for series in chart["series"] for value in series["values"]]
+    low = min(min(values), 0) // 500 * 500
+    high = -(-max(max(values), 0) // 500) * 500
+    lines.extend([
+        "```mermaid", "xychart-beta",
+        f'    title "每周工时与{y_title}"',
+        f'    x-axis "每周平均工时" [{", ".join(chart["hours"])}]',
+        f'    y-axis "{y_title}" {low} --> {high}',
+        *(f'    line [{", ".join(series["values"])}]' for series in chart["series"]),
+        "```", "",
+    ])
+    lines.extend(f"- 第 {index} 条线：{series['label']}，{_hours_text(analysis, series['id'])}"
+                 for index, series in enumerate(chart["series"], 1))
 
     meaningful = [item for item in analysis["intersections"] if item["meaningful_for_optimum"]]
     if meaningful:
         lines.append("")
         lines.extend(
-            f"- 平均工时约 {item['hours_per_week']}h/周时，{labels[item['offers'][0]]} 和 {labels[item['offers'][1]]} 整个工期的总结余接近。"
+            f"- 每周平均工时约 {_short_decimal(item['hours_per_week'])} 小时时，"
+            f"{labels[item['offers'][0]]} 和 {labels[item['offers'][1]]} 结余持平。"
             for item in meaningful
         )
-        lines.append("- 已按各岗位自己的工作周数计算总额；工时固定的岗位始终按固定工时计算。")
-    else:
-        lines.extend(["", "在这组工时范围内，领先的岗位不会因为工时变化而改变。"])
-    if analysis["optimal_regions"]:
-        lines.extend(["", "按整个工期总结余，不同工时下更有优势的是："])
+    elif analysis["optimal_regions"]:
+        region = analysis["optimal_regions"][0]
+        winner = " / ".join(labels[item] for item in region["best_offer_ids"])
+        lines.extend(["", f"每周 {_short_decimal(region['min_hours'])}–{_short_decimal(region['max_hours'])} 小时之间，{winner} 都更划算。"])
+    if analysis["optimal_regions"] and meaningful:
         for region in analysis["optimal_regions"]:
             winner = " / ".join(labels[item] for item in region["best_offer_ids"])
-            lines.append(f"- {region['min_hours']}–{region['max_hours']}h/周：{winner}")
+            lines.append(f"- {_short_decimal(region['min_hours'])}–{_short_decimal(region['max_hours'])} 小时/周：{winner} 更划算。")
     return lines
+
+
+def _hours_text(analysis: dict[str, Any], offer_id: str) -> str:
+    hours = next(item["hours"] for item in analysis["functions"] if item["id"] == offer_id)
+    if hours.get("status") == "guaranteed":
+        return f"保证 {_short_decimal(hours['expected'])} 小时"
+    if hours.get("min") is not None and hours["min"] != hours["max"]:
+        return f"{_short_decimal(hours['min'])}–{_short_decimal(hours['max'])} 小时"
+    return f"平均 {_short_decimal(hours['expected'])} 小时"
 
 
 def format_position_overview(result: dict[str, Any]) -> str:
@@ -898,14 +917,12 @@ def format_position_overview(result: dict[str, Any]) -> str:
     if 2 <= len(offers) <= 3:
         analysis = result["offer_return_analysis"]
         label_map = {item["id"]: item["label"] for item in offers}
-        lines.extend(["", f"## {section}. 岗位收益函数", ""])
+        lines.extend(["", f"## {section}. 岗位收益对比", ""])
         section += 1
-        # Keep numerical comparisons and crossover points; the host renders a chart
-        # only when it supports a real visualization, never a raw chart config.
         details = _format_return_analysis(analysis, label_map)
         lines.extend(details[2:])
     elif len(offers) > 3:
-        lines.extend(["", "目前已比较全部岗位；如需看收益函数图，可再挑 2–3 份深入比较。"])
+        lines.extend(["", "目前已比较全部岗位；如需看收益对比图，可再挑 2–3 份深入比较。"])
 
     lines.extend(["", f"## {section}. 继续看什么？", "",
                   "A. 换个工时，看看最终能剩多少钱",

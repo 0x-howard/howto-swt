@@ -4,7 +4,7 @@
 <!-- Source: shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md -->
 <!-- runtime-version: 1.5.1 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt-position; source-sha256: cd7d2bd051bc3e8d26f4124b72e5db9953063ff316dc7952fba15aa3c7835947 -->
+<!-- skill: swt-position; source-sha256: 2925c2fb55df5ee1fe92885e18899e12fc17992a60398035e1a2e403a2a060fb -->
 
 <!-- source: shared/interaction-protocol.md -->
 
@@ -216,7 +216,7 @@ These are semantic examples, not copies to paste into five Skill files.
 
 ### `swt-position` 的默认岗位／Offer 概览
 
-用户需要完整岗位分析时遵循：**一句话结论 → 1. 核心数据与分析（六维三列：要素 / Offer 数据 / 分析）→ 2. 回本测算（两张三列表，项目 / 计算公式 / 结果）→ 特殊注意事项（仅六维以外）→ 岗位收益函数（仅 2–3 份 Offer 比较默认展示）→ 继续看什么？（保留 A/B/C/D）**。若没有特殊注意事项或不需要收益函数，对应段落可省略，章节按实际出现顺序连续编号。多于三份 Offer 先比较全部，再按需选 2–3 份深入看曲线。内部要充分判断，前台不堆重复内容，不输出图表配置与计算附录。
+用户需要完整岗位分析时遵循：**一句话结论 → 1. 核心数据与分析（六维三列：要素 / Offer 数据 / 分析）→ 2. 回本测算（两张三列表，项目 / 计算公式 / 结果）→ 特殊注意事项（仅六维以外）→ 岗位收益对比（仅 2–3 份 Offer 比较默认展示，含 Mermaid 折线图）→ 继续看什么？（保留 A/B/C/D）**。若没有特殊注意事项或不需要收益对比，对应段落可省略，章节按实际出现顺序连续编号。多于三份 Offer 先比较全部，再按需选 2–3 份深入看曲线。内部要充分判断，前台不堆重复内容，不输出计算附录；收益对比的 Mermaid 图是唯一默认图表。
 
 ## Edit：最后的读者视角检查
 
@@ -245,7 +245,7 @@ These are semantic examples, not copies to paste into five Skill files.
 
 简单问题和紧急指令不强制凑编号；它们仍应通过“一眼知道答案或行动”的检查。必要的高风险限制、来源冲突和未知条件不能因为压缩而消失。
 
-岗位／Offer 首答另用专项 Clarity Gate：开头只有一句判断；六维表严格分为“要素／Offer 数据／分析”三列；回本分成“在美收入与生活开销”和“项目投入与最终收益”两张三列表；特殊注意事项不重复六维；单 Offer 不默认展示收益函数图；结尾保留 A/B/C/D。不要将估值写成事实，也不要附加集中式的“口径／核验／预留／审计”报告段落。用户继续问具体字段时只给该字段的 Detail View。
+岗位／Offer 首答另用专项 Clarity Gate：开头只有一句判断；六维表严格分为“要素／Offer 数据／分析”三列；回本分成“在美收入与生活开销”和“项目投入与最终收益”两张三列表；特殊注意事项不重复六维；单 Offer 不默认展示收益对比图；结尾保留 A/B/C/D。不要将估值写成事实，也不要附加集中式的“口径／核验／预留／审计”报告段落。用户继续问具体字段时只给该字段的 Detail View。
 
 ## 语言编辑
 
@@ -778,27 +778,15 @@ State identifies where the current task is inside its owning Executor. It is not
 
 <!-- source: shared/visualization-policy.md -->
 
-# Visualization Capability Policy
+# Visualization Policy
 
-Visual output is an adapter choice, never a prerequisite for completing analysis.
+## Offer Return chart
 
-## Priority
+For two to three compared offers, `scripts/budget.py` prints a Mermaid `xychart-beta` line chart: x = average weekly hours, y = final projected surplus (in-US surplus when the exchange rate is unknown). Each offer's hours are held inside its own range, so a guaranteed-hours offer is a flat line. The host keeps the chart, the line legend, and the break-even hours exactly as printed; it does not recompute or reshape data points.
 
-1. Native or structured chart exposed by the current host runtime.
-2. A genuinely renderable chart artifact supported by that runtime.
-3. Markdown/text analytical fallback containing functions, expected points, intersections, optimal intervals, dominance, and the decision conclusion.
+The chart comes with one plain sentence stating which offer leads in which hours range, so the answer stays complete if a host shows the Mermaid block as text.
 
-Runtime capability must be detected from an actually exposed interface. A Skill directory, Markdown checkbox, remembered product feature, or mocked adapter is not evidence of native chart support. Never claim a graph was rendered when only text was produced.
-
-## Offer Return chart contract
-
-For two to three compared offers, a capable renderer receives `type = linear_offer_return`, axes, function coefficients, the user hours range, expected-hours markers, valid intersections, optimal regions, and dominated-offer annotations. Every shaded boundary must come from the deterministic intersection/upper-envelope result.
-
-When chart rendering is absent or fails, return the complete textual fallback. Single-offer answers do not show the ROI chart by default. More than three offers still receive a full initial comparison; offer a later choice of two or three only when the user wants a detailed chart.
-
-## Host evidence boundary
-
-Codex, Claude Code, WorkBuddy, and Doubao Work adapters must separately report their runtime-observed chart capability. Unknown means fallback. Contract or mocked tests prove mapping behavior only; they do not prove a host's live UI.
+Single-offer answers do not show the chart. More than three offers still receive a full initial comparison; offer a later choice of two or three only when the user wants the chart.
 
 ---
 

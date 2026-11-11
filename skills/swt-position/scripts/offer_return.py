@@ -10,6 +10,7 @@ from typing import Any
 ZERO = Decimal("0")
 EPSILON = Decimal("0.0000001")
 MAX_CHART_OFFERS = 3
+POINT_SPREAD = Decimal("8")
 
 
 def _d(value: Any, path: str, *, positive: bool = False) -> Decimal:
@@ -30,10 +31,9 @@ def _s(value: Decimal | None, places: str = ".01") -> str | None:
 
 def _own_range(function: dict[str, Any]) -> tuple[Decimal, Decimal]:
     hours = function["hours"]
-    expected = Decimal(hours["expected"])
-    low = Decimal(hours["min"]) if hours.get("min") is not None else expected
-    high = Decimal(hours["max"]) if hours.get("max") is not None else expected
-    return low, high
+    if hours.get("min") is None or hours.get("max") is None:
+        return ZERO, Decimal("168")
+    return Decimal(hours["min"]), Decimal(hours["max"])
 
 
 def _season_coefficients(function: dict[str, Any]) -> tuple[Decimal, Decimal]:
@@ -153,6 +153,25 @@ def dominated_offers(functions: list[dict[str, Any]], minimum: Decimal, maximum:
     return dominated
 
 
+def chart_series(functions: list[dict[str, Any]], minimum: Decimal, maximum: Decimal,
+                 project_costs: dict[str, Decimal] | None = None) -> dict[str, Any]:
+    """Points for a line chart: season surplus (minus project cost when known) per weekly hour."""
+    span = maximum - minimum
+    step = Decimal("1") if span <= 12 else Decimal("2") if span <= 24 else Decimal("5")
+    hours = [minimum]
+    while hours[-1] + step < maximum:
+        hours.append(hours[-1] + step)
+    if hours[-1] != maximum:
+        hours.append(maximum)
+    series = []
+    for function in functions:
+        cost = (project_costs or {}).get(function["id"], ZERO)
+        series.append({"id": function["id"], "label": function["label"],
+                       "values": [_s(_value(function, x) - cost, "1") for x in hours]})
+    return {"hours": [_s(x, "1") if x == x.to_integral_value() else _s(x) for x in hours],
+            "y_basis": "final_project_surplus" if project_costs else "us_net_surplus", "series": series}
+
+
 def calculate_offer_return_analysis(offers: list[dict[str, Any]], comparison_hours: dict[str, Any] | None = None) -> dict[str, Any]:
     if not offers:
         raise ValueError("offers: requires at least one offer")
@@ -176,17 +195,19 @@ def calculate_offer_return_analysis(offers: list[dict[str, Any]], comparison_hou
         maximum = _d(comparison_hours["max"], "comparison_hours.max")
         range_source = "provided_comparison_range"
     else:
-        complete_ranges = [item["hours"] for item in functions if item["hours"].get("min") is not None and item["hours"].get("max") is not None]
-        if len(complete_ranges) != len(functions):
-            return {
-                "schema_version": "1.0", "model": "weekly_hours_to_weekly_net_surplus",
-                "functions": functions, "analysis_status": "point_only",
-                "hours_range": None, "intersections": [], "optimal_regions": [], "dominated_offers": [],
-                "visualization": {"status": "textual_fallback", "reason": "credible_shared_hours_range_missing"},
-            }
-        minimum = min(_d(item["min"], "hours.min") for item in complete_ranges)
-        maximum = max(_d(item["max"], "hours.max") for item in complete_ranges)
-        range_source = "offer_ranges"
+        lows, highs = [], []
+        for item in functions:
+            hours = item["hours"]
+            if hours.get("min") is not None and hours.get("max") is not None:
+                lows.append(_d(hours["min"], "hours.min"))
+                highs.append(_d(hours["max"], "hours.max"))
+            else:
+                expected = _d(hours["expected"], "hours.expected")
+                lows.append(max(ZERO, expected - POINT_SPREAD))
+                highs.append(min(Decimal("168"), expected + POINT_SPREAD))
+        minimum, maximum = min(lows), max(highs)
+        point_only = any(item["hours"].get("min") is None for item in functions)
+        range_source = "display_range_around_expected" if point_only else "offer_ranges"
     if minimum > maximum or maximum > Decimal("168"):
         raise ValueError("hours range must satisfy 0 <= min <= max <= 168")
     intersections = pairwise_intersections(functions, minimum, maximum)
@@ -194,6 +215,9 @@ def calculate_offer_return_analysis(offers: list[dict[str, Any]], comparison_hou
     meaningful_boundaries = {region["max_hours"] for region in regions[:-1]}
     for item in intersections:
         item["meaningful_for_optimum"] = item["hours_per_week"] in meaningful_boundaries
+    project_costs = None
+    if all(offer.get("project_cost_usd") is not None for offer in offers):
+        project_costs = {offer["id"]: Decimal(str(offer["project_cost_usd"])) for offer in offers}
     return {
         "schema_version": "1.0", "model": "weekly_hours_to_weekly_net_surplus",
         "x_axis": "average_weekly_hours", "y_axis": "estimated_weekly_net_surplus_usd",
@@ -202,6 +226,7 @@ def calculate_offer_return_analysis(offers: list[dict[str, Any]], comparison_hou
         "intersections": intersections,
         "optimal_regions": regions,
         "dominated_offers": dominated_offers(functions, minimum, maximum),
+        "chart": chart_series(functions, minimum, maximum, project_costs),
         "visualization": {
             "status": "structured_chart_ready", "type": "linear_offer_return",
             "x_axis": "Average Weekly Hours", "y_axis": "Estimated Weekly Net Surplus",

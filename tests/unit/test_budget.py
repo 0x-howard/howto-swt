@@ -247,7 +247,7 @@ class PositionOverviewTests(unittest.TestCase):
         self.assertIn("| 要素 | Offer 数据 | 分析 |", answer)
         self.assertIn("### 在美收入与生活开销", answer)
         self.assertIn("### 项目投入与最终收益", answer)
-        self.assertNotIn("## 4. 岗位收益函数", answer)
+        self.assertNotIn("## 4. 岗位收益对比", answer)
         self.assertEqual(answer.count("|---|---|---|"), 3)
         self.assertEqual(answer.count("?"), 0)
         self.assertEqual(answer.count("## 3. 继续看什么？"), 1)

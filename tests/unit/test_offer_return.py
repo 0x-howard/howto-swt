@@ -104,7 +104,8 @@ class OfferReturnFunctionTests(unittest.TestCase):
         complete = calculate_offer_return_analysis([offer("A", 10, 100, minimum=26, maximum=38)])
         self.assertEqual(complete["hours_range"]["min"], "26.00")
         point = calculate_offer_return_analysis([offer("A", 10, 100, minimum=None, maximum=None)])
-        self.assertEqual(point["analysis_status"], "point_only")
+        self.assertEqual(point["analysis_status"], "complete")
+        self.assertEqual(point["hours_range"], {"min": "24.00", "max": "40.00", "source": "display_range_around_expected"})
 
     def test_estimated_inputs_are_labeled(self):
         function = build_offer_function(offer("A", 10, 100, estimated=True))
@@ -137,11 +138,21 @@ class OfferReturnFunctionTests(unittest.TestCase):
         high = build_offer_function(offer("A", 15, 100))
         self.assertNotEqual(low["slope_after_tax_usd_per_hour"], high["slope_after_tax_usd_per_hour"])
 
-    def test_visualization_fallback_and_determinism(self):
-        data = [offer("A", 10, 100, minimum=None, maximum=None)]
+    def test_chart_points_and_determinism(self):
+        data = [offer("A", 10, 100, minimum=None, maximum=None), offer("B", 12, 200, minimum=None, maximum=None)]
         first = calculate_offer_return_analysis(data)
-        self.assertEqual(first["visualization"]["status"], "textual_fallback")
+        self.assertEqual(first["chart"]["hours"][0], "24")
+        self.assertEqual(first["chart"]["hours"][-1], "40")
+        self.assertEqual(first["chart"]["series"][0]["values"][-1], "3000")
         self.assertEqual(first, calculate_offer_return_analysis(data))
+
+    def test_project_cost_moves_chart_to_final_surplus(self):
+        data = [offer("A", 10, 100), offer("B", 12, 200)]
+        for item in data:
+            item["project_cost_usd"] = "1000"
+        chart = calculate_offer_return_analysis(data)["chart"]
+        self.assertEqual(chart["y_basis"], "final_project_surplus")
+        self.assertEqual(chart["series"][0]["values"][-1], "2000")
 
     def test_maximum_acceptable_rent_boundary(self):
         result = maximum_acceptable_rent(20, 30, "0.1", 100, 200)

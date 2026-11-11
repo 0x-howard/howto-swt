@@ -217,7 +217,7 @@ def _check_budget_and_structure(case, failures):
             _record_failure(failures, "P0", case, expected, actual, "Offer without a location did not retain the no-location fallback.", "presentation")
 
     expected_sections = case.get("expected_sections", [])
-    section_titles = ["## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益函数 / ROI Comparison", "## 4. 注意事项", "## 5. 继续看什么？"]
+    section_titles = ["## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益对比", "## 4. 注意事项", "## 5. 继续看什么？"]
     has_full_structure = all(title in rendered for title in section_titles)
     has_six_dimensions = all(f"| {name} |" in rendered.split("## 2. 回本测算", 1)[0] for name in ("收入", "住宿", "生活成本", "交通", "二工", "落地便利"))
     table_count = sum(1 for line in rendered.splitlines() if line.startswith("|---"))
