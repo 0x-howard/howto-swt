@@ -211,6 +211,28 @@ class PositionOverviewTests(unittest.TestCase):
                 patch("budget._state_reference", side_effect=lambda state: state_fixture if state else {}):
             return calculate_position_overview({"offers": list(offers), "fx_cny_per_usd": 10, **top})
 
+    def test_chart_cli_writes_svg_outside_skill_folder(self):
+        data = {"fx_cny_per_usd": 6.8, "offers": [
+            {"id": "A", "label": "A", "state": "MD", "wage_usd_per_hour": 15.5, "expected_hours": 36,
+             "min_hours": 32, "max_hours": 40, "work_weeks": 13, "rent_usd_per_week": 150, "project_cost_cny": 25000},
+            {"id": "B", "label": "B", "state": "WI", "wage_usd_per_hour": 14, "hours_per_week": 40,
+             "hours_guaranteed": True, "work_weeks": 12, "rent_usd_per_week": 110, "project_cost_cny": 25000}]}
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "input.json"
+            source.write_text(json.dumps(data), encoding="utf-8")
+            target = Path(temp) / "chart.svg"
+            run = subprocess.run([sys.executable, str(ROOT / "scripts/budget.py"), "--chart", str(target), str(source)],
+                                 text=True, capture_output=True, check=False)
+            self.assertEqual(run.returncode, 0, run.stderr)
+            svg = target.read_text(encoding="utf-8")
+            self.assertTrue(svg.startswith("<svg"))
+            self.assertEqual(svg.count("<polyline"), 2)
+            self.assertIn("持平", svg)
+            blocked = subprocess.run([sys.executable, str(ROOT / "scripts/budget.py"), "--chart",
+                                      str(ROOT / "chart.svg"), str(source)], text=True, capture_output=True, check=False)
+            self.assertEqual(blocked.returncode, 2)
+            self.assertFalse((ROOT / "chart.svg").exists())
+
     def test_guaranteed_hours_are_labeled_and_fixed(self):
         result = self.overview({"wage_usd_per_hour": 14, "hours_per_week": 40, "hours_guaranteed": True})
         self.assertEqual(result["offers"][0]["hours_range"], {"min": "40.00", "expected": "40.00", "max": "40.00",

@@ -4,7 +4,7 @@
 <!-- Source: shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md -->
 <!-- runtime-version: 1.5.1 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt-position; source-sha256: 2925c2fb55df5ee1fe92885e18899e12fc17992a60398035e1a2e403a2a060fb -->
+<!-- skill: swt-position; source-sha256: cb80f420a6c1a29561e06f1bdf057617b98b1d839a50883b0cfb26d37125ef4d -->
 
 <!-- source: shared/interaction-protocol.md -->
 
@@ -783,6 +783,8 @@ State identifies where the current task is inside its owning Executor. It is not
 ## Offer Return chart
 
 For two to three compared offers, `scripts/budget.py` prints a Mermaid `xychart-beta` line chart: x = average weekly hours, y = final projected surplus (in-US surplus when the exchange rate is unknown). Each offer's hours are held inside its own range, so a guaranteed-hours offer is a flat line. The host keeps the chart, the line legend, and the break-even hours exactly as printed; it does not recompute or reshape data points.
+
+When the host is terminal-only, or the user says the chart did not show, run `scripts/budget.py --chart OUT.svg INPUT.json` for a dependency-free SVG of the same data, written outside the Skill folder, and embed or link it.
 
 The chart comes with one plain sentence stating which offer leads in which hours range, so the answer stays complete if a host shows the Mermaid block as text.
 

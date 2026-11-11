@@ -969,9 +969,24 @@ def main(argv: list[str]) -> int:
         except (ValueError, TypeError, InvalidOperation) as error:
             print(f"ERROR: {error}", file=sys.stderr)
             return 2
+    if len(argv) == 4 and argv[1] == "--chart":
+        try:
+            from offer_chart import render_offer_chart
+            from paths import PLUGIN_ROOT
+
+            data = json.loads(Path(argv[3]).read_text(encoding="utf-8"), parse_float=Decimal)
+            output = Path(argv[2]).expanduser().resolve()
+            if PLUGIN_ROOT in output.parents:
+                raise ValueError("chart output must be outside the Skill folder")
+            output.write_text(render_offer_chart(calculate_position_overview(data)), encoding="utf-8")
+            print(output)
+            return 0
+        except (ValueError, TypeError, OSError, KeyError) as error:
+            print(f"ERROR: {error}", file=sys.stderr)
+            return 2
     detail_topic = argv[2] if len(argv) == 4 and argv[1] == "--detail" else None
     if not (len(argv) == 2 or (len(argv) == 3 and argv[1] == "--json") or detail_topic):
-        print("Usage: python3 scripts/budget.py [--json | --detail housing|food|transport] INPUT.json", file=sys.stderr)
+        print("Usage: python3 scripts/budget.py [--json | --detail housing|food|transport | --chart OUT.svg] INPUT.json", file=sys.stderr)
         return 2
     json_output = argv[1] == "--json"
     input_path = argv[3] if detail_topic else argv[2] if json_output else argv[1]
