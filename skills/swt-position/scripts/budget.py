@@ -391,6 +391,8 @@ DETAIL_TYPES: dict[str, tuple[type, ...]] = {
     "ssn_required_before_work": (bool,), "ssn_employer_assist": (bool,), "ssn_office": (str,),
     "ssn_office_miles": (int, float), "start": (str,), "training_reduced_hours": (bool,),
     "open_availability": (bool,), "multiple_locations": (int,), "dress_code": (str,), "arrival": (str,), "area": (str,),
+    "days_per_week": (int, float), "nearest_city": (str,), "nearest_city_hours": (int, float), "amenities": (list,),
+    "customer_facing": (bool,), "english_level": (str,), "cultural_activities": (str,), "roommates_international": (bool,),
 }
 DETAIL_CHOICES = {"meals": {"free_at_work", "discount", "none"}, "employer_transport": {"provided", "assist", "none"}}
 
@@ -408,6 +410,8 @@ def _offer_details(raw: Any, path: str) -> dict[str, Any]:
             raise ValueError(f"{path}.{key}: wrong type")
         if key in DETAIL_CHOICES and value not in DETAIL_CHOICES[key]:
             raise ValueError(f"{path}.{key}: must be one of {sorted(DETAIL_CHOICES[key])}")
+        if isinstance(value, list) and not all(isinstance(entry, str) and entry.strip() for entry in value):
+            raise ValueError(f"{path}.{key}: requires a list of nonempty text")
     return dict(raw)
 
 
@@ -724,6 +728,9 @@ def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
     ids = [item["id"] for item in offers]
     if len(ids) != len(set(ids)):
         raise ValueError("input.offers: duplicate id")
+    goal = data.get("core_goal")
+    if goal is not None and goal not in CORE_GOALS:
+        raise ValueError(f"input.core_goal: must be one of {sorted(CORE_GOALS)}")
     if len(offers) > 3:
         return _narrow_offers(data, offers, defaults)
     from offer_return import calculate_offer_return_analysis
@@ -733,6 +740,7 @@ def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
         "offers": offers,
         "comparison_order": [item["id"] for item in (sorted(offers, key=lambda item: Decimal(item["final_project_surplus_usd"]), reverse=True) if all(item["final_project_surplus_usd"] is not None for item in offers) else offers)],
         "comparison_complete": all(item["final_project_surplus_usd"] is not None for item in offers),
+        "core_goal": goal,
         "fx_source": data.get("fx_source"), "fx_quote_date": data.get("fx_quote_date"),
         "offer_return_analysis": calculate_offer_return_analysis(offers, data.get("comparison_hours")),
     }
@@ -740,28 +748,79 @@ def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
 
 CORE_GOALS = {
     "money": "多赚钱，尽快回本",
-    "convenience": "生活便利：住宿、通勤和落地省心",
+    "convenience": "省心与安全：住宿、通勤、落地和兜底支持",
     "experience": "旅行与体验",
     "english": "提升英语与文化交流",
 }
 
 
-def _convenience_score(item: dict[str, Any]) -> int:
+def _support_group(item: dict[str, Any]) -> bool | None:
+    if not item.get("state") or not item.get("city"):
+        return None
+    try:
+        from location_context import get_location_context
+        context = get_location_context(city=item["city"], state=item["state"])
+    except (ImportError, OSError, ValueError):
+        return None
+    support = (context.get("swt_market") or {}).get("support") or {}
+    if not support.get("matched") or context.get("match_level") != "city_exact":
+        return None
+    return bool(support.get("has_support_group"))
+
+
+def _goal_reasons(goal: str, item: dict[str, Any]) -> list[str]:
+    """Facts that make an offer fit the goal; their count is the ranking score."""
     details = item.get("details", {})
-    return sum((
-        bool(details.get("housing_utilities_included")),
-        details.get("employer_transport") in ("provided", "assist"),
-        details.get("housing_deposit_usd") == 0,
-        details.get("ssn_required_before_work") is False,
-        details.get("meals") in ("free_at_work", "discount"),
-        item["cost_sources"]["rent_usd_per_week"] == "provided",
-    ))
+    reasons: list[str] = []
+    if goal == "convenience":
+        if details.get("housing_deducted_from_pay") or details.get("housing_contract"):
+            reasons.append("雇主安排住宿")
+        if details.get("housing_utilities_included"):
+            reasons.append("水电网全包")
+        if details.get("housing_deposit_usd") == 0:
+            reasons.append("不收押金")
+        if details.get("employer_transport") in ("provided", "assist"):
+            reasons.append("雇主提供交通" if details["employer_transport"] == "provided" else "雇主协助安排交通")
+        if details.get("ssn_required_before_work") is False:
+            reasons.append("可先开工再办 SSN")
+        if details.get("ssn_employer_assist"):
+            reasons.append("雇主协助办 SSN")
+        if details.get("meals") in ("free_at_work", "discount"):
+            reasons.append("有员工餐")
+        if details.get("amenities"):
+            reasons.append("生活配套步行可达")
+        if _support_group(item):
+            reasons.append("当地有官方 Community Support Group")
+    elif goal == "experience":
+        if "nearest_city_hours" in details:
+            hours = Decimal(str(details["nearest_city_hours"]))
+            if hours <= 4:
+                city = details.get("nearest_city", "大城市")
+                reasons.append(f"距 {city}{' ' if city[-1:].isascii() else ''}约 {_short_decimal(hours)} 小时")
+            if hours <= 2:
+                reasons.append("周末可往返大城市")
+        if "days_per_week" in details and Decimal(str(details["days_per_week"])) <= 5:
+            reasons.append(f"每周上班约 {_short_decimal(Decimal(str(details['days_per_week'])))} 天")
+        if details.get("open_availability") is False:
+            reasons.append("不要求全时段排班")
+        if details.get("area"):
+            reasons.append("有地域特色")
+    elif goal == "english":
+        if details.get("customer_facing"):
+            reasons.extend(["面向顾客", "日常用英语沟通"])
+        if details.get("english_level"):
+            reasons.append(f"英语要求 {details['english_level']}")
+        if details.get("cultural_activities"):
+            reasons.append("有文化交流活动")
+        if details.get("roommates_international"):
+            reasons.append("与其他国家学生合住")
+        if _support_group(item):
+            reasons.append("当地有官方 Community Support Group")
+    return reasons
 
 
 def _narrow_offers(data: dict[str, Any], offers: list[dict[str, Any]], defaults: dict[str, Any]) -> dict[str, Any]:
     goal = data.get("core_goal")
-    if goal is not None and goal not in CORE_GOALS:
-        raise ValueError(f"input.core_goal: must be one of {sorted(CORE_GOALS)}")
     money = [Decimal(item["final_project_surplus_usd"] if item["final_project_surplus_usd"] is not None
                      else item["estimated_us_net_usd"]) for item in offers]
     from offer_return import calculate_offer_return_analysis
@@ -785,16 +844,16 @@ def _narrow_offers(data: dict[str, Any], offers: list[dict[str, Any]], defaults:
         return {**base, "stage": "ask_core_goal"}
     elif goal == "money":
         chosen = [item["id"] for _, item in sorted(zip(money, offers), key=lambda pair: pair[0], reverse=True)[:3]]
-    elif goal == "convenience":
-        ranked = sorted(zip(money, offers), key=lambda pair: (_convenience_score(pair[1]), pair[0]), reverse=True)
-        chosen = [item["id"] for _, item in ranked[:3]]
     else:
-        return {**base, "stage": "ask_selection"}
+        scores = [len(_goal_reasons(goal, item)) for item in offers]
+        if goal != "convenience" and not any(scores):
+            return {**base, "stage": "ask_selection"}
+        ranked = sorted(zip(scores, money, offers), key=lambda triple: (triple[0], triple[1]), reverse=True)
+        chosen = [item["id"] for _, _, item in ranked[:3]]
     raws = {item["id"]: raw for item, raw in zip(offers, data["offers"])}
-    subset = {key: value for key, value in data.items() if key not in ("core_goal", "selected_offer_ids")}
+    subset = {key: value for key, value in data.items() if key != "selected_offer_ids"}
     subset["offers"] = [{**raws[choice], "id": choice} for choice in chosen]
     result = calculate_position_overview(subset)
-    result["core_goal"] = goal
     result["other_offers"] = [{"id": item["id"], "label": item["label"], "final_project_surplus_usd": item["final_project_surplus_usd"],
                                "estimated_us_net_usd": item["estimated_us_net_usd"]} for item in offers if item["id"] not in chosen]
     result["total_offer_count"] = len(offers)
@@ -1065,6 +1124,9 @@ def _leader(offers: list[dict[str, Any]], values: list[Decimal], *, higher: bool
     shown = _cents_usd(gap) if unit == "$" else f"{_short_decimal(gap)} {unit}"
     if len(offers) == 2:
         return f"{label} {verb} {shown}"
+    tied = [name for value, name in pairs if value == best]
+    if len(tied) > 1:
+        return f"{'、'.join(tied)} 并列最优，比 {other} {verb} {shown}"
     return f"{label} 最优，比 {other} {verb} {shown}"
 
 
@@ -1154,7 +1216,50 @@ def _row_comparison(offers: list[dict[str, Any]], row: str) -> str:
     return ""
 
 
-def _special_notes(item: dict[str, Any]) -> list[tuple[str, str]]:
+GOAL_ROWS = {
+    "money": ("时薪", "工时", "税费", "周租"),
+    "convenience": ("押金", "周租", "交通费"),
+    "experience": ("距大城市", "上班天数"),
+    "english": ("面向顾客",),
+}
+
+
+def _goal_comparisons(offers: list[dict[str, Any]], goal: str | None) -> list[tuple[str, str]]:
+    lines: list[tuple[str, str]] = []
+
+    def having(key: str) -> tuple[list[dict[str, Any]], list[Any]]:
+        pairs = [(item, item.get("details", {})[key]) for item in offers if key in item.get("details", {})]
+        return [item for item, _ in pairs], [value for _, value in pairs]
+
+    if goal == "experience":
+        group, hours = having("nearest_city_hours")
+        hours = [Decimal(str(value)) for value in hours]
+        if len(group) >= 2 and len(set(hours)) > 1:
+            index = hours.index(min(hours))
+            city = group[index]["details"].get("nearest_city", "大城市")
+            word = "更近" if len(group) == 2 else "最近"
+            lines.append(("距大城市", f"{group[index]['label']} {word}，距 {city}{' ' if city[-1:].isascii() else ''}约 {_short_decimal(hours[index])} 小时"))
+        group, days = having("days_per_week")
+        if len(group) >= 2:
+            gap = _leader(group, [Decimal(str(value)) for value in days], higher=False, verb="每周少上", unit="天")
+            if gap:
+                lines.append(("上班天数", gap))
+    elif goal == "english":
+        group, facing = having("customer_facing")
+        front = [item["label"] for item, value in zip(group, facing) if value]
+        back = [item["label"] for item, value in zip(group, facing) if not value]
+        if front and back:
+            lines.append(("面向顾客", f"{'、'.join(front)} 面向顾客，{'、'.join(back)} 以后台工作为主"))
+    elif goal == "convenience":
+        group, deposits = having("housing_deposit_usd")
+        if len(group) >= 2:
+            gap = _leader(group, [Decimal(str(value)) for value in deposits], higher=False, verb="少", unit="$")
+            if gap:
+                lines.append(("押金", gap))
+    return lines
+
+
+def _special_notes(item: dict[str, Any], goal: str | None = None) -> list[tuple[str, str]]:
     details = item.get("details", {})
     sources = item["cost_sources"]
     notes: list[tuple[str, str]] = []
@@ -1165,7 +1270,7 @@ def _special_notes(item: dict[str, Any]) -> list[tuple[str, str]]:
         defaults.append(f"工期 {_short_decimal(item['work_weeks'])} 周")
     if defaults:
         notes.append(("项目费与工期" if len(defaults) == 2 else defaults[0].split(" ")[0],
-                      f"Offer 未写明，测算按{'、'.join(defaults)}估算，填入实际数字后可重新测算。"))
+                      f"Offer 未写明，测算按{'、'.join(defaults)}{' ' if defaults[-1][-1:].isdigit() else ''}估算，填入实际数字后可重新测算。"))
     if details.get("ssn_required_before_work"):
         notes.append(("SSN 与开工", "必须先拿到 SSN 才能上班，等待期间没有收入，到岗后应尽快办理。"))
     if details.get("training_reduced_hours"):
@@ -1195,13 +1300,48 @@ def _special_notes(item: dict[str, Any]) -> list[tuple[str, str]]:
     for key, title in (("dress_code", "着装自备"), ("arrival", "抵达路线")):
         if details.get(key):
             notes.append((title, details[key]))
+    if details.get("amenities"):
+        notes.append(("生活配套", f"住处附近步行可达{'、'.join(details['amenities'])}。"))
+    english = []
+    if "customer_facing" in details:
+        english.append("岗位面向顾客，日常用英语沟通" if details["customer_facing"] else "岗位以后台工作为主，与顾客交流较少")
+    if details.get("english_level"):
+        english.append(f"雇主要求英语 {details['english_level']}")
+    if details.get("roommates_international"):
+        english.append("与其他国家学生合住")
+    if english:
+        notes.append(("工作英语环境", "；".join(english) + "。"))
+    if details.get("cultural_activities"):
+        notes.append(("文化交流", details["cultural_activities"]))
+    travel = []
+    if details.get("nearest_city"):
+        city = details["nearest_city"]
+        gap = " " if city[-1:].isascii() else ""
+        travel.append(f"距 {city}" + (f"{gap}约 {_short_decimal(Decimal(str(details['nearest_city_hours'])))} 小时"
+                                       if "nearest_city_hours" in details else ""))
+    if "days_per_week" in details:
+        travel.append(f"每周上班约 {_short_decimal(Decimal(str(details['days_per_week'])))} 天")
+    if goal == "experience" and item.get("end_date"):
+        end = date.fromisoformat(item["end_date"])
+        travel.append(f"工期 {end.month}/{end.day} 结束，之后有 30 天宽限期可在美旅行")
+    if travel:
+        notes.append(("周边与出行", "；".join(travel) + "。"))
     market = _market_note(item)
     if market:
         notes.append(("SWT 地点背景", market))
     if details.get("area"):
         notes.append(("地域特色", details["area"]))
     notes.extend((topic, detail) for topic, detail in item["cautions"].items() if detail)
-    return notes
+    first = GOAL_TOPICS.get(goal or "", ())
+    return sorted(notes, key=lambda note: first.index(note[0]) if note[0] in first else len(first))
+
+
+GOAL_TOPICS = {
+    "money": ("SSN 与开工", "培训期工时", "小费", "二工审批"),
+    "convenience": ("住房合同与押金", "住房", "SSN 与开工", "抵达路线", "生活配套", "SWT 地点背景"),
+    "experience": ("周边与出行", "地域特色", "排班", "排班与门店"),
+    "english": ("工作英语环境", "文化交流", "SWT 地点背景"),
+}
 
 
 def _market_note(item: dict[str, Any]) -> str:
@@ -1227,6 +1367,32 @@ def _market_note(item: dict[str, Any]) -> str:
     return "BridgeUSA SWT 地图上，" + "；".join(parts) + "。计数不等同于年度去重人数。"
 
 
+def _goal_fit(result: dict[str, Any]) -> str:
+    goal, offers = result.get("core_goal"), result["offers"]
+    if goal in (None, "money") or len(offers) < 2:
+        return ""
+    reasons = [_goal_reasons(goal, item) for item in offers]
+    top = max(len(entry) for entry in reasons)
+    leaders = [index for index, entry in enumerate(reasons) if len(entry) == top]
+    if top == 0 or len(leaders) > 1:
+        return ""
+    return f"按你的诉求（{CORE_GOALS[goal].split('：')[0]}），{offers[leaders[0]]['label']} 最匹配：{'、'.join(reasons[leaders[0]])}。"
+
+
+def _minimum_hours_final(result: dict[str, Any], item: dict[str, Any]) -> tuple[Decimal, Decimal] | None:
+    hours = item["hours_range"]
+    if hours["status"] == "guaranteed" or hours.get("min") is None or item["project_cost_usd"] is None:
+        return None
+    low = Decimal(hours["min"])
+    if low >= Decimal(hours["expected"]):
+        return None
+    function = next((f for f in result.get("offer_return_analysis", {}).get("functions", []) if f["id"] == item["id"]), None)
+    if function is None or function.get("season_slope_usd_per_hour") is None:
+        return None
+    net = Decimal(function["season_slope_usd_per_hour"]) * low + Decimal(function["season_intercept_usd"])
+    return low, net - Decimal(item["project_cost_usd"])
+
+
 def _conclusion(result: dict[str, Any]) -> str:
     offers = result["offers"]
     best = next(item for item in offers if item["id"] == result["comparison_order"][0])
@@ -1243,11 +1409,12 @@ def _conclusion(result: dict[str, Any]) -> str:
         lead = f"假设项目费 {project}" if item["cost_sources"]["project_cost"] == "global_estimate" else f"项目费 {project}"
         verdict = "预计可以回本" if final >= ZERO else "单靠本岗位无法回本"
         return f"**{lead}，{basis}，最终预计结余约 {_whole_usd(final)}{cny}，{verdict}。**"
+    fit = _goal_fit(result)
     if not result["comparison_complete"]:
-        return f"**按在美净剩，{best['label']} 最高（约 {_whole_usd(best['estimated_us_net_usd'])}）；缺少汇率，最终结余暂无法计算。**"
+        return f"**{fit}按在美净剩，{best['label']} 最高（约 {_whole_usd(best['estimated_us_net_usd'])}）；缺少汇率，最终结余暂无法计算。**"
     others = "，".join(f"{item['label']} 约 {_whole_usd(item['final_project_surplus_usd'])}"
                       for item in offers if item is not best)
-    text = f"仅从收益看，{best['label']} 更高"
+    text = f"{fit}仅从收益看，{best['label']} 更高"
     if len(offers) == 2:
         other = next(item for item in offers if item is not best)
         gap = _weekly_ledger(best)["net"] - _weekly_ledger(other)["net"]
@@ -1353,6 +1520,10 @@ def format_position_overview(result: dict[str, Any]) -> str:
                 ("**最终预计结余**", [f"**{_whole_usd(item['final_project_surplus_usd'])}**" for item in offers]),
                 ("回本进度", [_progress_bar(item) or "" for item in offers]),
             ])
+            lowest = [_minimum_hours_final(result, item) for item in offers]
+            if any(lowest):
+                rows.append(("最低工时结余", [f"{_whole_usd(entry[1])}（{_short_decimal(entry[0])}h/周）" if entry else "—"
+                                             for entry in lowest]))
         lines.extend(f"| {name} | " + " | ".join(values) + " |" for name, values in rows)
         lines.extend(_fx_line(result))
         if 2 <= len(offers) <= 3:
@@ -1383,9 +1554,17 @@ def format_position_overview(result: dict[str, Any]) -> str:
         if bar:
             lines.append(f"回本进度：{bar}")
         lines.append(_payback_sentence(result, item))
+        lowest = _minimum_hours_final(result, item)
+        if lowest:
+            lines.append(f"按最低每周 {_short_decimal(lowest[0])} 小时计算，最终预计结余约 {_whole_usd(lowest[1])}。")
         lines.extend(_fx_line(result))
 
-    per_offer = [_special_notes(item) for item in offers]
+    goal = result.get("core_goal")
+    per_offer = [_special_notes(item, goal) for item in offers]
+    if many:
+        comparisons = _goal_comparisons(offers, goal) + comparisons
+        first = GOAL_ROWS.get(goal or "", ())
+        comparisons.sort(key=lambda pair: first.index(pair[0]) if pair[0] in first else len(first))
     if any(per_offer) or (many and comparisons):
         section += 1
         lines.extend(["", f"## {section}. 特殊注意事项", ""])

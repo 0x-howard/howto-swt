@@ -69,6 +69,44 @@ class StudentOutputContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             calculate_position_overview({"offers": offers, "core_goal": "fun"})
 
+    def test_experience_goal_ranks_by_travel_facts(self):
+        offers = [offer(str(i), 15 + i) for i in range(4)]
+        offers[0]["details"] = {"nearest_city": "Boston", "nearest_city_hours": 2, "days_per_week": 5}
+        offers[1]["details"] = {"nearest_city": "Denver", "nearest_city_hours": 6, "days_per_week": 6}
+        offers[2]["details"] = {"nearest_city": "Seattle", "nearest_city_hours": 3, "days_per_week": 6}
+        text = format_position_overview(calculate_position_overview({"offers": offers, "core_goal": "experience"}))
+        self.assertIn('| 要素 | 项目 | 0 | 2 | 3 |', text)
+        self.assertIn('按你的诉求（旅行与体验），0 最匹配：距 Boston 约 2 小时、周末可往返大城市、每周上班约 5 天。', text)
+        self.assertIn('- **距大城市**：0 更近，距 Boston 约 2 小时。', text)
+        self.assertIn('- **上班天数**：0 每周少上 1 天。', text)
+        self.assertLess(text.index('**距大城市**'), text.index('**时薪**'))
+
+    def test_english_goal_orders_notes_and_names_fit(self):
+        a, b = offer('A'), offer('B', 18)
+        a["details"] = {"customer_facing": True, "english_level": "Advanced", "cultural_activities": "雇主组织周末出游。"}
+        b["details"] = {"customer_facing": False, "tips": True}
+        text = format_position_overview(calculate_position_overview({"offers": [a, b], "core_goal": "english"}))
+        self.assertIn('按你的诉求（提升英语与文化交流），A 最匹配：面向顾客、日常用英语沟通、英语要求 Advanced、有文化交流活动。', text)
+        self.assertIn('- **面向顾客**：A 面向顾客，B 以后台工作为主。', text)
+        self.assertIn('- **工作英语环境**：岗位面向顾客，日常用英语沟通；雇主要求英语 Advanced。', text)
+        notes = text[text.index('**B**'):]
+        self.assertLess(notes.index('工作英语环境'), notes.index('小费'))
+
+    def test_minimum_hours_surplus_when_range_given(self):
+        item = offer('A')
+        item.update(min_hours=30, max_hours=40, expected_hours=35)
+        text = format_position_overview(calculate_position_overview({"offers": [item]}))
+        self.assertIn('按最低每周 30 小时计算，最终预计结余约', text)
+        two = format_position_overview(calculate_position_overview({"offers": [item, offer('B')]}))
+        self.assertIn('| 最低工时结余 |', two)
+        self.assertIn('（30h/周） | — |', two)
+
+    def test_new_detail_fields_are_validated(self):
+        item = offer('A')
+        item["details"] = {"amenities": ["超市", ""]}
+        with self.assertRaises(ValueError):
+            calculate_position_overview({"offers": [item]})
+
     def test_direct_skill_contract(self):
         router = (ROOT / 'skills/swt/SKILL.md').read_text(encoding='utf-8')
         handoff = (ROOT / 'shared/handoff-contract.md').read_text(encoding='utf-8')

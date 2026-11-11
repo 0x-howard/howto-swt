@@ -44,6 +44,13 @@
 | `dress_code` | clothing / footwear | 一句中文：需自备的衣物 |
 | `arrival` | Travel Instructions | 一句中文：机场到岗路线、接站、过夜 |
 | `area` | Location details / Why choose us | 一句中文：地域特色 |
+| `nearest_city` / `nearest_city_hours` | Location details（距某大城市几小时） | 如 `Boston` 与 `2` |
+| `days_per_week` | Days per week / schedule | 每周上班天数，如 `5` |
+| `amenities` | Nearby amenities / within walking distance | 步行可达的配套列表，如 `["超市", "洗衣房"]` |
+| `customer_facing` | Job description（柜台、前台、服务员等面向顾客） | 面向顾客填 `true`；后厨、客房、仓库等后台填 `false` |
+| `english_level` | English level required | 原文等级，如 `Intermediate` |
+| `cultural_activities` | Cultural exchange activities | 一句中文：雇主组织的活动 |
+| `roommates_international` | 住宿与其他国家学生合住 | 写明时填 `true` |
 
 ## 其他条款
 

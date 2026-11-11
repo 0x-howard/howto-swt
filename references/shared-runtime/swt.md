@@ -4,7 +4,7 @@
 <!-- Source: shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md, shared/routing-policy.md, shared/stage-model.md -->
 <!-- runtime-version: 1.5.1 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt; source-sha256: 9a503cd55d84e988f1bc8f6e75b057374f511a63b6f432d6ba38155bf464da22 -->
+<!-- skill: swt; source-sha256: 1d2a3dd82ca862e6b88193f850812c2628ba62b70de2901086d40c2d44c65bdf -->
 
 <!-- source: shared/interaction-protocol.md -->
 
@@ -169,7 +169,7 @@ Interaction UI does not weaken authorization. Edition replacement and other sens
 
 ## Shared Executor uses
 
-- `swt-position`: with four or more offers, first ask the core goal (`single_choice`, A–D); for experience or English goals, ask the user to pick three offers (`multi_choice`, maximum three).
+- `swt-position`: with four or more offers, first ask the core goal (`single_choice`, A–D); when the offers lack the facts needed to rank an experience or English goal, ask the user to pick three offers (`multi_choice`, maximum three).
 - `swt-english`: genuinely undecided practice mode → `single_choice`; a named mode stays direct.
 - `swt-visa`: multiple valid next actions → `single_choice`; one required next action stays direct.
 - `swt-application`: finite stage confirmation → `single_choice`; a missing document value uses free text.
