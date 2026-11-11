@@ -200,11 +200,174 @@ def calculate_comprehensive(criteria: dict[str, Any], input_mode: str = "text") 
     }
 
 
+SCENES = {
+    "agency_generic": "机构面试",
+    "sponsor_generic": "Sponsor 面试",
+    "host_generic": "雇主面试",
+    "visa_interview_generic": "签证面试",
+    "comprehensive": "综合",
+}
+CRITERION_NAMES = {
+    "comprehension_relevance": "理解与切题",
+    "fluency_coherence": "流利与连贯",
+    "vocabulary": "词汇表达",
+    "grammar": "语法控制",
+    "pronunciation_intelligibility": "发音可理解度",
+    "interaction_repair": "互动与修复",
+    "task_communication": "任务沟通",
+}
+MODE_INTRO = {
+    "transcript": "你用的是语音输入，我按转写文字评估，发音不打分；",
+    "text": "当前为文字模拟，不能代表完整口语表现；",
+    "voice": "",
+}
+MODE_LIMIT = {
+    "transcript": "按语音转写评估，发音未测；语音识别错误不计入。",
+    "text": "当前为文字模拟，不能代表完整口语表现；发音和口头互动未测。",
+    "voice": "",
+}
+NEXT_CHOICES = "接下来想看什么？A. 逐题评分　B. 七维详情　C. 错误示例　D. 再测一次"
+
+
+def opening_question() -> str:
+    return "\n".join([
+        "这次想按哪种面试来测？", "",
+        "A. 机构面试", "B. Sponsor 面试", "C. 雇主面试", "D. 签证面试", "E. 综合测评（一次覆盖以上四种）", "",
+        "回复字母即可。",
+    ])
+
+
+def start_line(profile: str, input_mode: str) -> str:
+    if profile not in SCENES or input_mode not in MODES:
+        raise ValueError("unknown profile or input_mode")
+    scene = "综合口语测评" if profile == "comprehensive" else f"{SCENES[profile]}口语测试"
+    return f"好的，我们做一次{_gap(scene)}{scene}。{MODE_INTRO[input_mode]}中间不纠错，结束后统一反馈。"
+
+
+def _gap(text: str) -> str:
+    return " " if text[:1].isascii() else ""
+
+
+def _readiness_label(profile: str, position: str | None) -> str:
+    label = f"{SCENES[profile]}准备度"
+    return f"{label}（{position}）" if profile == "host_generic" and position else label
+
+
+def _scores(criteria: dict[str, Any], included: list[str]) -> dict[str, float]:
+    return {key: _parse_criterion(criteria[key], key)[0] for key in included}
+
+
+def _join(names: list[str]) -> str:
+    return names[0] if len(names) == 1 else "、".join(names[:-1]) + "和" + names[-1]
+
+
+def _weakness_lines(scores: dict[str, float], weights: dict[str, int], notes: dict[str, str]) -> tuple[list[str], list[str]]:
+    if not scores:
+        return [], []
+    top = max(scores.values())
+    weak = sorted((key for key, value in scores.items() if value < top), key=lambda key: (scores[key], -weights[key]))[:3]
+    lines = [f"- **{CRITERION_NAMES[key]}**：{notes.get(key) or f'{_number(scores[key])} / 10'}" for key in weak]
+    return weak, lines
+
+
+def _number(value: float) -> str:
+    return f"{Decimal(str(value)).quantize(Decimal('0.1'), rounding=ROUND_HALF_UP)}"
+
+
+def _limitations(result: dict[str, Any], input_mode: str) -> list[str]:
+    lines = [MODE_LIMIT[input_mode]] if MODE_LIMIT[input_mode] else []
+    thin = [CRITERION_NAMES[key] for key, reason in result["missing_criteria"].items()
+            if reason == "missing" or reason == "unavailable" or reason.startswith("undersampled")]
+    if thin:
+        lines.append(f"{'、'.join(thin)}样本不足，未计入准备度。")
+    return lines
+
+
+def _ielts_row(data: dict[str, Any], complete: bool) -> list[str]:
+    value = data.get("ielts_style")
+    if value is None:
+        return []
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not 1 <= value <= 9:
+        raise ValueError("ielts_style must be a number from 1 to 9")
+    return [f"| IELTS 风格估计 | ≈ {value:.1f} / 9 |" if complete else f"| IELTS 风格部分估计 | ≈ {value:.1f} / 9（不含发音） |"]
+
+
+def format_result(data: dict[str, Any]) -> str:
+    """Student-facing first result: conclusion, score table, up to three weaknesses, limits, choices."""
+    profile = data.get("profile")
+    input_mode = data.get("input_mode", "text")
+    criteria = data.get("criteria", {})
+    notes = data.get("notes", {})
+    position = data.get("target_position")
+    if not isinstance(criteria, dict) or not isinstance(notes, dict):
+        raise ValueError("criteria and notes must be objects keyed by criterion")
+    if set(notes) - set(CRITERION_NAMES):
+        raise ValueError("unknown criterion key(s) in notes")
+    weights_all = load_profile_weights()
+    if profile == "comprehensive":
+        results = calculate_comprehensive(criteria, input_mode)["profiles"]
+        scored = {name: result for name, result in results.items() if result["target_readiness"] is not None}
+        if not scored:
+            return "**样本不足，暂时无法给出准备度。**\n\n" + NEXT_CHOICES
+        best = max(scored, key=lambda name: scored[name]["target_readiness"])
+        worst = min(scored, key=lambda name: scored[name]["target_readiness"])
+        partial = any(result["readiness_status"] == "partial" for result in scored.values())
+        lines = [f"**综合测评{'（部分测评）' if partial else ''}：{SCENES[best]}准备度最高（{_number(scored[best]['target_readiness'])} / 10），"
+                 f"{SCENES[worst]}最低（{_number(scored[worst]['target_readiness'])} / 10）。**", "",
+                 "| 场景 | 准备度 |", "|---|---:|"]
+        lines += [f"| {_readiness_label(name, position)} | "
+                  + (f"{_number(result['target_readiness'])} / 10" if result["target_readiness"] is not None else "样本不足") + " |"
+                  for name, result in results.items()]
+        lines += _ielts_row(data, not partial and input_mode == "voice")
+        included = scored[best]["included_criteria"]
+        scores = _scores(criteria, included)
+        if best != worst and scores:
+            gap = max(included, key=lambda key: (weights_all[worst][key] - weights_all[best][key]) * (10 - scores[key]))
+            if weights_all[worst][gap] > weights_all[best][gap]:
+                lines += ["", f"{SCENES[worst]}更看重{CRITERION_NAMES[gap]}，这是两者相差最大的原因。"]
+        _, weak = _weakness_lines(scores, weights_all[best], notes)
+        reference = scored[best]
+    else:
+        if profile not in PROFILES:
+            raise ValueError(f"profile must be one of: {', '.join((*PROFILES, 'comprehensive'))}")
+        reference = calculate_readiness(criteria, profile, input_mode)
+        scores = _scores(criteria, reference["included_criteria"])
+        if reference["target_readiness"] is None:
+            return "**样本不足，暂时无法给出准备度。**\n\n" + NEXT_CHOICES
+        weak_keys, weak = _weakness_lines(scores, weights_all[profile], notes)
+        partial = reference["readiness_status"] == "partial"
+        strong = [CRITERION_NAMES[key] for key, value in scores.items() if value == max(scores.values())]
+        tail = f"：{_join(strong)}较好" + (f"，主要短板是{_join([CRITERION_NAMES[key] for key in weak_keys[:2]])}" if weak_keys else "")
+        lines = [f"**按{_gap(SCENES[profile])}{SCENES[profile]}的要求，你目前的准备度约 {_number(reference['target_readiness'])} / 10"
+                 f"{'（部分测评）' if partial else ''}{tail}。**", "",
+                 "| 结果 | 分数 |", "|---|---:|",
+                 f"| {_readiness_label(profile, position)} | {_number(reference['target_readiness'])} / 10{'（部分测评）' if partial else ''} |"]
+        lines += _ielts_row(data, not partial)
+    if weak:
+        lines += ["", *weak]
+    limits = _limitations(reference, input_mode)
+    if limits:
+        lines += ["", *limits]
+    lines += ["", NEXT_CHOICES]
+    return "\n".join(lines)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--profile", required=True, choices=(*PROFILES, "comprehensive"))
+    parser.add_argument("--profile", choices=(*PROFILES, "comprehensive"))
     parser.add_argument("--input", default="-", help="JSON file, or - to read JSON from stdin")
+    parser.add_argument("--format", action="store_true", help="print the student-facing first result")
+    parser.add_argument("--opening", action="store_true", help="print the fixed scene question")
+    parser.add_argument("--start", choices=sorted(MODES), help="print the opening line for this input mode")
     args = parser.parse_args()
+    if args.opening:
+        print(opening_question())
+        return 0
+    if args.profile is None:
+        raise ValueError("--profile is required")
+    if args.start:
+        print(start_line(args.profile, args.start))
+        return 0
     raw = sys.stdin.read() if args.input == "-" else Path(args.input).read_text(encoding="utf-8")
     data = json.loads(raw)
     if not isinstance(data, dict):
@@ -213,6 +376,9 @@ def main() -> int:
     input_mode = data.get("input_mode", "text")
     if not isinstance(criteria, dict):
         raise ValueError("criteria must be an object keyed by criterion")
+    if args.format:
+        print(format_result({**data, "profile": args.profile}))
+        return 0
     if args.profile == "comprehensive":
         result = calculate_comprehensive(criteria, input_mode)
     else:

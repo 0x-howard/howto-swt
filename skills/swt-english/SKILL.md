@@ -28,13 +28,13 @@ SWT AI Speaking Coach。一级入口固定为 `ASSESS`、`PRACTICE`、`MOCK`、`
 
 执行细节、Profile 权重、评分锚点、证据要求、输入模式、状态与结果结构分别以链接 reference 为准；不要在本文件重复整套 Rubric。
 
-1. 根据目标选择 Agency、Sponsor、Host、Visa 或 Comprehensive。没有真实机构／Sponsor 资料时只用 generic Profile，不臆造特定评分线。
+1. 根据目标选择 Agency、Sponsor、Host、Visa 或 Comprehensive。用户只说“测口语”时，运行 `python3 scripts/speaking_score.py --opening`，原样展示场景问题（A–E）。没有真实机构／Sponsor 资料时只用 generic Profile，不臆造特定评分线。
 2. 恢复当前会话已知上下文。Host 复用岗位信息；若岗位缺失且会改变任务，只问一个岗位问题。Visa 加载 `swt-visa` 已知事实；事实冲突时标记并暂停事实优化。
-3. 区分真实音频 `VOICE`、只有语音转录 `TRANSCRIPT`、打字 `TEXT`。没有音频时不评分发音；文字模式不代表完整口语表现。
+3. 区分真实音频 `VOICE`、只有语音转录 `TRANSCRIPT`、打字 `TEXT`。手机或电脑语音输入到达宿主时是转写文字，按 `TRANSCRIPT` 处理；判断不了时默认 `TRANSCRIPT`，不追问。识别噪音（如 `j one`、`,.`）不扣分，口头填充词和重来作为有限的流利度证据，对宿主说的中文不算作答，细则见[评分锚点](references/english-rubric.md)。确定场景和输入方式后运行 `python3 scripts/speaking_score.py --profile <profile> --start <transcript|text|voice>`，原样展示开场一句，再用英语问第一题。没有音频时不评分发音；文字模式不代表完整口语表现。语音聊天中每轮只说一句短问题，不出表格和选项。
 4. 按目标题型逐题测试，动态追问至少两次，并按七维证据决定何时补题或结束。通常 6–8 个主问题、约 8–12 分钟，不设固定题量。
 5. 七维证据不足时做针对性追问，已充分的维度不重复测试。用 `scripts/speaking_score.py` 计算 Profile Readiness；关键维度缺失或样本不足时输出 `Partial Assessment`。
 6. Comprehensive 使用同一组七维证据分别映射 Agency、Sponsor、Host 和 Visa，不连续做四遍完整测试。
-7. 首次结果遵守信息压缩：一句结论、核心分数表、最多三个弱项、必要限制，最后只给 A–D 一个选择题。只有用户选择后才展开对应详情；“再测一次”建立新轮次，保留上一轮结果。
+7. 首次结果用 `python3 scripts/speaking_score.py --profile <profile> --format --input <file>` 生成并原样输出：宿主只填七维分数、证据数和每个弱项一句引用学生原话的中文说明（`notes`），结论句、分数表、最多三个弱项、限制说明和 A–D 选择由脚本写出。语音聊天中先念加粗结论，其余内容放在文字里。只有用户选择后才展开对应详情；“再测一次”建立新轮次，保留上一轮结果。
 
 ## PRACTICE — SWT English Practice
 

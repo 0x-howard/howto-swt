@@ -6,6 +6,8 @@ Assessment is the `ASSESS` path in `swt-english`. Formal Sponsor/Host/Visa simul
 
 Use assessment when a user asks to test, measure, assess, score, or check readiness, such as “测一下我的口语”, “机构口测”, “看看我能不能应付 Sponsor 面试”, “测我的 cashier 英语”, “测一下美签英语”, or “综合 SWT 英语测评”. A request for a realistic interview simulation enters `MOCK`, which delays feedback and produces the same Assessment Result at completion.
 
+When the user only asks to test speaking without naming a target, run `python3 scripts/speaking_score.py --opening` and show its scene question verbatim; map A–E to `agency_generic`, `sponsor_generic`, `host_generic`, `visa_interview_generic`, `comprehensive`. Once the target and input mode are known, run `python3 scripts/speaking_score.py --profile <profile> --start <transcript|text|voice>`, show that line verbatim, then ask the first question in English.
+
 Select `agency_generic`, `sponsor_generic`, `host_generic`, `visa_interview_generic`, or `comprehensive` from the user's explicit target. A named agency or Sponsor stays generic without authentic specific scoring material. For comprehensive, gather one shared evidence set and map it through each profile. Do not repeat the assessment four times.
 
 For Host, reuse existing Employer, Position, duties, customer interaction, environment, Offer/JD, and current job context. Ask one role question only if no usable position context exists and it changes task selection: “你准备面试什么岗位？” If context already says Retail Associate, do not ask again.
@@ -20,7 +22,9 @@ Record one mode for each response set:
 - `transcript`: only a transcript is available.
 - `text`: user is typing.
 
-Follow [english-rubric.md](english-rubric.md) for mode-specific criteria. In text mode say: “当前为文字模拟，不能代表完整口语表现。” Neither transcript nor text can receive a pronunciation score; do not equate typing speed with speech fluency. Mark unobserved criteria unavailable and let the calculator return a partial assessment.
+Voice input on a phone or computer reaches the host as speech-recognition text: use `transcript` and the speech-to-text rules in [english-rubric.md](english-rubric.md). If the mode is unclear, default to `transcript`. Follow [english-rubric.md](english-rubric.md) for mode-specific criteria.
+
+In a live voice chat, every turn must be speakable: during the test say only the next short question (no tables, lists, or A–D choices); at the end say the bold conclusion line first and keep the table, weaknesses, and choices in the text reply. In text mode say: “当前为文字模拟，不能代表完整口语表现。” Neither transcript nor text can receive a pronunciation score; do not equate typing speed with speech fluency. Mark unobserved criteria unavailable and let the calculator return a partial assessment.
 
 ## Adaptive assessment flow
 
@@ -39,12 +43,14 @@ For a Comprehensive result, use one compact four-row table (`Profile | Readiness
 
 ## First result and follow-up choices
 
+Generate the first result with `python3 scripts/speaking_score.py --profile <profile> --format --input <file>` and show it verbatim. The input JSON carries `input_mode`, `criteria`, optional `target_position`, optional `ielts_style`, and `notes` keyed by criterion: one Chinese sentence quoting the user's own words, such as `{"grammar": "时态和动词形式不稳，如 \"Last summer I go\"。"}`. The script writes the conclusion, score table, up to three weaknesses, limitations, and the A–D choice.
+
 Compress the first result to: one key conclusion; a small result table; at most three current weaknesses; one to three material limitations; and one choice question. Example table:
 
-| Result | Score |
+| 结果 | 分数 |
 |---|---:|
-| Sponsor Readiness | 7.1 / 10 (partial or complete) |
-| IELTS-style | ≈ 5.5 / 9 (only when evidence supports it) |
+| Sponsor 面试准备度 | 7.1 / 10（部分测评时注明） |
+| IELTS 风格部分估计 | ≈ 5.5 / 9（不含发音；仅在证据支持时显示） |
 
 Show no more than three weakest criteria. State the actual mode and any missing audio/factual evidence when it changes interpretation. Do not default to all per-question errors, all seven explanations, every evidence note, full IELTS descriptors, or a long teacher-style review. End with only:
 
@@ -108,4 +114,4 @@ Append a compact completed-result snapshot to `previous_runs` before starting a 
 
 ## Score names and limitations
 
-Use only `Agency Readiness`, `Sponsor Readiness`, `Host Readiness`, `Visa Interview Communication Readiness`, or profile-specific variants with a known job name. Generic profiles report readiness only. Never say “will pass”, “will fail”, “80% chance”, Visa Pass Score, Visa Success Probability, Sponsor pass probability, or Host hiring probability. These are internal readiness estimates, not official assessments from a government, agency, Sponsor, Host, or IELTS.
+Use only `Agency Readiness`, `Sponsor Readiness`, `Host Readiness`, `Visa Interview Communication Readiness`, or profile-specific variants with a known job name; student-facing labels are 机构面试准备度、Sponsor 面试准备度、雇主面试准备度（岗位）、签证面试准备度. Generic profiles report readiness only. Never say “will pass”, “will fail”, “80% chance”, Visa Pass Score, Visa Success Probability, Sponsor pass probability, or Host hiring probability. These are internal readiness estimates, not official assessments from a government, agency, Sponsor, Host, or IELTS.

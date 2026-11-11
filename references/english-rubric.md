@@ -125,6 +125,15 @@ Do not award `high` from one memorized introduction. A complete target readiness
 | `transcript` | Comprehension/relevance, vocabulary, grammar, task content, and limited coherence from transcript text. | Pronunciation, intelligibility, pauses, pace, rhythm, stress, or speech continuity. Set C5 unavailable. |
 | `text` | Comprehension/relevance, vocabulary, grammar, answer structure, and task content. | Speaking fluency, pronunciation, pauses, real-time spoken interaction, or any typing-speed proxy. Set C5 and spoken C6 unavailable; do not describe the result as a full speaking assessment. |
 
+### Speech-to-text transcripts
+
+Most users speak through phone or desktop voice input, so the host receives speech-recognition text. Treat input as `transcript` when it shows recognition traces (missing or odd punctuation such as `,.`, homophone or spelled-out terms such as `j one` for J-1, fillers such as `like`, `um`, `呃`, repeated words, or abandoned starts); when the mode is unclear, default to `transcript` rather than asking.
+
+- Recognition noise is not the user's error: odd punctuation, casing, split or merged words, and plausible mishearings of the intended term (`j one` → J-1) do not lower Grammar or Vocabulary. When a word is ambiguous, skip it as evidence instead of guessing.
+- Fillers, repeated words, restarts, and answers that stop after one or two sentences are limited C2 evidence in transcripts; record them as transcript-based coherence and fluency observations, never as pause length, pace, or pronunciation.
+- Chinese addressed to the host (instructions, comments, “我是说…”) is not part of the answer. Chinese words used inside an English answer count as Vocabulary gaps.
+- Real language problems remain evidence: a wrong program name (`summer working holiday traveling program` for Summer Work Travel), an inaccurate status claim, or a tense error that recognition could not have produced.
+
 For transcript/text, C2 may be recorded only as a clearly qualified coherence observation if useful; spoken fluency remains unavailable. In text mode, a written clarification exchange may be described but is not evidence of spoken C6 Interaction & Repair. Do not fill unavailable criteria with a neutral or estimated score.
 
 ## IELTS-style layer
