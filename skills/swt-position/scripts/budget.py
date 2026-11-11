@@ -965,6 +965,49 @@ def _dimension_analysis(item: dict[str, Any]) -> dict[str, str]:
     }
 
 
+def _leader(offers: list[dict[str, Any]], values: list[Decimal], *, higher: bool, verb: str, unit: str) -> str:
+    if len(set(values)) == 1:
+        return ""
+    pairs = sorted(zip(values, (item["label"] for item in offers)), key=lambda pair: pair[0], reverse=higher)
+    (best, label), (worst, other) = pairs[0], pairs[-1]
+    gap = abs(best - worst)
+    shown = _cents_usd(gap) if unit == "$" else f"{_short_decimal(gap)} {unit}"
+    if len(offers) == 2:
+        return f"{label} {verb} {shown}"
+    return f"{label} 最优，比 {other} {verb} {shown}"
+
+
+def _comparison_notes(offers: list[dict[str, Any]]) -> dict[str, str]:
+    def weekly(item: dict[str, Any], *keys: str) -> Decimal:
+        return sum(Decimal(item["weekly_costs_usd"][key]) for key in keys)
+
+    def tax_rate(item: dict[str, Any]) -> Decimal:
+        gross = Decimal(item["gross_income_usd"])
+        return (Decimal(item["estimated_taxes"]["total_usd"]) / gross * 100).quantize(Decimal("1")) if gross else ZERO
+
+    income: list[str] = []
+    for text in (
+        _leader(offers, [Decimal(item["wage_usd_per_hour"]) for item in offers], higher=True, verb="时薪高", unit="$"),
+        _leader(offers, [Decimal(item["hours_per_week"]) for item in offers], higher=True, verb="平均工时多", unit="小时"),
+        _leader(offers, [tax_rate(item) for item in offers], higher=False, verb="税费低约", unit="个百分点"),
+    ):
+        owner = next((item["label"] for item in offers if text.startswith(item["label"] + " ")), None)
+        if income and owner and income[-1].startswith(owner + " ") and "最优" not in text:
+            income[-1] += "，" + text[len(owner) + 1:]
+        elif text:
+            income.append(text)
+    ssn_first = [item["label"] for item in offers if item.get("details", {}).get("ssn_required_before_work")]
+    return {
+        "收入": "；".join(x for x in income if x),
+        "住宿": _leader(offers, [weekly(item, "rent_usd_per_week") for item in offers], higher=False, verb="每周便宜", unit="$"),
+        "生活成本": _leader(offers, [weekly(item, "food_usd_per_week", "other_weekly_usd") for item in offers],
+                        higher=False, verb="每周少花", unit="$"),
+        "交通": _leader(offers, [weekly(item, "transport_usd_per_week") for item in offers], higher=False, verb="每周少花", unit="$"),
+        "二工": "二工收入不计入回本",
+        "落地便利": f"{'、'.join(ssn_first)} 需先有 SSN 才能开工" if ssn_first and len(ssn_first) < len(offers) else "",
+    }
+
+
 def _special_notes(item: dict[str, Any]) -> list[tuple[str, str]]:
     details = item.get("details", {})
     sources = item["cost_sources"]
@@ -1058,7 +1101,15 @@ def _conclusion(result: dict[str, Any]) -> str:
         return f"**按在美净剩，{best['label']} 最高（约 {_whole_usd(best['estimated_us_net_usd'])}）；缺少汇率，最终结余暂无法计算。**"
     others = "，".join(f"{item['label']} 约 {_whole_usd(item['final_project_surplus_usd'])}"
                       for item in offers if item is not best)
-    text = f"仅从收益看，{best['label']} 更高：{best['label']} 最终预计结余约 {_whole_usd(best['final_project_surplus_usd'])}，{others}"
+    text = f"仅从收益看，{best['label']} 更高"
+    if len(offers) == 2:
+        other = next(item for item in offers if item is not best)
+        gap = _weekly_ledger(best)["net"] - _weekly_ledger(other)["net"]
+        if gap > ZERO:
+            text += f"，每周多剩约 {_whole_usd(gap)}"
+    text += f"：最终预计结余约 {_whole_usd(best['final_project_surplus_usd'])}，{others}"
+    if all(Decimal(item["final_project_surplus_usd"]) < ZERO for item in offers):
+        text += f"；{'两' if len(offers) == 2 else str(len(offers))}份岗位按当前工时都无法回本"
     analysis = result.get("offer_return_analysis", {})
     labels = {item["id"]: item["label"] for item in offers}
     crossings = [item for item in analysis.get("intersections", []) if item.get("meaningful_for_optimum")]
@@ -1113,11 +1164,11 @@ def format_position_overview(result: dict[str, Any]) -> str:
         lines.extend(["| 要素 | " + " | ".join(item["label"] for item in offers) + " | 分析 |",
                       "|---|" + "---|" * (len(offers) + 1)])
         tables = [dimensions(item) for item in offers]
+        comparison = _comparison_notes(offers)
         for index in range(6):
-            notes = [table[index][2] for table in tables]
-            analysis = notes[0] if len(set(notes)) == 1 else "；".join(
-                f"{item['label']}：{note}" for item, note in zip(offers, notes) if note)
-            lines.append(f"| {tables[0][index][0]} | " + " | ".join(table[index][1] for table in tables) + f" | {analysis} |")
+            name = tables[0][index][0]
+            cells = [data if name == "二工" or not note else f"{data}；{note}" for _, data, note in (table[index] for table in tables)]
+            lines.append(f"| {name} | " + " | ".join(cells) + f" | {comparison[name]} |")
     else:
         lines.extend(["| 要素 | Offer 数据 | 分析 |", "|---|---|---|"])
         lines.extend(f"| {name} | {data} | {note} |" for name, data, note in dimensions(offers[0]))
@@ -1170,11 +1221,22 @@ def format_position_overview(result: dict[str, Any]) -> str:
         lines.append(_payback_sentence(result, item))
         lines.extend(_fx_line(result))
 
-    notes = [(item["label"], topic, detail) for item in offers for topic, detail in _special_notes(item)]
-    if notes:
+    per_offer = [_special_notes(item) for item in offers]
+    if any(per_offer):
         section += 1
         lines.extend(["", f"## {section}. 特殊注意事项", ""])
-        lines.extend(f"- **{topic}**：" + (f"{label}，" if many else "") + detail for label, topic, detail in notes)
+        if many:
+            shared = [note for note in per_offer[0] if all(note in notes for notes in per_offer[1:])]
+            count = "两" if len(offers) == 2 else str(len(offers))
+            if shared:
+                lines.extend([f"**{count}份岗位共同**", "", *(f"- **{topic}**：{detail}" for topic, detail in shared), ""])
+            for item, notes in zip(offers, per_offer):
+                own = [note for note in notes if note not in shared]
+                if own:
+                    lines.extend([f"**{item['label']}**", "", *(f"- **{topic}**：{detail}" for topic, detail in own), ""])
+            lines.pop()
+        else:
+            lines.extend(f"- **{topic}**：{detail}" for topic, detail in per_offer[0])
 
     section += 1
     options = (["A. 修改工时、餐费或项目费，重新测算", "B. 加入二工，测算回本所需工时",

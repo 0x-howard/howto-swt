@@ -223,6 +223,26 @@ class PositionOverviewTests(unittest.TestCase):
         self.assertIn("Meredith 的参与者计数", notes)
         self.assertNotIn("工时不保证", answer)
 
+    def test_two_offers_compare_in_analysis_and_group_shared_notes(self):
+        shared = {"tips": True, "second_job_allowed": True, "sponsor": "CHI"}
+        answer = format_position_overview(calculate_position_overview({"fx_cny_per_usd": 6.8, "offers": [
+            {"label": "甲", "state": "NH", "wage_usd_per_hour": 14.5, "hours_per_week": 32, "rent_usd_per_week": 100,
+             "details": {**shared, "ssn_required_before_work": True}},
+            {"label": "乙", "state": "SC", "wage_usd_per_hour": 11, "hours_per_week": 32, "rent_usd_per_week": 150,
+             "details": {**shared, "ssn_required_before_work": False}},
+        ]}))
+        first = answer.splitlines()[0]
+        self.assertIn("甲 更高，每周多剩约", first)
+        self.assertIn("两份岗位按当前工时都无法回本", first)
+        self.assertIn("| 甲 时薪高 $3.50，税费低约 5 个百分点 |", answer)
+        self.assertIn("| 甲 每周便宜 $50 |", answer)
+        self.assertIn("| 甲 需先有 SSN 才能开工 |", answer)
+        notes = answer.split("特殊注意事项", 1)[1]
+        self.assertIn("**两份岗位共同**", notes)
+        self.assertEqual(notes.count("**小费**"), 1)
+        self.assertEqual(notes.count("**二工审批**"), 1)
+        self.assertIn("**甲**\n\n- **SSN 与开工**", notes)
+
     def test_offer_details_are_validated(self):
         base = {"wage_usd_per_hour": 14, "hours_per_week": 32}
         for bad in ({"unknown": True}, {"tips": "yes"}, {"meals": "sometimes"}, {"multiple_locations": True}):

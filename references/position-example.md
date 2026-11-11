@@ -67,16 +67,16 @@ D. 判断是否值得选择
 {"mode":"position_overview","fx_cny_per_usd":7.1,"fx_source":"示例参考报价","fx_quote_date":"2026-10-30","project_cost_cny":20000,"offers":[{"id":"a","label":"示例 A","state":"TX","wage_usd_per_hour":16,"hours_per_week":36,"min_hours":32,"max_hours":40,"work_weeks":13,"rent_usd_per_week":120,"food_usd_per_week":80,"transport_usd_per_week":20,"other_weekly_usd":15,"tax":{"federal_income_tax_percent":10,"state_income_tax_percent":0,"fica_percent":0}},{"id":"b","label":"示例 B","state":"TX","wage_usd_per_hour":14,"hours_per_week":40,"hours_guaranteed":true,"work_weeks":13,"rent_usd_per_week":100,"food_usd_per_week":80,"transport_usd_per_week":0,"other_weekly_usd":15,"tax":{"federal_income_tax_percent":10,"state_income_tax_percent":0,"fica_percent":0},"cautions":{"岗位条款":"制服费用待确认"}}]}
 ```
 
-**仅从收益看，示例 B 更高：示例 B 最终预计结余约 $1,200，示例 A 约 $867；示例 A 每周平均工时达到 37.8 小时以上，才会超过 示例 B。**
+**仅从收益看，示例 B 更高，每周多剩约 $26：最终预计结余约 $1,200，示例 A 约 $867；示例 A 每周平均工时达到 37.8 小时以上，才会超过 示例 B。**
 
 ## 1. 六维分析
 
 | 要素 | 示例 A | 示例 B | 分析 |
 |---|---|---|---|
-| 收入 | $16/h；32–40h/周；约 13 周 | $14/h；保证 40h/周；约 13 周 | 无州所得税，约 10% 的联邦税费 |
-| 住宿 | $120/周 | $100/周 |  |
-| 生活成本 | 餐饮 $80/周；其他 $15/周 | 餐饮 $80/周；其他 $15/周 | 州销售税 6.25% |
-| 交通 | $20/周 | $0/周 | 公共交通较弱 |
+| 收入 | $16/h；32–40h/周；约 13 周；无州所得税，约 10% 的联邦税费 | $14/h；保证 40h/周；约 13 周；无州所得税，约 10% 的联邦税费 | 示例 A 时薪高 $2；示例 B 平均工时多 4 小时 |
+| 住宿 | $120/周 | $100/周 | 示例 B 每周便宜 $20 |
+| 生活成本 | 餐饮 $80/周；其他 $15/周；州销售税 6.25% | 餐饮 $80/周；其他 $15/周；州销售税 6.25% |  |
+| 交通 | $20/周；公共交通较弱 | $0/周；公共交通较弱 | 示例 B 每周少花 $20 |
 | 二工 | 不计入收益（估） | 不计入收益（估） | 二工收入不计入回本 |
 | 落地便利 | 办理时间待核验（估） | 办理时间待核验（估） |  |
 
@@ -113,9 +113,13 @@ xychart-beta
 
 ## 3. 特殊注意事项
 
-- **SWT 地点背景**：示例 A，BridgeUSA SWT 地图上，TX 共 1,653（全国第 21 位）。计数不等同于年度去重人数。
-- **SWT 地点背景**：示例 B，BridgeUSA SWT 地图上，TX 共 1,653（全国第 21 位）。计数不等同于年度去重人数。
-- **岗位条款**：示例 B，制服费用待确认
+**两份岗位共同**
+
+- **SWT 地点背景**：BridgeUSA SWT 地图上，TX 共 1,653（全国第 21 位）。计数不等同于年度去重人数。
+
+**示例 B**
+
+- **岗位条款**：制服费用待确认
 
 ## 4. 后续选项
 
