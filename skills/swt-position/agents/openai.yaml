@@ -1,4 +1,4 @@
 interface:
-  display_name: "小How · 岗位与 Offer"
+  display_name: "swt-position（岗位分析）"
   short_description: "看 Offer、比较岗位，算工资、房租、税和多久回本"
   default_prompt: "使用 $swt-position，帮我看看这份 Offer 值不值得去，能剩多少钱。"
