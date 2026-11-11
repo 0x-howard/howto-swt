@@ -217,13 +217,17 @@ def _check_budget_and_structure(case, failures):
             _record_failure(failures, "P0", case, expected, actual, "Offer without a location did not retain the no-location fallback.", "presentation")
 
     expected_sections = case.get("expected_sections", [])
-    section_titles = ["## 1. 核心数据", "## 2. 回本测算", "## 3. 岗位收益对比", "## 4. 注意事项", "## 5. 继续看什么？"]
+    single = len(result["offers"]) == 1
+    section_titles = (["**岗位概况**", "**回本测算**", "**后续选项**"] if single
+                      else ["**岗位对比**", "**岗位收益对比**", "**后续选项**"])
     has_full_structure = all(title in rendered for title in section_titles)
-    has_six_dimensions = all(f"| {name} |" in rendered.split("## 2. 回本测算", 1)[0] for name in ("收入", "住宿", "生活成本", "交通", "二工", "落地便利"))
+    head = rendered.split(section_titles[1], 1)[0]
+    rows = ("工资", "住宿", "餐饮", "通勤", "落地") if single else ("时薪", "工时", "工期", "住宿", "餐饮", "通勤")
+    has_six_dimensions = all(f"| {name} |" in head for name in rows)
     table_count = sum(1 for line in rendered.splitlines() if line.startswith("|---"))
-    structure_ok = has_full_structure and has_six_dimensions and table_count == 4
-    if any(section.startswith("## ") for section in expected_sections) and not structure_ok:
-        _record_failure(failures, "P3", case, "five overview sections, six dimensions, four tables", {"sections": has_full_structure, "six_dimensions": has_six_dimensions, "table_count": table_count}, "Complete Offer response structure was not preserved.", "presentation")
+    structure_ok = has_full_structure and has_six_dimensions and table_count == (2 if single else 1)
+    if any(section.startswith("**") for section in expected_sections) and not structure_ok:
+        _record_failure(failures, "P3", case, "overview sections, dimension rows, expected table count", {"sections": has_full_structure, "six_dimensions": has_six_dimensions, "table_count": table_count}, "Complete Offer response structure was not preserved.", "presentation")
 
     # The budget renderer must not consume Market participant counts as financial inputs or add a seventh dimension.
     serialized_budget = json.dumps(result, ensure_ascii=False)
@@ -267,7 +271,7 @@ def _evaluate_case(case):
     no_overclaim = policy_ok and budget_boundary_ok and not forbidden_found
     no_redundancy = True
     if budget_actual.get("rendered"):
-        no_redundancy = budget_actual["rendered"].count("## 1. 核心数据") == 1 and budget_actual["rendered"].count("## 2. 回本测算") == 1
+        no_redundancy = budget_actual["rendered"].count(budget_actual["sections"][0]) == 1 and budget_actual["rendered"].count("**后续选项**") == 1
     scores = {
         "route_correct": "PASS" if route_ok else "FAIL",
         "location_correct": "PASS" if location_ok else "FAIL",

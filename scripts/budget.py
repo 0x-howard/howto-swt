@@ -650,6 +650,8 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
         "break_even_work_weeks": _money(break_even),
         "can_break_even_in_period": final >= ZERO if final is not None else None,
         "fx_cny_per_usd": str(fx) if fx is not None else None, "cautions": cautions,
+        "start_date": raw.get("start_date") or raw.get("offer_start_date"),
+        "end_date": raw.get("end_date") or raw.get("offer_end_date"),
     }
 
 
@@ -701,6 +703,10 @@ def _short_decimal(value: str | Decimal) -> str:
     return format(rounded.normalize(), "f")
 
 
+def _hour_display(value: str | Decimal) -> str:
+    return f"{Decimal(value).quantize(Decimal('.1'), rounding=ROUND_HALF_UP).normalize():f}"
+
+
 def _format_return_analysis(analysis: dict[str, Any], labels: dict[str, str]) -> list[str]:
     """Compact comparison for 2–3 offers; chart rendering is the host's choice."""
     lines = ["## 4. 岗位收益对比", ""]
@@ -729,18 +735,18 @@ def _format_return_analysis(analysis: dict[str, Any], labels: dict[str, str]) ->
     if meaningful:
         lines.append("")
         lines.extend(
-            f"- 每周平均工时约 {_short_decimal(item['hours_per_week'])} 小时时，"
+            f"- 每周平均工时约 {_hour_display(item['hours_per_week'])} 小时时，"
             f"{labels[item['offers'][0]]} 和 {labels[item['offers'][1]]} 结余持平。"
             for item in meaningful
         )
     elif analysis["optimal_regions"]:
         region = analysis["optimal_regions"][0]
         winner = " / ".join(labels[item] for item in region["best_offer_ids"])
-        lines.extend(["", f"每周 {_short_decimal(region['min_hours'])}–{_short_decimal(region['max_hours'])} 小时之间，{winner} 都更划算。"])
+        lines.extend(["", f"每周 {_hour_display(region['min_hours'])}–{_hour_display(region['max_hours'])} 小时之间，{winner} 都更划算。"])
     if analysis["optimal_regions"] and meaningful:
         for region in analysis["optimal_regions"]:
             winner = " / ".join(labels[item] for item in region["best_offer_ids"])
-            lines.append(f"- {_short_decimal(region['min_hours'])}–{_short_decimal(region['max_hours'])} 小时/周：{winner} 更划算。")
+            lines.append(f"- {_hour_display(region['min_hours'])}–{_hour_display(region['max_hours'])} 小时/周：{winner} 更划算。")
     return lines
 
 
@@ -753,183 +759,216 @@ def _hours_text(analysis: dict[str, Any], offer_id: str) -> str:
     return f"平均 {_short_decimal(hours['expected'])} 小时"
 
 
-def format_position_overview(result: dict[str, Any]) -> str:
-    """Student-facing job comparison: six dimensions, two finance tables and optional ROI."""
+def _whole_usd(value: str | Decimal, *, estimate: bool = False) -> str:
+    amount = Decimal(value).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    text = f"{'−' if amount < ZERO else ''}${abs(amount):,.0f}"
+    return text + ("（估）" if estimate else "")
+
+
+def _cents_usd(value: str | Decimal) -> str:
+    amount = Decimal(value).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
+    text = f"${abs(amount):,.2f}"
+    return ("−" if amount < ZERO else "") + (text[:-3] if text.endswith(".00") else text)
+
+
+def _whole_cny(value: str | Decimal) -> str:
+    amount = Decimal(value).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    return f"{'−' if amount < ZERO else ''}¥{abs(amount):,.0f}"
+
+
+def _estimated(item: dict[str, Any], key: str) -> bool:
+    return item["cost_sources"].get(key) not in {"provided", "provided_rate", "provided_weeks", "user_dates", "offer_dates"}
+
+
+def _hours_cell(item: dict[str, Any]) -> str:
+    hours = item["hours_range"]
+    if hours["status"] == "guaranteed":
+        return f"{_short_decimal(hours['expected'])}h/周，保证"
+    if hours.get("min") is not None and hours["min"] != hours["max"]:
+        return f"{_short_decimal(hours['min'])}–{_short_decimal(hours['max'])}h/周，不保证"
+    return f"平均 {_short_decimal(hours['expected'])}h/周，不保证"
+
+
+def _period_cell(item: dict[str, Any]) -> str:
+    weeks = Decimal(item["work_weeks"]).quantize(Decimal(".1"), rounding=ROUND_HALF_UP).normalize()
+    if item.get("start_date") and item.get("end_date"):
+        start, end = date.fromisoformat(item["start_date"]), date.fromisoformat(item["end_date"])
+        return f"{start.month}/{start.day}–{end.month}/{end.day}，约 {weeks:f} 周"
+    return f"约 {weeks:f} 周" + ("（估）" if _estimated(item, "work_weeks") else "")
+
+
+def _final_at_hours(analysis: dict[str, Any], item: dict[str, Any], hours: Decimal) -> Decimal | None:
+    function = next((f for f in analysis.get("functions", []) if f["id"] == item["id"]), None)
+    if function is None or function.get("season_slope_usd_per_hour") is None or item["project_cost_usd"] is None:
+        return None
+    season = Decimal(function["season_slope_usd_per_hour"]) * hours + Decimal(function["season_intercept_usd"])
+    return season - Decimal(item["project_cost_usd"])
+
+
+def _break_even_hours(analysis: dict[str, Any], item: dict[str, Any]) -> Decimal | None:
+    function = next((f for f in analysis.get("functions", []) if f["id"] == item["id"]), None)
+    if function is None or function.get("season_slope_usd_per_hour") is None or item["project_cost_usd"] is None:
+        return None
+    slope = Decimal(function["season_slope_usd_per_hour"])
+    if slope <= ZERO:
+        return None
+    return (Decimal(item["project_cost_usd"]) - Decimal(function["season_intercept_usd"])) / slope
+
+
+def _key_factors(result: dict[str, Any]) -> list[str]:
+    analysis = result.get("offer_return_analysis", {})
+    offers = result["offers"]
+    many = len(offers) > 1
+    factors: list[str] = []
+    for item in offers:
+        hours = item["hours_range"]
+        prefix = f"{item['label']} " if many else ""
+        if hours["status"] != "guaranteed" and hours.get("min") is not None and hours["min"] != hours["max"]:
+            low = _final_at_hours(analysis, item, Decimal(hours["min"]))
+            high = _final_at_hours(analysis, item, Decimal(hours["max"]))
+            if low is not None and high is not None:
+                factors.append(f"**{prefix}工时不保证**：{_short_decimal(hours['min'])} 小时约 {_whole_usd(low)}，"
+                               f"{_short_decimal(hours['max'])} 小时约 {_whole_usd(high)}。")
+    if not many and offers and offers[0]["final_project_surplus_usd"] is not None and not offers[0]["can_break_even_in_period"]:
+        needed = _break_even_hours(analysis, offers[0])
+        if needed is not None and needed <= Decimal("80"):
+            factors.append(f"**回本所需工时**：每周平均约 {needed.quantize(Decimal('1'), rounding=ROUND_CEILING)} 小时。")
+    estimated_project = [item for item in offers if item["cost_sources"]["project_cost"] == "global_estimate"]
+    if estimated_project and estimated_project[0]["project_cost_cny"] is not None:
+        factors.append(f"**项目费**：按 ¥{Decimal(estimated_project[0]['project_cost_cny']):,.0f} 估算，提供实际金额后可重新测算。")
+    if many:
+        factors.append("**二工**：均需经 Sponsor 批准，不计入上述结余。")
+    else:
+        factors.append("**二工**：需经 Sponsor 批准；一工排班优先，不计入上述结余。")
+    return factors[:3]
+
+
+def _conclusion(result: dict[str, Any]) -> str:
     offers = result["offers"]
     best = next(item for item in offers if item["id"] == result["comparison_order"][0])
-    many = len(offers) > 1
-
-    def money(value: str | Decimal) -> str:
-        return _usd_display(value)
-
-    def exact(value: str | Decimal) -> str:
-        amount = Decimal(value).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
-        return f"{'-' if amount < ZERO else ''}${abs(amount):,.2f}"
-
-    def money_week(item: dict[str, Any], key: str) -> str:
-        return f"{exact(item['weekly_costs_usd'][key])}/周"
-
-    def format_table(headers: tuple[str, str, str], rows: list[tuple[str, str, str]]) -> list[str]:
-        lines = ["| " + " | ".join(headers) + " |", "|---|---|---|"]
-        for row in rows:
-            lines.append("| " + " | ".join(str(value).replace("|", "／").replace("\n", "；") for value in row) + " |")
-        return lines
-
-    def dimension(item: dict[str, Any]) -> list[tuple[str, str, str]]:
-        sources = item["cost_sources"]
-        weeks = _short_decimal(item["work_weeks"])
-        hours = _short_decimal(item["hours_per_week"])
-        wage = exact(item["wage_usd_per_hour"])
-        guaranteed = item["hours_range"]["status"] == "guaranteed"
-        hours_label = f"保证 {hours}h/周" if guaranteed else f"平均 {hours}h/周"
-        income_comment = ("工时按 Offer 写明的每周保证工时计算。" if guaranteed
-                          else "收入受实际工时影响；平均工时不等于每周保证。")
-        if sources["work_weeks"] == "global_estimate":
-            income_comment += "工作周数暂按常见安排计算。"
-        rent_comment = ("住宿费用按岗位提供的金额计算。" if sources["rent_usd_per_week"] == "provided"
-                        else "尚无准确周租，先按可用的地区或一般费用估算。")
-        living_comment = ("餐费和其他开销按已提供的金额计算。"
-                          if sources["food_usd_per_week"] == "provided" and sources["other_weekly_usd"] == "provided"
-                          else "有些生活费用尚未确定，目前先用参考金额计算。")
-        transport_comment = ("通勤支出按已提供的金额计算；交通方式仍以实际安排为准。"
-                             if sources["transport_usd_per_week"] == "provided"
-                             else "出行费用目前只是参考，需结合住房和工作地点判断。")
-        rows = [
-            ("收入", f"{wage}/h；{hours_label}；按 {weeks} 周计算", income_comment),
-            ("住宿", money_week(item, "rent_usd_per_week"), rent_comment),
-            ("生活成本", f"餐费 {money_week(item, 'food_usd_per_week')}；其他 {money_week(item, 'other_weekly_usd')}", living_comment),
-            ("交通", money_week(item, "transport_usd_per_week"), transport_comment),
-            ("二工", item["second_job"], "二工收入暂不算进这份岗位的收益。"),
-            ("落地便利", item["landing"], "重点关注入境后的到岗、住宿和日常生活安排。"),
-        ]
-        for topic, detail in item["cautions"].items():
-            if not detail or not overlaps_dimension(topic):
-                continue
-            if any(word in topic for word in ("工资", "时薪", "收入", "工时", "加班", "税费")):
-                index = 0
-            elif any(word in topic for word in ("住宿", "房租")):
-                index = 1
-            elif any(word in topic for word in ("餐费", "伙食", "生活成本")):
-                index = 2
-            elif any(word in topic for word in ("交通", "接机")):
-                index = 3
-            elif "二工" in topic:
-                index = 4
-            else:
-                index = 5
-            name, offer_data, explanation = rows[index]
-            rows[index] = (name, offer_data, f"{explanation} {detail}")
-        return rows
-
-    def overlaps_dimension(topic: str) -> bool:
-        return any(word in topic for word in (
-            "工资", "时薪", "收入", "工时", "加班", "税费", "住宿", "房租", "餐费", "伙食", "生活成本", "交通", "接机", "二工", "落地", "地点", "SSN"
-        ))
-
-    def special_notes(item: dict[str, Any]) -> list[str]:
-        return [f"{topic}：{detail}" for topic, detail in item["cautions"].items()
-                if detail and not overlaps_dimension(topic)]
-
+    if len(offers) == 1:
+        item = best
+        basis = (f"按 {_cents_usd(item['wage_usd_per_hour'])}/h、"
+                 f"{'每周保证' if item['hours_range']['status'] == 'guaranteed' else '平均每周'} "
+                 f"{_short_decimal(item['hours_per_week'])} 小时计算，在美预计结余约 {_whole_usd(item['estimated_us_net_usd'])}")
+        if item["final_project_surplus_usd"] is None:
+            return f"**{basis}；缺少汇率，最终结余暂无法计算。**"
+        final = Decimal(item["final_project_surplus_usd"])
+        cny = f"（约 {_whole_cny(final * Decimal(item['fx_cny_per_usd']))}）" if item["fx_cny_per_usd"] is not None else ""
+        project = f"¥{Decimal(item['project_cost_cny']):,.0f}" if item["project_cost_cny"] is not None else _whole_usd(item["project_cost_usd"])
+        head = "本岗位预计可以回本" if final >= ZERO else "单靠本岗位无法回本"
+        return f"**{head}：{basis}，扣除项目费 {project} 后，最终预计结余约 {_whole_usd(final)}{cny}。**"
     if not result["comparison_complete"]:
-        conclusion = "已计算美元收入和生活开销；缺少汇率，人民币项目费用暂不能换算，最终收益和回本暂无法判断。"
-    elif many:
-        if all(not item["can_break_even_in_period"] for item in offers):
-            conclusion = f"按目前的工资、工时与费用计算，{best['label']}预计亏损最少，最终结余 {money(best['final_project_surplus_usd'])}；这些岗位都还不能覆盖项目投入。"
+        return f"**按在美预计结余，{best['label']} 最高（约 {_whole_usd(best['estimated_us_net_usd'])}）；缺少汇率，最终结余暂无法计算。**"
+    others = "，".join(f"{item['label']} 约 {_whole_usd(item['final_project_surplus_usd'])}"
+                      for item in offers if item is not best)
+    text = f"仅从收益看，{best['label']} 更高：{best['label']} 最终预计结余约 {_whole_usd(best['final_project_surplus_usd'])}，{others}"
+    analysis = result.get("offer_return_analysis", {})
+    labels = {item["id"]: item["label"] for item in offers}
+    crossings = [item for item in analysis.get("intersections", []) if item.get("meaningful_for_optimum")]
+    regions = analysis.get("optimal_regions", [])
+    if len(offers) == 2 and len(crossings) == 1 and regions:
+        later = regions[-1]["best_offer_ids"]
+        if len(later) == 1 and later[0] != best["id"]:
+            text += (f"；{labels[later[0]]} 每周平均工时达到 "
+                     f"{_hour_display(crossings[0]['hours_per_week'])} 小时以上，才会超过 {best['label']}")
+    return f"**{text}。**"
+
+
+def _fx_line(result: dict[str, Any]) -> list[str]:
+    fx = result["offers"][0]["fx_cny_per_usd"]
+    if fx is None:
+        return []
+    if result.get("fx_source"):
+        quoted = result.get("fx_quote_date")
+        day = f"{date.fromisoformat(quoted).month} 月 {date.fromisoformat(quoted).day} 日" if quoted else ""
+        source = result["fx_source"]
+        gap = " " if day and source[:1].isascii() else ""
+        return ["", f"汇率 {fx}：{day}{gap}{source}，向上取一位小数。"]
+    return ["", f"汇率 {fx}：用户提供。"]
+
+
+def format_position_overview(result: dict[str, Any]) -> str:
+    """Student-facing answer: conclusion, key factors, overview table, payback table, chart, options."""
+    offers = result["offers"]
+    many = len(offers) > 1
+    lines = [_conclusion(result), ""]
+    factors = _key_factors(result)
+    if factors:
+        lines.append("影响选择的关键因素：" if many else "影响回本的关键因素：")
+        lines.extend(f"{index}. {factor}" for index, factor in enumerate(factors, 1))
+        lines.append("")
+
+    def caution_for(item: dict[str, Any], words: tuple[str, ...]) -> str:
+        return "；".join(detail for topic, detail in item["cautions"].items()
+                        if detail and any(word in topic for word in words))
+
+    def cost_cell(item: dict[str, Any], key: str) -> str:
+        return f"{_cents_usd(item['weekly_costs_usd'][key])}/周" + ("（估）" if _estimated(item, key) else "")
+
+    if many:
+        lines.extend(["**岗位对比**", "",
+                      "| 要素 | " + " | ".join(item["label"] for item in offers) + " |",
+                      "|---|" + "---|" * len(offers)])
+        rows = [
+            ("时薪", [_cents_usd(item["wage_usd_per_hour"]) for item in offers]),
+            ("工时", [_hours_cell(item) for item in offers]),
+            ("工期", [_period_cell(item) for item in offers]),
+            ("住宿", [cost_cell(item, "rent_usd_per_week") for item in offers]),
+            ("餐饮", [cost_cell(item, "food_usd_per_week") for item in offers]),
+            ("通勤", [cost_cell(item, "transport_usd_per_week") for item in offers]),
+            ("在美预计结余", [_whole_usd(item["estimated_us_net_usd"]) for item in offers]),
+        ]
+        if result["comparison_complete"]:
+            rows.append(("**最终预计结余**", [f"**{_whole_usd(item['final_project_surplus_usd'])}**" for item in offers]))
+        lines.extend(f"| {name} | " + " | ".join(values) + " |" for name, values in rows)
+        lines.extend(_fx_line(result))
+        if 2 <= len(offers) <= 3:
+            labels = {item["id"]: item["label"] for item in offers}
+            lines.extend(["", "**岗位收益对比**", "", *_format_return_analysis(result["offer_return_analysis"], labels)[2:]])
         else:
-            conclusion = f"按目前的工资、工时与费用计算，{best['label']}预计最终剩余最多（{money(best['final_project_surplus_usd'])}）；还要结合你的底线和偏好作选择。"
+            lines.extend(["", "如需看收益对比图，可再挑 2–3 份深入比较。"])
+        notes = [f"{item['label']}：{topic}：{detail}" for item in offers
+                 for topic, detail in item["cautions"].items() if detail]
+        if notes:
+            lines.extend(["", "**注意事项**", "", *(f"- {note}" for note in notes)])
+        options = ["A. 修改工时、餐费或项目费，重新测算", "B. 加入二工，测算回本所需工时",
+                   "C. 查看各地住宿、工作内容与当地生活", "D. 判断选择哪个岗位"]
     else:
-        verdict = "预计可以覆盖项目投入" if best["can_break_even_in_period"] else "目前预计不能覆盖项目投入"
-        conclusion = f"{best['label']}：按目前工时和费用计算，{verdict}，预计最终结余 {money(best['final_project_surplus_usd'])}；是否适合你，还要看工作及生活条件。"
-
-    lines = [conclusion, "", "## 1. 核心数据与分析", ""]
-    if many:
-        combined = []
-        for position in range(6):
-            entries = [(item, dimension(item)[position]) for item in offers]
-            combined.append((
-                entries[0][1][0],
-                "；".join(f"{item['label']}：{entry[1]}" for item, entry in entries),
-                "；".join(f"{item['label']}：{entry[2]}" for item, entry in entries),
-            ))
-        lines.extend(format_table(("要素", "Offer 数据", "分析"), combined))
-    else:
-        lines.extend(format_table(("要素", "Offer 数据", "分析"), dimension(best)))
-
-    def finance_tables(item: dict[str, Any]) -> list[str]:
+        item = offers[0]
+        hours_note = "工时保证" if item["hours_range"]["status"] == "guaranteed" else "工时不保证"
+        lines.extend(["**岗位概况**", "", "| 要素 | 内容 | 注意事项 |", "|---|---|---|"])
+        rows = [
+            ("工资", f"{_cents_usd(item['wage_usd_per_hour'])}/h，{_hours_cell(item).split('，')[0]}，{_period_cell(item)}",
+             "；".join(x for x in (hours_note, caution_for(item, ("工资", "时薪", "收入", "工时", "小费", "加班"))) if x)),
+            ("住宿", cost_cell(item, "rent_usd_per_week"), caution_for(item, ("住宿", "房租", "押金"))),
+            ("餐饮", cost_cell(item, "food_usd_per_week"), caution_for(item, ("餐", "伙食"))),
+            ("通勤", cost_cell(item, "transport_usd_per_week"), caution_for(item, ("交通", "通勤", "接机"))),
+            ("落地", item["landing"], caution_for(item, ("落地", "SSN", "培训", "到岗"))),
+        ]
+        lines.extend(f"| {name} | {content} | {note} |" for name, content, note in rows)
+        other_notes = [f"{topic}：{detail}" for topic, detail in item["cautions"].items() if detail and not any(
+            word in topic for word in ("工资", "时薪", "收入", "工时", "小费", "加班", "住宿", "房租", "押金", "餐", "伙食",
+                                       "交通", "通勤", "接机", "落地", "SSN", "培训", "到岗"))]
         tax = item["estimated_taxes"]
-        weeks = _short_decimal(item["work_weeks"])
-        stay = _short_decimal(item["stay_weeks"])
-        weekly = item["weekly_costs_usd"]
-        tax_formula = f"联邦 {exact(tax['federal_income_tax_usd'])} + 州 {exact(tax['state_income_tax_usd'])} + 其他 {exact(tax['fica_usd'])}"
-        wage_formula = f"{exact(item['wage_usd_per_hour'])} × {_short_decimal(item['hours_per_week'])}h × {weeks}周"
-        core = [
-            ("税前工资", wage_formula, money(item["gross_income_usd"])),
-            ("预计税费", tax_formula, money(-Decimal(tax["total_usd"]))),
-            ("住宿", f"{exact(weekly['rent_usd_per_week'])} × {stay}周", money(-Decimal(item["housing_usd"]))),
-            ("伙食", f"{exact(weekly['food_usd_per_week'])} × {stay}周", money(-Decimal(item["food_usd"]))),
-            ("交通", f"{exact(weekly['transport_usd_per_week'])} × {stay}周", money(-Decimal(item["transport_usd"]))),
-            ("其他开销", "日常开销及其他已知费用合计", money(-Decimal(item["other_living_usd"]))),
-            ("**在美预计结余**", "工资 − 税费 − 生活开销", f"**{money(item['estimated_us_net_usd'])}**"),
-        ]
-        weeks_to_break_even = item["break_even_work_weeks"]
-        break_even_text = ("缺少汇率，暂无法计算" if item["project_cost_usd"] is None
-                           else "目前无法回本" if weeks_to_break_even is None
-                           else "预计工期内无法回本" if Decimal(weeks_to_break_even) > Decimal(item["work_weeks"])
-                           else f"约 {Decimal(weeks_to_break_even):.1f} 周")
-        cny = item['project_cost_cny']
-        usd = item['project_cost_usd']
-        fx = item['fx_cny_per_usd']
-        project_formula = (f"¥{Decimal(cny):,.2f} ÷ {fx}（规划汇率）" if cny is not None and fx is not None
-                           else f"¥{Decimal(cny):,.2f}；缺少汇率" if cny is not None
-                           else "美元项目费；人民币换算缺少汇率")
-        if item["cost_sources"]["project_cost"] == "global_estimate":
-            project_formula += "（项目费为估算）"
-        project_result = money(-Decimal(usd)) if usd is not None else "暂无法换算"
-        final_result = f"**{money(item['final_project_surplus_usd'])}**" if item['final_project_surplus_usd'] is not None else "暂无法计算"
-        project = [
-            ("项目投入", project_formula, project_result),
-            ("**最终预计结余**", "在美结余 − 项目投入", final_result),
-            ("回本时间", "按当前每周预计收入及开销计算", break_even_text),
-        ]
-        return [
-            "### 在美收入与生活开销", "", "以下结果为按所列工时、费用及税费估算的金额。", "", *format_table(("项目", "计算公式", "结果"), core),
-            "", "### 项目投入与最终收益", "", *format_table(("项目", "计算公式", "结果"), project)
-        ]
-
-    lines.extend(["", "## 2. 回本测算", ""])
-    if best["fx_cny_per_usd"] is not None:
-        provenance = "；".join(x for x in (result.get("fx_source"), result.get("fx_quote_date")) if x)
-        lines.extend([f"规划汇率：1 美元 = {best['fx_cny_per_usd']} 人民币" + (f"（{provenance}）" if provenance else "（用户提供）") + "；不代表银行结算价。", ""])
-    if many:
-        for item in offers:
-            lines.extend([f"### {item['label']}", "", *finance_tables(item), ""])
-    else:
-        lines.extend(finance_tables(best))
-
-    notes = [(item["label"], note) for item in offers for note in special_notes(item)]
-    section = 3
-    if notes:
-        lines.extend(["", f"## {section}. 特殊注意事项", ""])
-        section += 1
-        for label, note in notes:
-            prefix = f"**{label}**：" if many else ""
-            lines.append(f"- {prefix}{note}")
-    if 2 <= len(offers) <= 3:
-        analysis = result["offer_return_analysis"]
-        label_map = {item["id"]: item["label"] for item in offers}
-        lines.extend(["", f"## {section}. 岗位收益对比", ""])
-        section += 1
-        details = _format_return_analysis(analysis, label_map)
-        lines.extend(details[2:])
-    elif len(offers) > 3:
-        lines.extend(["", "目前已比较全部岗位；如需看收益对比图，可再挑 2–3 份深入比较。"])
-
-    lines.extend(["", f"## {section}. 继续看什么？", "",
-                  "A. 换个工时，看看最终能剩多少钱",
-                  "B. 和其他岗位放在一起比较",
-                  "C. 细看住宿、工作内容与当地生活",
-                  "D. 按当前信息直接判断是否值得选择",
-                  "", "回复字母即可。"])
+        living = sum(Decimal(item[key]) for key in ("housing_usd", "food_usd", "transport_usd", "other_living_usd"))
+        lines.extend(["", "**回本测算**", "", "| 项目 | 金额 |", "|---|---|",
+                      f"| 税前工资（{_cents_usd(item['wage_usd_per_hour'])} × {_short_decimal(item['hours_per_week'])}h × "
+                      f"{Decimal(item['work_weeks']).quantize(Decimal('.1'), rounding=ROUND_HALF_UP).normalize():f} 周） | {_whole_usd(item['gross_income_usd'])} |",
+                      f"| 预计税费 | {_whole_usd(-Decimal(tax['total_usd']))} |",
+                      f"| 住宿、餐饮、交通及其他 | {_whole_usd(-living)} |",
+                      f"| **在美预计结余** | **{_whole_usd(item['estimated_us_net_usd'])}** |"])
+        if item["project_cost_usd"] is not None:
+            source = (f"（¥{Decimal(item['project_cost_cny']):,.0f} ÷ {item['fx_cny_per_usd']}）" if item["project_cost_cny"] is not None
+                      else "")
+            lines.extend([f"| 项目费{source} | {_whole_usd(-Decimal(item['project_cost_usd']))} |",
+                          f"| **最终预计结余** | **{_whole_usd(item['final_project_surplus_usd'])}** |"])
+        lines.extend(_fx_line(result))
+        if other_notes:
+            lines.extend(["", "**注意事项**", "", *(f"- {note}" for note in other_notes)])
+        options = ["A. 填入实际项目费或小费，重新测算", "B. 与其他岗位对比",
+                   "C. 查看住宿、工作内容与当地生活", "D. 判断是否值得选择"]
+    lines.extend(["", "**后续选项**", *options, "", "回复字母或直接提问。"])
     return "\n".join(lines)
 
 

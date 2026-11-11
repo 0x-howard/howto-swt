@@ -19,23 +19,26 @@ def offer(name, wage=17):
 class StudentOutputContractTests(unittest.TestCase):
     def test_single_offer_six_dim_two_finance_no_roi(self):
         text = format_position_overview(calculate_position_overview({"offers": [offer('A')]}))
-        self.assertIn('| 要素 | Offer 数据 | 分析 |', text)
-        self.assertIn('| 项目 | 计算公式 | 结果 |', text)
-        self.assertEqual(text.count('|---|---|---|'), 3)
+        self.assertTrue(text.startswith('**本岗位预计可以回本：'))
+        self.assertIn('影响回本的关键因素：', text)
+        self.assertIn('| 要素 | 内容 | 注意事项 |', text)
+        self.assertIn('| 项目 | 金额 |', text)
         self.assertNotIn('岗位收益对比', text)
-        self.assertIn('## 3. 继续看什么？', text)
-        for forbidden in ('口径：', '核验口径', '税费规划预留'):
+        self.assertIn('**后续选项**', text)
+        self.assertTrue(text.endswith('回复字母或直接提问。'))
+        for forbidden in ('口径：', '核验口径', '税费规划预留', '要注意', '问我就展开', '## '):
             self.assertNotIn(forbidden, text)
 
     def test_two_offers_show_roi(self):
         text = format_position_overview(calculate_position_overview({"offers": [offer('A'), offer('B', 18)]}))
         self.assertIn('岗位收益对比', text)
-        self.assertIn('### 项目投入与最终收益', text)
+        self.assertIn('| 要素 | A | B |', text)
+        self.assertIn('影响选择的关键因素：', text)
+        self.assertIn('| **最终预计结余** |', text)
 
     def test_four_offers_compare_first_without_forced_picker(self):
         text = format_position_overview(calculate_position_overview({"offers": [offer(str(i), 15 + i) for i in range(4)]}))
-        self.assertIn('0：', text)
-        self.assertIn('3：', text)
+        self.assertIn('| 要素 | 0 | 1 | 2 | 3 |', text)
         self.assertNotIn('回复编号即可', text)
         self.assertNotIn('岗位收益对比', text)
 

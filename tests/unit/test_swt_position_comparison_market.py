@@ -61,8 +61,8 @@ class SwtPositionComparisonMarketTests(unittest.TestCase):
             make_offer("ocean", "Ocean City", city="Ocean City", state="MD", wage=16, rent=145),
         ]})
         rendered = format_position_overview(result)
-        main_table = rendered.split("## 2. 回本测算", 1)[0]
-        for dimension in ("收入", "住宿", "生活成本", "交通", "二工", "落地便利"):
+        main_table = rendered.split("**岗位收益对比**", 1)[0]
+        for dimension in ("时薪", "工时", "工期", "住宿", "餐饮", "通勤"):
             self.assertIn(f"| {dimension} |", main_table)
         self.assertNotIn("| SWT Market |", main_table)
         self.assertIn("逐个岗位解析地点", SKILL_TEXT)

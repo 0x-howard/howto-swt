@@ -197,7 +197,7 @@ class PositionOverviewTests(unittest.TestCase):
     def test_money_precision_and_break_even_outside_work_period(self):
         answer = format_position_overview(self.overview({"wage_usd_per_hour": 16.25, "hours_per_week": 20, "project_cost_usd": 50000}, fx_cny_per_usd=7))
         self.assertIn("$16.25", answer)
-        self.assertIn("预计工期内无法回本", answer)
+        self.assertIn("单靠本岗位无法回本", answer)
         self.assertNotIn("（超过工期）", answer)
 
     def overview(self, *offers, **top):
@@ -238,8 +238,10 @@ class PositionOverviewTests(unittest.TestCase):
         self.assertEqual(result["offers"][0]["hours_range"], {"min": "40.00", "expected": "40.00", "max": "40.00",
                                                               "status": "guaranteed", "basis": None})
         answer = format_position_overview(result)
-        self.assertIn("保证 40h/周", answer)
-        self.assertNotIn("平均工时不等于每周保证", answer)
+        self.assertIn("40h/周", answer)
+        self.assertIn("每周保证 40 小时", answer)
+        self.assertIn("| 工时保证 |", answer)
+        self.assertNotIn("工时不保证", answer)
         with self.assertRaises(ValueError):
             self.overview({"wage_usd_per_hour": 14, "hours_per_week": 40, "hours_guaranteed": True,
                            "min_hours": 32, "max_hours": 40})
@@ -247,7 +249,7 @@ class PositionOverviewTests(unittest.TestCase):
     def test_week_counts_are_rounded_for_display(self):
         answer = format_position_overview(self.overview(
             {"wage_usd_per_hour": 15.5, "hours_per_week": 36, "start_date": "2027-06-10", "end_date": "2027-09-10"}))
-        self.assertIn("13.29", answer)
+        self.assertIn("6/10–9/10，约 13.3 周", answer)
         self.assertNotIn("13.2857", answer)
 
     def test_documented_zero_wage_tax_states_use_zero(self):
@@ -265,14 +267,14 @@ class PositionOverviewTests(unittest.TestCase):
         self.assertEqual(item["cost_sources"]["rent_usd_per_week"], "global_estimate")
         self.assertGreater(float(item["estimated_taxes"]["total_usd"]), 0)
         answer = format_position_overview(self.overview({"wage_usd_per_hour": 16, "hours_per_week": 32}))
-        self.assertIn("## 1. 核心数据与分析", answer)
-        self.assertIn("| 要素 | Offer 数据 | 分析 |", answer)
-        self.assertIn("### 在美收入与生活开销", answer)
-        self.assertIn("### 项目投入与最终收益", answer)
-        self.assertNotIn("## 4. 岗位收益对比", answer)
-        self.assertEqual(answer.count("|---|---|---|"), 3)
+        self.assertIn("**岗位概况**", answer)
+        self.assertIn("| 要素 | 内容 | 注意事项 |", answer)
+        self.assertIn("**回本测算**", answer)
+        self.assertIn("$100/周（估）", answer)
+        self.assertNotIn("岗位收益对比", answer)
+        self.assertEqual(answer.count("|---|---|---|"), 1)
         self.assertEqual(answer.count("?"), 0)
-        self.assertEqual(answer.count("## 3. 继续看什么？"), 1)
+        self.assertEqual(answer.count("**后续选项**"), 1)
         self.assertIn("最终预计结余", answer)
 
     def test_missing_fx_leaves_rmb_project_and_final_unknown(self):
@@ -307,8 +309,7 @@ class PositionOverviewTests(unittest.TestCase):
         self.assertIsNone(missing["offers"][0]["final_project_surplus_usd"])
         self.assertIsNotNone(missing["offers"][1]["final_project_surplus_usd"])
         output = format_position_overview(calculate_position_overview({"offers": offers, "fx_cny_per_usd": 6.9, "fx_source": "ECB", "fx_quote_date": "2026-10-30"}))
-        self.assertIn("ECB；2026-10-30", output)
-        self.assertIn("不代表银行结算价", output)
+        self.assertIn("汇率 6.9：10 月 30 日 ECB，向上取一位小数。", output)
         with self.assertRaises(ValueError):
             calculate_position_overview({"offers": offers, "fx_cny_per_usd": 6.9, "fx_quote_date": "invalid"})
 
@@ -329,9 +330,9 @@ class PositionOverviewTests(unittest.TestCase):
             {"label": "乙", "wage_usd_per_hour": 17, "hours_per_week": 35},
         )
         answer = format_position_overview(result)
-        self.assertGreaterEqual(answer.count("|---|---|---|"), 3)
-        core = answer.split("## 1. 核心数据与分析\n\n", 1)[1].split("## 2.", 1)[0]
-        self.assertEqual(len(re.findall(r"(?m)^\| (?:收入|住宿|生活成本|交通|二工|落地便利) \|", core)), 6)
+        self.assertIn("| 要素 | 甲 | 乙 |", answer)
+        table = answer.split("**岗位对比**\n\n", 1)[1].split("\n\n", 1)[0]
+        self.assertEqual(len(re.findall(r"(?m)^\| (?:时薪|工时|工期|住宿|餐饮|通勤|在美预计结余) \|", table)), 7)
 
     def test_missing_caution_uses_dash(self):
         answer = format_position_overview(self.overview(

@@ -4,7 +4,7 @@
 <!-- Source: shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md -->
 <!-- runtime-version: 1.5.1 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt-application; source-sha256: cb80f420a6c1a29561e06f1bdf057617b98b1d839a50883b0cfb26d37125ef4d -->
+<!-- skill: swt-application; source-sha256: be97f1d1b0c36659014fafd0fbaa940e366a4a9b97a47d31655447d054205243 -->
 
 <!-- source: shared/interaction-protocol.md -->
 
@@ -216,7 +216,7 @@ These are semantic examples, not copies to paste into five Skill files.
 
 ### `swt-position` 的默认岗位／Offer 概览
 
-用户需要完整岗位分析时遵循：**一句话结论 → 1. 核心数据与分析（六维三列：要素 / Offer 数据 / 分析）→ 2. 回本测算（两张三列表，项目 / 计算公式 / 结果）→ 特殊注意事项（仅六维以外）→ 岗位收益对比（仅 2–3 份 Offer 比较默认展示，含 Mermaid 折线图）→ 继续看什么？（保留 A/B/C/D）**。若没有特殊注意事项或不需要收益对比，对应段落可省略，章节按实际出现顺序连续编号。多于三份 Offer 先比较全部，再按需选 2–3 份深入看曲线。内部要充分判断，前台不堆重复内容，不输出计算附录；收益对比的 Mermaid 图是唯一默认图表。
+用户需要完整岗位分析时遵循：**加粗一句话结论 → 关键因素（最多 3 条）→ 单 Offer：岗位概况表 + 回本测算表；多 Offer：岗位对比表（每份 Offer 一列）→ 汇率一行 → 岗位收益对比（仅 2–3 份 Offer，含 Mermaid 折线图）→ 注意事项（仅表格以外）→ 后续选项（A–D）**。没有注意事项或不需要收益对比时省略对应段落。多于三份 Offer 先比较全部，再按需选 2–3 份深入看曲线。内部要充分判断，前台不堆重复内容，不输出计算附录；收益对比的 Mermaid 图是唯一默认图表。
 
 ## Edit：最后的读者视角检查
 
@@ -245,7 +245,7 @@ These are semantic examples, not copies to paste into five Skill files.
 
 简单问题和紧急指令不强制凑编号；它们仍应通过“一眼知道答案或行动”的检查。必要的高风险限制、来源冲突和未知条件不能因为压缩而消失。
 
-岗位／Offer 首答另用专项 Clarity Gate：开头只有一句判断；六维表严格分为“要素／Offer 数据／分析”三列；回本分成“在美收入与生活开销”和“项目投入与最终收益”两张三列表；特殊注意事项不重复六维；单 Offer 不默认展示收益对比图；结尾保留 A/B/C/D。不要将估值写成事实，也不要附加集中式的“口径／核验／预留／审计”报告段落。用户继续问具体字段时只给该字段的 Detail View。
+岗位／Offer 首答另用专项 Clarity Gate：开头一句加粗结论；关键因素最多 3 条；单 Offer 用“岗位概况”与“回本测算”两张表，多 Offer 用一张分列的“岗位对比”表；单 Offer 不默认展示收益对比图；注意事项不重复表格内容；结尾保留 A–D。标签用书面语，估算金额标“（估）”，不附加集中式的“口径／核验／预留／审计”说明。用户继续问具体字段时只给该字段的 Detail View。
 
 ## 语言编辑
 
