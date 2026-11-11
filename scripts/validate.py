@@ -24,6 +24,22 @@ def _load_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _validate_interface(skill_root: Path) -> None:
+    path = skill_root / "agents" / "openai.yaml"
+    relative = path.relative_to(PLUGIN_ROOT)
+    if not path.is_file():
+        raise ValueError(f"{relative}: missing")
+    text = path.read_text(encoding="utf-8")
+    if not text.startswith("interface:\n"):
+        raise ValueError(f"{relative}: must start with 'interface:'")
+    fields = dict(re.findall(r'(?m)^  (display_name|short_description|default_prompt): "([^"\n]+)"$', text))
+    missing = {"display_name", "short_description", "default_prompt"} - set(fields)
+    if missing:
+        raise ValueError(f"{relative}: missing {', '.join(sorted(missing))}")
+    if f"${skill_root.name}" not in fields["default_prompt"]:
+        raise ValueError(f"{relative}: default_prompt must mention ${skill_root.name}")
+
+
 def _parse_frontmatter(path: Path) -> dict[str, str]:
     content = path.read_text(encoding="utf-8")
     match = re.match(r"\A---\n(.*?)\n---\n", content, re.DOTALL)
@@ -86,6 +102,7 @@ def validate_plugin() -> int:
         frontmatter = _parse_frontmatter(path)
         if frontmatter["name"] != path.parent.name:
             raise ValueError(f"{path}: frontmatter name must match its Skill directory")
+        _validate_interface(path.parent)
         if frontmatter["name"] == "swt":
             description = frontmatter["description"]
             for alias in ("小How", "小how", "小 HOW", "HowTo SWT", "howto swt", "howto-swt"):

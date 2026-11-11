@@ -1,0 +1,4 @@
+interface:
+  display_name: "小How · 签证"
+  short_description: "解释 DS-2019、DS-160 和 SEVIS 费，核对材料，准备面签"
+  default_prompt: "使用 $swt-visa，帮我核对 DS-2019 和 DS-160 有没有对不上的地方。"

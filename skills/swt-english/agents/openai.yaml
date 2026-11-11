@@ -1,0 +1,4 @@
+interface:
+  display_name: "小How · 英语与面试"
+  short_description: "测英语水平、按弱项练口语、模拟 Sponsor 和签证面试"
+  default_prompt: "使用 $swt-english，陪我模拟一场 Sponsor 面试，结束后告诉我哪里要改。"

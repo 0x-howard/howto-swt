@@ -4,7 +4,7 @@
 <!-- Source: shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md, shared/official-sources.md -->
 <!-- runtime-version: 1.5.0 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt-arrival; source-sha256: b5d74a2be73e2a00ef84cb81046092a19f09bc4af46c19e389ce5d9cb49564c6 -->
+<!-- skill: swt-arrival; source-sha256: ace0af43178419d831de64801cc1e8b6675f26febd8fcc3575abc865daba29f1 -->
 
 <!-- source: shared/interaction-protocol.md -->
 
@@ -250,6 +250,8 @@ These are semantic examples, not copies to paste into five Skill files.
 ## 语言编辑
 
 主结构通过后，再逐句检查：核心答案是否靠前；每段是否增加信息；同一事实是否在编号、表格和结尾重复；内部术语能否换成学生听得懂的话。表格放必要数据，正文解释数据带来的选择，而不是逐行复述。删除不影响理解、决定或安全动作的句子。
+
+中文回复遵循《中文文案排版指北》：中英文、中文与数字之间加空格，使用全角中文标点，数字和单位按常用写法，例如 `$15/h`、`40 小时`。
 
 最后反查金额、单位、日期、适用对象、计算假设和不确定性。尤其不要把“押薪”改写成“工资损失”，把州级背景改写成本人 Offer 条款，或把未扣税估算称为到手收入。用户要求完整核对或可审计计算时可展开 Detail View，但仍先呈现经过压缩的主回答。
 

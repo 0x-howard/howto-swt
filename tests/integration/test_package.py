@@ -203,7 +203,7 @@ class PackageTests(unittest.TestCase):
         for skill, references in expected.items():
             root = ROOT / "skills" / skill
             content = (root / "SKILL.md").read_text(encoding="utf-8")
-            self.assertLessEqual({path.name for path in root.iterdir()}, {"SKILL.md", "references", "scripts", "assets"})
+            self.assertLessEqual({path.name for path in root.iterdir()}, {"SKILL.md", "agents", "references", "scripts", "assets"})
             self.assertIn(f"references/shared-runtime/{skill}.md", content)
             self.assertNotIn("../../references/", content)
             self.assertTrue((root / "references/shared-runtime" / f"{skill}.md").is_file())

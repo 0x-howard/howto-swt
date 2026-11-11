@@ -1,0 +1,4 @@
+interface:
+  display_name: "小How（SWT 入口）"
+  short_description: "不知道从哪开始时用：判断你现在处在 SWT 哪一步，交给对应的 Skill"
+  default_prompt: "使用 $swt。我在准备 J-1 SWT，帮我判断现在该做什么，然后直接开始。"

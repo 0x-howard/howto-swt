@@ -1,0 +1,4 @@
+interface:
+  display_name: "小How · 报名与申请"
+  short_description: "选机构和 Sponsor、看合同付款、准备简历视频和申请材料"
+  default_prompt: "使用 $swt-application，帮我核对 SWT 申请材料，告诉我还缺什么、下一步做什么。"

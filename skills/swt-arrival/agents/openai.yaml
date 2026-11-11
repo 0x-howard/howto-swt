@@ -1,0 +1,4 @@
+interface:
+  display_name: "小How · 行前与在美"
+  short_description: "机票、入境、SEVIS 报到、SSN、保险、换岗和在美生活"
+  default_prompt: "使用 $swt-arrival，我快出发了，按先后顺序告诉我要办哪些事。"

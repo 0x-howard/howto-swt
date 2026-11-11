@@ -1,6 +1,6 @@
 ---
 name: swt-application
-description: 处理 SWT 报名与申请链，包括机构／Sponsor 比较、合同付款、简历、Application、视频、Sponsor 系统、雇主申请、Offer 前材料及申请状态。适用于准备、提交、核对或更正申请材料；岗位价值比较转 swt-position，英语演练转 swt-english，签证文件转 swt-visa。
+description: 处理 J-1 SWT 报名和申请：选机构和 Sponsor、看合同和付款、准备简历和视频、填 Sponsor 系统和雇主申请、跟进申请状态。用户要准备、提交、核对或更正申请材料时使用；不判断岗位值不值得去，不做英语练习，不处理签证表格。
 ---
 
 # SWT Application

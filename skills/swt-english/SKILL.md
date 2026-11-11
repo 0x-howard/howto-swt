@@ -1,6 +1,6 @@
 ---
 name: swt-english
-description: SWT AI Speaking Coach，为 Agency、Sponsor、Host Employer、Visa 与 Workplace 场景提供 ASSESS、PRACTICE、MOCK、RECORDING、RETRY、PROGRESS 六种模式；支持基于真实资料的面试 Profile、动态追问、七维评估与 Pro 进度续练。一般英语作为 fallback；不编造经历或预测结果。
+description: J-1 SWT 英语口语教练：测英语水平、按弱项练口语、模拟机构／Sponsor／雇主／签证面试、分析面试录音、重答上一题、接着上次练习，也帮忙改工作和生活里的英语表达。用户要测英语、练口语或准备面试时使用；不编造经历，不预测面试结果。
 ---
 
 # SWT English

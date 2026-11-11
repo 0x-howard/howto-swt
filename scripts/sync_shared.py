@@ -169,7 +169,7 @@ def _portable_stale(skill: str) -> list[str]:
     sources = portable_sources(skill)
     expected_paths = set(sources)
     stale: list[str] = []
-    allowed_root_entries = {"SKILL.md", "references", "scripts", "assets"}
+    allowed_root_entries = {"SKILL.md", "agents", "references", "scripts", "assets"}
     for path in skill_root.iterdir():
         if path.name not in allowed_root_entries:
             stale.append(f"{path.relative_to(PLUGIN_ROOT)} (unexpected package entry)")

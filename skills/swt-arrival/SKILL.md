@@ -1,6 +1,6 @@
 ---
 name: swt-arrival
-description: 处理 SWT 行前、机票、入境、I-94、SEVIS Check-in、SSN、保险、抵美后的 Sponsor 要求、换岗、二工审批、在美事务和项目结束。适用于准备赴美或已经在美国的操作问题；紧急风险优先。
+description: 处理 J-1 SWT 出发前和到美国后的事：机票、入境和 I-94、SEVIS 报到、SSN、保险、Sponsor 要求、换岗、二工审批、在美生活和项目结束。用户准备出发或已经在美国时使用；遇到人身安全或紧急医疗问题优先处理。
 ---
 
 # SWT Arrival
