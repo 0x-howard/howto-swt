@@ -382,6 +382,9 @@ def _overview_defaults() -> dict[str, Any]:
     return json.loads(DEFAULT_ASSUMPTIONS_PATH.read_text(encoding="utf-8"), parse_float=Decimal)
 
 
+STATE_REFERENCE_KEYS = ("常见时薪", "常见周租", "每周基础开销", "销售税", "公共交通", "通勤")
+
+
 def _state_reference(state: str | None) -> dict[str, str]:
     if state is None:
         return {}
@@ -652,6 +655,8 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
         "fx_cny_per_usd": str(fx) if fx is not None else None, "cautions": cautions,
         "start_date": raw.get("start_date") or raw.get("offer_start_date"),
         "end_date": raw.get("end_date") or raw.get("offer_end_date"),
+        "state_reference": {key: value for key, value in profile.items()
+                            if key in STATE_REFERENCE_KEYS and isinstance(value, str) and "暂无可靠数据" not in value},
     }
 
 
@@ -842,21 +847,83 @@ def _payback_sentence(result: dict[str, Any], item: dict[str, Any]) -> str:
     return text
 
 
+def _reference_bounds(value: str) -> tuple[Decimal | None, Decimal | None]:
+    amounts = [Decimal(number) for number in re.findall(r"\d+(?:\.\d+)?", value)]
+    if value.startswith("低于") and amounts:
+        return None, amounts[0]
+    if len(amounts) >= 2:
+        return amounts[0], amounts[1]
+    return None, None
+
+
+def _compare_reference(amount: Decimal, value: str, state: str, noun: str) -> str:
+    low, high = _reference_bounds(value)
+    if high is None:
+        return ""
+    shown = value.replace("/week", "").replace("/h", "")
+    position = ("低于" if low is not None and amount < low else "高于" if amount > high
+                else "处于" if low is not None else "不高于")
+    return f"{position} {state} {noun} {shown}" + ("" if position in ("低于", "高于", "不高于") else " 区间")
+
+
+def _dimension_analysis(item: dict[str, Any]) -> dict[str, str]:
+    reference = item.get("state_reference", {})
+    state = item.get("state") or ""
+    sources = item["cost_sources"]
+    taxes = item["estimated_taxes"]
+    gross = Decimal(item["gross_income_usd"])
+    rate = (Decimal(taxes["total_usd"]) / gross * 100).quantize(Decimal("1")) if gross else ZERO
+    income = []
+    if "常见时薪" in reference:
+        income.append(_compare_reference(Decimal(item["wage_usd_per_hour"]), reference["常见时薪"], state, "常见时薪"))
+    if state and Decimal(taxes["state_income_tax_usd"]) == ZERO:
+        income.append(f"无州所得税，约 {rate}% 的联邦税费")
+    else:
+        income.append(f"约 {rate}% 的联邦和州税费")
+    housing = ""
+    if sources["rent_usd_per_week"] == "provided" and "常见周租" in reference:
+        housing = _compare_reference(Decimal(item["weekly_costs_usd"]["rent_usd_per_week"]), reference["常见周租"], state, "常见周租")
+    elif sources["rent_usd_per_week"] == "state_estimate":
+        housing = f"按 {state} 常见周租 {reference.get('常见周租', '').replace('/week', '')} 估算"
+    elif sources["rent_usd_per_week"] != "provided":
+        housing = "按通用规划值估算"
+    living = []
+    if "每周基础开销" in reference:
+        living.append(f"{state} 每周基础开销{reference['每周基础开销'].replace('/week', '').replace('低于', '低于 ').replace('  ', ' ')}")
+    if "销售税" in reference:
+        sales = reference["销售税"].split("；")[0]
+        living.append("无州销售税" if sales.startswith("0%") else f"州销售税 {sales.split(' ')[0]}")
+    transport = []
+    if "公共交通" in reference:
+        transport.append(f"公共交通{reference['公共交通']}")
+    if "通勤" in reference:
+        transport.append(f"常见通勤 {reference['通勤'].replace('分钟', ' 分钟')}")
+    return {
+        "收入": "；".join(x for x in income if x),
+        "住宿": housing,
+        "生活成本": "；".join(living),
+        "交通": "；".join(transport),
+        "二工": "二工收入不计入回本",
+        "落地便利": "",
+    }
+
+
 def _conclusion(result: dict[str, Any]) -> str:
     offers = result["offers"]
     best = next(item for item in offers if item["id"] == result["comparison_order"][0])
     if len(offers) == 1:
         item = best
-        basis = (f"按 {_cents_usd(item['wage_usd_per_hour'])}/h、"
-                 f"{'每周保证' if item['hours_range']['status'] == 'guaranteed' else '平均每周'} "
-                 f"{_short_decimal(item['hours_per_week'])} 小时计算，在美净剩约 {_whole_usd(item['estimated_us_net_usd'])}")
+        hours = (f"每周保证 {_short_decimal(item['hours_per_week'])} 小时" if item["hours_range"]["status"] == "guaranteed"
+                 else f"平均每周 {_short_decimal(item['hours_per_week'])} 小时")
+        basis = f"按 {_cents_usd(item['wage_usd_per_hour'])}/h、{hours}计算，在美净剩约 {_whole_usd(item['estimated_us_net_usd'])}"
         if item["final_project_surplus_usd"] is None:
             return f"**{basis}；缺少汇率，最终结余暂无法计算。**"
         final = Decimal(item["final_project_surplus_usd"])
         cny = f"（约 {_whole_cny(final * Decimal(item['fx_cny_per_usd']))}）" if item["fx_cny_per_usd"] is not None else ""
         project = f"¥{Decimal(item['project_cost_cny']):,.0f}" if item["project_cost_cny"] is not None else _whole_usd(item["project_cost_usd"])
-        head = "本岗位预计可以回本" if final >= ZERO else "单靠本岗位无法回本"
-        return f"**{head}：{basis}，扣除项目费 {project} 后，最终预计结余约 {_whole_usd(final)}{cny}。**"
+        lead = f"假设项目费 {project}" if item["cost_sources"]["project_cost"] == "global_estimate" else f"项目费 {project}"
+        verdict = "预计可以回本" if final >= ZERO else "单靠本岗位无法回本"
+        return f"**{lead}，{basis}，最终预计结余约 {_whole_usd(final)}{cny}，{verdict}。**"
     if not result["comparison_complete"]:
         return f"**按在美净剩，{best['label']} 最高（约 {_whole_usd(best['estimated_us_net_usd'])}）；缺少汇率，最终结余暂无法计算。**"
     others = "，".join(f"{item['label']} 约 {_whole_usd(item['final_project_surplus_usd'])}"
@@ -892,26 +959,22 @@ def format_position_overview(result: dict[str, Any]) -> str:
     offers = result["offers"]
     many = len(offers) > 1
     lines = [_conclusion(result)]
-    source_text = {"provided": "岗位列明", "state_estimate": "州级参考中值（估）", "global_estimate": "通用规划值（估）"}
 
     def cost_cell(item: dict[str, Any], key: str) -> str:
         return f"{_cents_usd(item['weekly_costs_usd'][key])}/周" + ("（估）" if _estimated(item, key) else "")
 
     def dimensions(item: dict[str, Any]) -> list[tuple[str, str, str]]:
-        sources = item["cost_sources"]
-        gross = Decimal(item["gross_income_usd"])
-        rate = (Decimal(item["estimated_taxes"]["total_usd"]) / gross * 100).quantize(Decimal("1")) if gross else ZERO
+        notes = _dimension_analysis(item)
         hours = item["hours_range"]
-        hours_text = ("工时保证" if hours["status"] == "guaranteed" else "工时不保证")
+        hours_text = (f"保证 {_short_decimal(hours['expected'])}h/周" if hours["status"] == "guaranteed"
+                      else _hours_cell(item).split("，")[0])
         return [
-            ("收入", f"{_cents_usd(item['wage_usd_per_hour'])}/h；{_hours_cell(item).split('，')[0]}；{_period_cell(item)}",
-             f"{hours_text}；预计税费约占税前工资 {rate}%（估）"),
-            ("住宿", cost_cell(item, "rent_usd_per_week"), source_text.get(sources["rent_usd_per_week"], "")),
-            ("生活成本", f"餐饮 {cost_cell(item, 'food_usd_per_week')}；其他 {cost_cell(item, 'other_weekly_usd')}",
-             source_text.get(sources["food_usd_per_week"], "")),
-            ("交通", cost_cell(item, "transport_usd_per_week"), source_text.get(sources["transport_usd_per_week"], "")),
-            ("二工", item["second_job"], "二工收入不计入回本"),
-            ("落地便利", item["landing"], ""),
+            ("收入", f"{_cents_usd(item['wage_usd_per_hour'])}/h；{hours_text}；{_period_cell(item)}", notes["收入"]),
+            ("住宿", cost_cell(item, "rent_usd_per_week"), notes["住宿"]),
+            ("生活成本", f"餐饮 {cost_cell(item, 'food_usd_per_week')}；其他 {cost_cell(item, 'other_weekly_usd')}", notes["生活成本"]),
+            ("交通", cost_cell(item, "transport_usd_per_week"), notes["交通"]),
+            ("二工", item["second_job"], notes["二工"]),
+            ("落地便利", item["landing"], notes["落地便利"]),
         ]
 
     section = 1

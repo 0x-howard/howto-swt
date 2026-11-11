@@ -19,7 +19,8 @@ def offer(name, wage=17):
 class StudentOutputContractTests(unittest.TestCase):
     def test_single_offer_six_dim_two_finance_no_roi(self):
         text = format_position_overview(calculate_position_overview({"offers": [offer('A')]}))
-        self.assertTrue(text.startswith('**本岗位预计可以回本：'))
+        self.assertTrue(text.startswith('**项目费 $3,300，按 $17/h'))
+        self.assertIn('预计可以回本。**', text.splitlines()[0])
         self.assertIn('## 1. 六维分析', text)
         self.assertIn('| 要素 | Offer 数据 | 分析 |', text)
         self.assertIn('## 2. 回本测算', text)

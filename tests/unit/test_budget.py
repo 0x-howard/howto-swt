@@ -240,7 +240,7 @@ class PositionOverviewTests(unittest.TestCase):
         answer = format_position_overview(result)
         self.assertIn("40h/周", answer)
         self.assertIn("每周保证 40 小时", answer)
-        self.assertIn("| 工时保证；", answer)
+        self.assertIn("保证 40h/周", answer)
         self.assertNotIn("工时不保证", answer)
         with self.assertRaises(ValueError):
             self.overview({"wage_usd_per_hour": 14, "hours_per_week": 40, "hours_guaranteed": True,
