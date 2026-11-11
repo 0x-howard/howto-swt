@@ -977,35 +977,95 @@ def _leader(offers: list[dict[str, Any]], values: list[Decimal], *, higher: bool
     return f"{label} 最优，比 {other} {verb} {shown}"
 
 
-def _comparison_notes(offers: list[dict[str, Any]]) -> dict[str, str]:
-    def weekly(item: dict[str, Any], *keys: str) -> Decimal:
-        return sum(Decimal(item["weekly_costs_usd"][key]) for key in keys)
+COMPARE_ROWS = (
+    ("收入", "时薪"), ("收入", "工时"), ("收入", "工期"), ("收入", "税费"), ("收入", "州级时薪"),
+    ("住宿", "周租"), ("住宿", "住宿条件"), ("住宿", "州级周租"),
+    ("生活成本", "餐饮"), ("生活成本", "其他开销"), ("生活成本", "餐食福利"), ("生活成本", "州级开销"), ("生活成本", "销售税"),
+    ("交通", "交通费"), ("交通", "通勤"), ("交通", "交通安排"), ("交通", "公共交通"),
+    ("二工", "二工"),
+    ("落地便利", "SSN"), ("落地便利", "SSA 办公室"), ("落地便利", "到岗时间"),
+)
 
-    def tax_rate(item: dict[str, Any]) -> Decimal:
+
+def _offer_facts(item: dict[str, Any]) -> dict[str, str]:
+    reference = item.get("state_reference", {})
+    details = item.get("details", {})
+    state = item.get("state") or ""
+    gross = Decimal(item["gross_income_usd"])
+    rate = (Decimal(item["estimated_taxes"]["total_usd"]) / gross * 100).quantize(Decimal("1")) if gross else ZERO
+    zero_state = bool(state) and Decimal(item["estimated_taxes"]["state_income_tax_usd"]) == ZERO
+    hours = item["hours_range"]
+
+    def cost(key: str) -> str:
+        return f"{_cents_usd(item['weekly_costs_usd'][key])}/周" + ("（估）" if _estimated(item, key) else "")
+
+    def versus(amount: str, key: str) -> str:
+        if key not in reference:
+            return ""
+        return _compare_reference(Decimal(amount), reference[key], state, "常见")
+
+    meals = {"free_at_work": "上班期间免费", "none": "不提供"}.get(details.get("meals", ""), "")
+    if details.get("meals") == "discount" and details.get("meal_discount_percent"):
+        meals = f"员工餐 {(10 - Decimal(str(details['meal_discount_percent'])) / 10).normalize():f} 折"
+    commute = "，".join(f"{name}约 {_short_decimal(Decimal(str(details[key])))} 分钟" for key, name in (
+        ("commute_walk_minutes", "步行"), ("commute_bike_minutes", "骑车"), ("commute_drive_minutes", "开车")) if key in details)
+    if not commute and "通勤" in reference:
+        commute = f"{state} 常见 {reference['通勤'].replace('分钟', ' 分钟')}"
+    sales = reference.get("销售税", "").split("；")[0]
+    return {
+        "时薪": f"{_cents_usd(item['wage_usd_per_hour'])}/h",
+        "工时": (f"保证 {_short_decimal(hours['expected'])}h/周" if hours["status"] == "guaranteed"
+                 else _hours_cell(item).split("，")[0]),
+        "工期": _period_cell(item),
+        "税费": f"约 {rate}%" + ("，无州所得税" if zero_state else "（联邦和州）"),
+        "州级时薪": versus(item["wage_usd_per_hour"], "常见时薪"),
+        "周租": cost("rent_usd_per_week"),
+        "住宿条件": "、".join(text for flag, text in (("housing_utilities_included", "水电网全包"),
+                                                    ("housing_deducted_from_pay", "从工资扣除"),
+                                                    ("housing_furnished_kitchen", "带家具和厨房")) if details.get(flag)),
+        "州级周租": versus(item["weekly_costs_usd"]["rent_usd_per_week"], "常见周租")
+                   if item["cost_sources"]["rent_usd_per_week"] == "provided" else "",
+        "餐饮": cost("food_usd_per_week"),
+        "其他开销": cost("other_weekly_usd"),
+        "餐食福利": meals,
+        "州级开销": reference.get("每周基础开销", "").replace("/week", "").replace("低于$", "低于 $"),
+        "销售税": ("无州销售税" if sales.startswith("0%") else sales.split(" ")[0]) if sales else "",
+        "交通费": cost("transport_usd_per_week"),
+        "通勤": commute,
+        "交通安排": {"provided": "雇主提供", "assist": "雇主协助安排", "none": "自理"}.get(details.get("employer_transport", ""), ""),
+        "公共交通": reference.get("公共交通", ""),
+        "二工": item["second_job"],
+        "SSN": item["landing"],
+        "SSA 办公室": (details.get("ssn_office", "") + (f"（约 {_short_decimal(Decimal(str(details['ssn_office_miles'])))} 英里）"
+                                                     if "ssn_office_miles" in details else "")),
+        "到岗时间": details.get("start", ""),
+    }
+
+
+def _row_comparison(offers: list[dict[str, Any]], row: str) -> str:
+    def weekly(key: str) -> list[Decimal]:
+        return [Decimal(item["weekly_costs_usd"][key]) for item in offers]
+
+    def rate(item: dict[str, Any]) -> Decimal:
         gross = Decimal(item["gross_income_usd"])
         return (Decimal(item["estimated_taxes"]["total_usd"]) / gross * 100).quantize(Decimal("1")) if gross else ZERO
 
-    income: list[str] = []
-    for text in (
-        _leader(offers, [Decimal(item["wage_usd_per_hour"]) for item in offers], higher=True, verb="时薪高", unit="$"),
-        _leader(offers, [Decimal(item["hours_per_week"]) for item in offers], higher=True, verb="平均工时多", unit="小时"),
-        _leader(offers, [tax_rate(item) for item in offers], higher=False, verb="税费低约", unit="个百分点"),
-    ):
-        owner = next((item["label"] for item in offers if text.startswith(item["label"] + " ")), None)
-        if income and owner and income[-1].startswith(owner + " ") and "最优" not in text:
-            income[-1] += "，" + text[len(owner) + 1:]
-        elif text:
-            income.append(text)
-    ssn_first = [item["label"] for item in offers if item.get("details", {}).get("ssn_required_before_work")]
-    return {
-        "收入": "；".join(x for x in income if x),
-        "住宿": _leader(offers, [weekly(item, "rent_usd_per_week") for item in offers], higher=False, verb="每周便宜", unit="$"),
-        "生活成本": _leader(offers, [weekly(item, "food_usd_per_week", "other_weekly_usd") for item in offers],
-                        higher=False, verb="每周少花", unit="$"),
-        "交通": _leader(offers, [weekly(item, "transport_usd_per_week") for item in offers], higher=False, verb="每周少花", unit="$"),
-        "二工": "二工收入不计入回本",
-        "落地便利": f"{'、'.join(ssn_first)} 需先有 SSN 才能开工" if ssn_first and len(ssn_first) < len(offers) else "",
-    }
+    if row == "时薪":
+        return _leader(offers, [Decimal(item["wage_usd_per_hour"]) for item in offers], higher=True, verb="高", unit="$")
+    if row == "工时":
+        return _leader(offers, [Decimal(item["hours_per_week"]) for item in offers], higher=True, verb="多", unit="小时")
+    if row == "税费":
+        return _leader(offers, [rate(item) for item in offers], higher=False, verb="低约", unit="个百分点")
+    for name, key in (("周租", "rent_usd_per_week"), ("餐饮", "food_usd_per_week"),
+                      ("其他开销", "other_weekly_usd"), ("交通费", "transport_usd_per_week")):
+        if row == name:
+            return _leader(offers, weekly(key), higher=False, verb="每周少", unit="$")
+    if row == "二工":
+        return "二工收入不计入回本"
+    if row == "SSN":
+        first = [item["label"] for item in offers if item.get("details", {}).get("ssn_required_before_work")]
+        return f"{'、'.join(first)} 需先有 SSN 才能开工" if first and len(first) < len(offers) else ""
+    return ""
 
 
 def _special_notes(item: dict[str, Any]) -> list[tuple[str, str]]:
@@ -1109,7 +1169,8 @@ def _conclusion(result: dict[str, Any]) -> str:
             text += f"，每周多剩约 {_whole_usd(gap)}"
     text += f"：最终预计结余约 {_whole_usd(best['final_project_surplus_usd'])}，{others}"
     if all(Decimal(item["final_project_surplus_usd"]) < ZERO for item in offers):
-        text += f"；{'两' if len(offers) == 2 else str(len(offers))}份岗位按当前工时都无法回本"
+        count = "两三四五六七八九"[len(offers) - 2] if len(offers) <= 9 else str(len(offers))
+        text += f"；{count}份岗位按当前工时都无法回本"
     analysis = result.get("offer_return_analysis", {})
     labels = {item["id"]: item["label"] for item in offers}
     crossings = [item for item in analysis.get("intersections", []) if item.get("meaningful_for_optimum")]
@@ -1161,14 +1222,19 @@ def format_position_overview(result: dict[str, Any]) -> str:
     section = 1
     lines.extend(["", f"## {section}. 六维分析", ""])
     if many:
-        lines.extend(["| 要素 | " + " | ".join(item["label"] for item in offers) + " | 分析 |",
-                      "|---|" + "---|" * (len(offers) + 1)])
-        tables = [dimensions(item) for item in offers]
-        comparison = _comparison_notes(offers)
-        for index in range(6):
-            name = tables[0][index][0]
-            cells = [data if name == "二工" or not note else f"{data}；{note}" for _, data, note in (table[index] for table in tables)]
-            lines.append(f"| {name} | " + " | ".join(cells) + f" | {comparison[name]} |")
+        lines.extend(["| 要素 | 项目 | " + " | ".join(item["label"] for item in offers) + " | 分析 |",
+                      "|---|---|" + "---|" * (len(offers) + 1)])
+        facts = [_offer_facts(item) for item in offers]
+        shown_group = None
+        for group, row in COMPARE_ROWS:
+            values = [fact[row] for fact in facts]
+            if not any(values):
+                continue
+            label = group if group != shown_group else ""
+            shown_group = group
+            name = "" if row == group else row
+            lines.append(f"| {label} | {name} | " + " | ".join(value or "—" for value in values)
+                         + f" | {_row_comparison(offers, row)} |")
     else:
         lines.extend(["| 要素 | Offer 数据 | 分析 |", "|---|---|---|"])
         lines.extend(f"| {name} | {data} | {note} |" for name, data, note in dimensions(offers[0]))
@@ -1227,7 +1293,7 @@ def format_position_overview(result: dict[str, Any]) -> str:
         lines.extend(["", f"## {section}. 特殊注意事项", ""])
         if many:
             shared = [note for note in per_offer[0] if all(note in notes for notes in per_offer[1:])]
-            count = "两" if len(offers) == 2 else str(len(offers))
+            count = "两三四五六七八九"[len(offers) - 2] if len(offers) <= 9 else str(len(offers))
             if shared:
                 lines.extend([f"**{count}份岗位共同**", "", *(f"- **{topic}**：{detail}" for topic, detail in shared), ""])
             for item, notes in zip(offers, per_offer):

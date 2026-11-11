@@ -234,8 +234,9 @@ class PositionOverviewTests(unittest.TestCase):
         first = answer.splitlines()[0]
         self.assertIn("甲 更高，每周多剩约", first)
         self.assertIn("两份岗位按当前工时都无法回本", first)
-        self.assertIn("| 甲 时薪高 $3.50，税费低约 5 个百分点 |", answer)
-        self.assertIn("| 甲 每周便宜 $50 |", answer)
+        self.assertIn("| 收入 | 时薪 | $14.50/h | $11/h | 甲 高 $3.50 |", answer)
+        self.assertIn("|  | 税费 | 约 10%，无州所得税 | 约 15%（联邦和州） | 甲 低约 5 个百分点 |", answer)
+        self.assertIn("| 住宿 | 周租 | $100/周 | $150/周 | 甲 每周少 $50 |", answer)
         self.assertIn("| 甲 需先有 SSN 才能开工 |", answer)
         notes = answer.split("特殊注意事项", 1)[1]
         self.assertIn("**两份岗位共同**", notes)
@@ -379,7 +380,7 @@ class PositionOverviewTests(unittest.TestCase):
             {"label": "乙", "wage_usd_per_hour": 17, "hours_per_week": 35},
         )
         answer = format_position_overview(result)
-        self.assertIn("| 要素 | 甲 | 乙 | 分析 |", answer)
+        self.assertIn("| 要素 | 项目 | 甲 | 乙 | 分析 |", answer)
         table = answer.split("## 1. 六维分析\n\n", 1)[1].split("\n\n", 1)[0]
         self.assertEqual(len(re.findall(r"(?m)^\| (?:收入|住宿|生活成本|交通|二工|落地便利) \|", table)), 6)
 
