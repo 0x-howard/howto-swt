@@ -74,7 +74,7 @@ class StudentOutputContractTests(unittest.TestCase):
         offers[0]["details"] = {"nearest_city": "Boston", "nearest_city_hours": 2, "days_per_week": 5}
         offers[1]["details"] = {"nearest_city": "Denver", "nearest_city_hours": 6, "days_per_week": 6}
         offers[2]["details"] = {"nearest_city": "Seattle", "nearest_city_hours": 3, "days_per_week": 6}
-        text = format_position_overview(calculate_position_overview({"offers": offers, "core_goal": "experience"}))
+        text = format_position_overview(calculate_position_overview({"offers": offers, "core_goal": "experience", "missing_confirmed": True}))
         self.assertIn('| 要素 | 项目 | 0 | 2 | 3 |', text)
         self.assertIn('按你的诉求（旅行与体验），0 最匹配：距 Boston 约 2 小时、周末可往返大城市、每周上班约 5 天。', text)
         self.assertIn('- **距大城市**：0 更近，距 Boston 约 2 小时。', text)
@@ -85,7 +85,7 @@ class StudentOutputContractTests(unittest.TestCase):
         a, b = offer('A'), offer('B', 18)
         a["details"] = {"customer_facing": True, "english_level": "Advanced", "cultural_activities": "雇主组织周末出游。"}
         b["details"] = {"customer_facing": False, "tips": True}
-        text = format_position_overview(calculate_position_overview({"offers": [a, b], "core_goal": "english"}))
+        text = format_position_overview(calculate_position_overview({"offers": [a, b], "core_goal": "english", "missing_confirmed": True}))
         self.assertIn('按你的诉求（提升英语与文化交流），A 最匹配：面向顾客、日常用英语沟通、英语要求 Advanced、有文化交流活动。', text)
         self.assertIn('- **面向顾客**：A 面向顾客，B 以后台工作为主。', text)
         self.assertIn('- **工作英语环境**：岗位面向顾客，日常用英语沟通；雇主要求英语 Advanced。', text)
@@ -106,6 +106,23 @@ class StudentOutputContractTests(unittest.TestCase):
         item["details"] = {"amenities": ["超市", ""]}
         with self.assertRaises(ValueError):
             calculate_position_overview({"offers": [item]})
+
+    def test_missing_offer_fields_are_asked_before_analysis(self):
+        item = offer('A')
+        item["details"] = {"tips": True}
+        text = format_position_overview(calculate_position_overview({"offers": [item]}))
+        self.assertTrue(text.startswith('我这里检测不到以下信息，麻烦你看一遍 Offer 提供给我：'))
+        self.assertIn('- 餐饮安排（Meals）', text)
+        self.assertIn('- 住宿押金（Deposit amount）', text)
+        self.assertNotIn('小费（Tips）', text)
+        self.assertNotIn('六维分析', text)
+        self.assertTrue(text.endswith('Offer 上确实没写的，回复「没写」，我按估算继续。'))
+        confirmed = format_position_overview(calculate_position_overview({"offers": [item], "missing_confirmed": True}))
+        self.assertIn('## 1. 六维分析', confirmed)
+        typed = offer('B')
+        del typed["expected_hours"]
+        asked = format_position_overview(calculate_position_overview({"offers": [typed], "missing_confirmed": True}))
+        self.assertIn('- 每周工时（Estimated hours per week）', asked)
 
     def test_direct_skill_contract(self):
         router = (ROOT / 'skills/swt/SKILL.md').read_text(encoding='utf-8')

@@ -702,11 +702,46 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
     }
 
 
+OFFER_FIELD_CHECKS = (
+    ("工作起止日期（Start / End date）", ("offer_start_date", "start_date", "work_weeks"), False),
+    ("住宿费用（Cost Amount）", ("rent_usd_per_week",), False),
+    ("小费（Tips）", ("tips",), True),
+    ("餐饮安排（Meals）", ("meals",), True),
+    ("住宿押金（Deposit amount）", ("housing_deposit_usd",), True),
+    ("通勤方式与时间（Transportation details）",
+     ("employer_transport", "commute_walk_minutes", "commute_bike_minutes", "commute_drive_minutes"), True),
+    ("能否找二工（Possibility to find a second job）", ("second_job_allowed",), True),
+    ("是否需先有 SSN 才能上班（require SSN）", ("ssn_required_before_work",), True),
+)
+
+
+def _missing_fields(raws: list[Any], *, details_too: bool) -> list[dict[str, Any]]:
+    """Ask before analysing; offers typed by hand (no details) only need wage and hours."""
+    missing = []
+    for index, raw in enumerate(raws):
+        if not isinstance(raw, dict):
+            continue
+        _offer_details(raw.get("details"), f"input.offers[{index}].details")
+        fields = []
+        if "wage_usd_per_hour" not in raw:
+            fields.append("时薪（Hourly wage）")
+        if "hours_per_week" not in raw and "expected_hours" not in raw:
+            fields.append("每周工时（Estimated hours per week）")
+        if details_too and isinstance(raw.get("details"), dict):
+            for name, keys, in_details in OFFER_FIELD_CHECKS:
+                source = raw["details"] if in_details else raw
+                if not any(key in source for key in keys):
+                    fields.append(name)
+        if fields:
+            missing.append({"label": raw.get("label", f"岗位 {index + 1}"), "fields": fields})
+    return missing
+
+
 def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
     """Calculate a one-result SWT comparison with explicit provenance for every fallback."""
     _exact_keys(
         data, {"mode", "offers", "fx_cny_per_usd", "fx_source", "fx_quote_date", "project_cost_cny", "project_cost_usd", "tax",
-               "comparison_hours", "core_goal", "selected_offer_ids"},
+               "comparison_hours", "core_goal", "selected_offer_ids", "missing_confirmed"},
         {"offers"}, "input",
     )
     if data.get("mode", "position_overview") != "position_overview":
@@ -723,7 +758,13 @@ def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
             raise ValueError("input.fx_quote_date: use YYYY-MM-DD") from error
     if any(key in data for key in ("fx_source", "fx_quote_date")) and "fx_cny_per_usd" not in data:
         raise ValueError("exchange rate metadata requires fx_cny_per_usd")
+    if "missing_confirmed" in data and not isinstance(data["missing_confirmed"], bool):
+        raise ValueError("input.missing_confirmed: use true or false")
     defaults = _overview_defaults()
+    missing = _missing_fields(data["offers"], details_too=len(data["offers"]) <= 3 and not data.get("missing_confirmed"))
+    if missing:
+        return {"mode": "position_overview", "assumptions_version": defaults["version"], "stage": "ask_missing",
+                "missing_fields": missing}
     offers = [_overview_offer(raw, data, defaults, index) for index, raw in enumerate(data["offers"])]
     ids = [item["id"] for item in offers]
     if len(ids) != len(set(ids)):
@@ -861,6 +902,12 @@ def _narrow_offers(data: dict[str, Any], offers: list[dict[str, Any]], defaults:
 
 
 def _format_narrowing(result: dict[str, Any]) -> str:
+    if result["stage"] == "ask_missing":
+        lines = ["我这里检测不到以下信息，麻烦你看一遍 Offer 提供给我：", ""]
+        for entry in result["missing_fields"]:
+            lines.extend([f"**{entry['label']}**", "", *(f"- {field}" for field in entry["fields"]), ""])
+        lines.append("Offer 上确实没写的，回复「没写」，我按估算继续。")
+        return "\n".join(lines)
     offers = result["offers"]
     if result["stage"] == "ask_core_goal":
         names = "  ".join(f"{index}. {item['label']}" for index, item in enumerate(offers, 1))

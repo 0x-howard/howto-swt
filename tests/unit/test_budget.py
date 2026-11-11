@@ -207,7 +207,7 @@ class PositionOverviewTests(unittest.TestCase):
                    "ssn_required_before_work": True, "ssn_employer_assist": True, "ssn_office": "Concord, NH",
                    "ssn_office_miles": 30, "training_reduced_hours": True, "open_availability": True,
                    "multiple_locations": 3, "dress_code": "自备防滑鞋。"}
-        answer = format_position_overview(calculate_position_overview({"fx_cny_per_usd": 6.8, "offers": [{
+        answer = format_position_overview(calculate_position_overview({"fx_cny_per_usd": 6.8, "missing_confirmed": True, "offers": [{
             "label": "Dunkin", "city": "Meredith", "state": "NH", "wage_usd_per_hour": 14.5, "hours_per_week": 32,
             "rent_usd_per_week": 100, "details": details}]}))
         self.assertTrue(answer.startswith("**假设项目费 ¥25,000，按 $14.50/h、平均每周 32 小时计算"))
@@ -225,7 +225,7 @@ class PositionOverviewTests(unittest.TestCase):
 
     def test_two_offers_compare_in_analysis_and_group_shared_notes(self):
         shared = {"tips": True, "second_job_allowed": True, "sponsor": "CHI"}
-        answer = format_position_overview(calculate_position_overview({"fx_cny_per_usd": 6.8, "offers": [
+        answer = format_position_overview(calculate_position_overview({"fx_cny_per_usd": 6.8, "missing_confirmed": True, "offers": [
             {"label": "甲", "state": "NH", "wage_usd_per_hour": 14.5, "hours_per_week": 32, "rent_usd_per_week": 100,
              "details": {**shared, "ssn_required_before_work": True}},
             {"label": "乙", "state": "SC", "wage_usd_per_hour": 11, "hours_per_week": 32, "rent_usd_per_week": 150,
