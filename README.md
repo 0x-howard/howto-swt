@@ -1,10 +1,10 @@
 # HowTo SWT
 
-![版本](https://img.shields.io/badge/version-1.5.3-2563EB.svg?style=flat-square) ![语言](https://img.shields.io/badge/语言-中文-16A34A.svg?style=flat-square)
+![版本](https://img.shields.io/badge/version-1.6.0-2563EB.svg?style=flat-square) ![语言](https://img.shields.io/badge/语言-中文-16A34A.svg?style=flat-square)
 
 ## HowTo SWT 是什么
 
-HowTo SWT 是 Howard 为 J-1 Summer Work Travel（SWT）学生制作的中文 AI Skills 工具箱，共 6 个 Skill。安装到 Claude Code、Cursor、Codex、WorkBuddy、豆包等支持 Skills 的 Agent 后，叫一声"小How"就能用。
+HowTo SWT 是 Howard 为 J-1 Summer Work Travel（SWT）学生制作的中文 AI Skills 工具箱，共 7 个 Skill。安装到 Claude Code、Cursor、Codex、WorkBuddy、豆包等支持 Skills 的 Agent 后，叫一声"小How"就能用。
 
 装好后，你可以让小How：
 
@@ -57,8 +57,9 @@ npx -y skills add 0x-howard/howto-swt -g --all
 | [`swt-application`](skills/swt-application/SKILL.md) | 机构、Sponsor、合同付款和申请材料 | 机构让我先交项目费，合同没写退款条件，我该看什么？ |
 | [`swt-position`](skills/swt-position/SKILL.md) | 分析和比较 Offer，算回本 | 帮我比较这两个 Offer，哪个最后剩得多？ |
 | [`swt-english`](skills/swt-english/SKILL.md) | 英语测评、口语练习和面试模拟 | 陪我模拟 Sponsor 英语面试，结束后给反馈 |
-| [`swt-visa`](skills/swt-visa/SKILL.md) | DS-2019、DS-160、SEVIS 费和面签 | DS-2019 和 DS-160 里的雇主信息不一样，怎么办？ |
-| [`swt-arrival`](skills/swt-arrival/SKILL.md) | 行前、入境、SSN、换岗和在美生活 | 刚到美国，要做 SEVIS Check-in，还想办 SSN，先做哪个？ |
+| [`swt-visa`](skills/swt-visa/SKILL.md) | DS-2019、DS-160、SEVIS 费、面签，用 J1 美签办加拿大签证 | DS-2019 和 DS-160 里的雇主信息不一样，怎么办？ |
+| [`swt-arrival`](skills/swt-arrival/SKILL.md) | 行前、入境、SSN、换岗和在美生活，驾照、州 ID、J1 转 F1、电话卡、银行卡、信用卡 | 刚到美国，要做 SEVIS Check-in，还想办 SSN，先做哪个？ |
+| [`swt-yangmao`](skills/swt-yangmao/SKILL.md) | 帮带、纽约测试、免费餐、HPV 疫苗、网购返利等省钱赚钱 | 我在纽约，有什么能赚点钱的测试？ |
 
 提问时附上这些信息，结果会更准确：
 
@@ -95,11 +96,11 @@ npx -y skills add 0x-howard/howto-swt -g --all
 <!-- CHANGELOG_LATEST_START -->
 | 版本 | 更新 |
 |---|---|
+| v1.6.0 | 新增合同雷点检查、加拿大签证、在美驾照电话卡银行卡指南和省钱赚钱 Skill；Free 广告每天只出现一次；回复「更新」才更新。 |
 | v1.5.3 | 口语测试支持语音输入，开场先问面试类型，结果格式统一。 |
 | v1.5.2 | 岗位分析改为结论加三部分；多份 Offer 按赴美诉求对比；读不到的信息直接请你补充。 |
 | v1.5.1 | 回复 1 就能直接更新；Codex 里显示中文用途；补充 Windows 安装说明。 |
 | v1.5.0 | 读取 PDF 和截图里的 Offer，按最新汇率换算人民币，支持更多 Agent。 |
-| v1.4.0 | 说清任务就直接开始，岗位分析改为六个方面加两张回本表。 |
 <!-- CHANGELOG_LATEST_END -->
 
 [完整更新记录](docs/CHANGELOG.md)
@@ -112,7 +113,7 @@ npx -y skills add 0x-howard/howto-swt -g --all
 更新小How
 ```
 
-更新只换 HowTo SWT 自己的 6 个 Skill，你装的其他 Skill 和保存的资料都不动
+更新只换 HowTo SWT 自己的 7 个 Skill，你装的其他 Skill 和保存的资料都不动
 
 - [新手入门](docs/新手入门.md)
 - [安装说明](docs/INSTALL.md)

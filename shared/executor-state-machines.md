@@ -36,6 +36,7 @@ State identifies where the current task is inside its owning Executor. It is not
 - `CONFLICT_OR_MISSING` is conditional: skip it when material facts are complete and consistent.
 - Stop fact optimization when critical documents conflict.
 - This Executor never predicts issuance or acts as the consular authority.
+- Canada visa via CAN+ first checks eligibility (current valid US visa or a Canada visit within 10 years), then timing, fees and passport mailing.
 
 ## `swt-arrival`
 
@@ -44,6 +45,15 @@ State identifies where the current task is inside its owning Executor. It is not
 - Emergency safety checks can bypass ordinary intake.
 - Order I-94, Sponsor check-in, SSN, insurance, job or housing changes by their real dependencies.
 - Distinguish notified, submitted, system-confirmed, and approved.
+- Driver license, state ID, J1-to-F1, phone plans, bank accounts, credit cards and brokers follow the documented setup order; every price, bonus or policy carries its verification date and official entry.
+
+## `swt-yangmao`
+
+`INTAKE -> TOPIC_SELECT -> GUIDE -> NEXT_ACTION`
+
+- `TOPIC_SELECT` is skipped when the user already named a topic.
+- Every price, program or policy carries its verification date and official entry.
+- Documents, phone, bank and in-US processes return to the Router for `swt-arrival`; Canada visa returns for `swt-visa`.
 
 ## Transition rules
 

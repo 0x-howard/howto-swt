@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
-from free_update import CACHE_SECONDS, check_update, mark_updated, valid_notice  # noqa: E402
+from free_update import AD_TEXT, CACHE_SECONDS, check_update, daily_ad, mark_updated, valid_notice  # noqa: E402
 
 
 def payload(version, notice="新功能说明"):
@@ -32,7 +32,7 @@ class FreeUpdateTests(unittest.TestCase):
         self.assertEqual(same["status"], "UP_TO_DATE")
         newer = check_update(env=self.env, now=1000 + CACHE_SECONDS + 1, fetch_json=payload("99.0.0", "可以直接发截图"))
         self.assertEqual(newer["status"], "UPDATE_AVAILABLE")
-        self.assertEqual(newer["message"], "HowTo SWT v99.0.0：可以直接发截图 回复 1，我现在帮你更新。")
+        self.assertEqual(newer["message"], "HowTo SWT v99.0.0：可以直接发截图 回复「更新」，我现在帮你更新。")
         self.assertEqual(json.loads((ROOT / "plugin.json").read_text(encoding="utf-8"))["version"], current)
 
     def test_explicit_local_version_works_without_plugin_manifest(self):
@@ -92,14 +92,27 @@ class FreeUpdateTests(unittest.TestCase):
         )
         self.assertEqual((cli.returncode, cli.stdout, cli.stderr), (0, "", ""))
 
-    def test_cli_prints_nothing_when_offline(self):
-        result = subprocess.run(
-            [sys.executable, str(ROOT / "scripts/free_update.py"), "--local-version", "1.0.0"],
-            env={"HOWTO_HOME": self.temp.name, "HOWTO_FREE_METADATA_URL": "http://127.0.0.1:9/UPDATE.json"},
-            text=True, capture_output=True, check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout, "")
+    def test_cli_offline_prints_only_the_daily_ad_once(self):
+        def run():
+            return subprocess.run(
+                [sys.executable, str(ROOT / "scripts/free_update.py"), "--local-version", "1.0.0"],
+                env={"HOWTO_HOME": self.temp.name, "HOWTO_FREE_METADATA_URL": "http://127.0.0.1:9/UPDATE.json"},
+                text=True, capture_output=True, check=False,
+            )
+        first, second = run(), run()
+        self.assertEqual(first.returncode, 0, first.stderr)
+        self.assertEqual(first.stdout, AD_TEXT + "\n")
+        self.assertEqual(second.stdout, "")
+
+    def test_daily_ad_once_per_local_day(self):
+        self.assertEqual(daily_ad(env=self.env, now=1_000_000), AD_TEXT)
+        self.assertIsNone(daily_ad(env=self.env, now=1_000_060))
+        self.assertEqual(daily_ad(env=self.env, now=1_000_000 + 86_400), AD_TEXT)
+
+    def test_update_check_keeps_ad_date(self):
+        daily_ad(env=self.env, now=1_000_000)
+        check_update(env=self.env, now=1_000_000, fetch_json=payload("99.0.0"), local_version="1.0.0")
+        self.assertIsNone(daily_ad(env=self.env, now=1_000_060))
 
     def test_update_json_and_router_version_match_release(self):
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()

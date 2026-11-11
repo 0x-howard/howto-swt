@@ -61,5 +61,6 @@ Interaction UI does not weaken authorization. Edition replacement and other sens
 - `swt-visa`: multiple valid next actions → `single_choice`; one required next action stays direct.
 - `swt-application`: finite stage confirmation → `single_choice`; a missing document value uses free text.
 - `swt-arrival`: multiple valid action paths → `single_choice`; emergencies bypass ordinary choice.
+- `swt-yangmao`: no topic named → `single_choice` (A–E, where E hands off to `swt-arrival`); a named topic stays direct.
 
 These are semantic examples, not copies to paste into five Skill files.

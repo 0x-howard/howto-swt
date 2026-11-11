@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate plugin manifests, six Skill frontmatters and eval fixture links."""
+"""Validate plugin manifests, seven Skill frontmatters and eval fixture links."""
 
 from __future__ import annotations
 
@@ -96,8 +96,8 @@ def validate_plugin() -> int:
     if not (REFERENCES_ROOT / "user-state.schema.json").is_file():
         raise ValueError("user-state schema is missing")
     paths = list(SKILLS_ROOT.glob("*/SKILL.md"))
-    if len(paths) != 6:
-        raise ValueError(f"expected six discoverable Skills, found {len(paths)}")
+    if len(paths) != 7:
+        raise ValueError(f"expected seven discoverable Skills, found {len(paths)}")
     for path in paths:
         frontmatter = _parse_frontmatter(path)
         if frontmatter["name"] != path.parent.name:
@@ -117,8 +117,8 @@ def validate_plugin() -> int:
 def validate_generated() -> int:
     runtime_root = REFERENCES_ROOT / "shared-runtime"
     paths = sorted(runtime_root.glob("*.md")) if runtime_root.is_dir() else []
-    if len(paths) != 6:
-        raise ValueError(f"expected six generated shared-runtime files, found {len(paths)}")
+    if len(paths) != 7:
+        raise ValueError(f"expected seven generated shared-runtime files, found {len(paths)}")
     for path in paths:
         content = path.read_text(encoding="utf-8")
         for marker in ("GENERATED FILE: DO NOT EDIT", "<!-- Source: shared/", "Regenerate with: python3 scripts/sync_shared.py"):

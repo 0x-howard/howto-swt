@@ -1,6 +1,6 @@
 ---
 name: swt-application
-description: 处理 J-1 SWT 报名和申请：选机构和 Sponsor、看合同和付款、准备简历和视频、填 Sponsor 系统和雇主申请、跟进申请状态。用户要准备、提交、核对或更正申请材料时使用；不判断岗位值不值得去，不做英语练习，不处理签证表格。
+description: 处理 J-1 SWT 报名和申请：选机构和 Sponsor、检查机构合同雷点和付款、准备简历和视频、填 Sponsor 系统和雇主申请、跟进申请状态。用户要准备、提交、核对或更正申请材料时使用；不判断岗位值不值得去，不做英语练习，不处理签证表格。
 ---
 
 # SWT Application
@@ -9,7 +9,23 @@ description: 处理 J-1 SWT 报名和申请：选机构和 Sponsor、看合同�
 
 ## 开始前
 
-先完整读取 [共享运行规则](references/shared-runtime/swt-application.md)。涉及机构、Sponsor、合同或付款时读取 [机构与 Sponsor](references/agency-sponsor.md)；涉及材料、简历、视频、系统、雇主申请或 Offer 流程时读取 [申请材料](references/application-materials.md)。只加载当前任务所需资料。
+先完整读取 [共享运行规则](references/shared-runtime/swt-application.md)。涉及机构、Sponsor、合同或付款时读取 [机构与 Sponsor](references/agency-sponsor.md)；用户发来机构合同、协议或告知书，或问“这份合同有没有坑”时，再读取 [合同雷点指南](references/contract-red-flags.md)；涉及材料、简历、视频、系统、雇主申请或 Offer 流程时读取 [申请材料](references/application-materials.md)。只加载当前任务所需资料。
+
+## 入口
+
+用户从首页选“报名 / 申请 / 看机构合同”但没说具体任务时，只问一次：
+
+你想做哪一件？
+A. 选机构和 Sponsor
+B. 看机构合同有没有坑
+C. 简历和视频
+D. 填 Sponsor 系统、查申请进度
+
+## 看合同
+
+1. 用户还没发合同时，先说：“请发完整合同，包括特别告知、附件、补充协议和缴费告知单，PDF、Word 或逐页拍照都可以。你已经签了吗？”已发合同但没说签约状态时，只补问“你已经签了吗？”。
+2. 读完后按 [合同雷点指南](references/contract-red-flags.md) 的“缺页检查”确认材料完整，缺的直接问用户，不猜。
+3. 按指南逐条对照，签约前和签约后用不同的建议，按指南的输出格式回答。
 
 ## 工作流
 

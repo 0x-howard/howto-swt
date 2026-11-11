@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check the public HowTo SWT UPDATE.json and print one reminder line when a newer version exists."""
+"""Print the Free daily ad (once per local day) and a reminder line when a newer HowTo SWT version exists."""
 
 from __future__ import annotations
 
@@ -19,6 +19,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_METADATA_URL = "https://raw.githubusercontent.com/0x-howard/howto-swt/main/UPDATE.json"
 CACHE_SECONDS = 24 * 60 * 60
 NOTICE_MAX_CHARS = 80
+AD_TEXT = ("想让小How持续记住你的 SWT 进度并获得真人陪跑？加入 HowTo SWT Pro。\n"
+           "作者：Howard｜@哎哟不想上早八啊（全平台同名）")
 SEMVER = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
 
 
@@ -35,7 +37,7 @@ def valid_notice(value: Any) -> bool:
 
 
 def reminder(version: str, notice: str) -> str:
-    return f"HowTo SWT v{version}：{notice.strip()} 回复 1，我现在帮你更新。"
+    return f"HowTo SWT v{version}：{notice.strip()} 回复「更新」，我现在帮你更新。"
 
 
 def _local_version(explicit: str | None) -> str | None:
@@ -94,6 +96,22 @@ def mark_updated(*, env: dict[str, str] | None = None, now: float | None = None)
     _write_cache(path, {**_read_cache(path), "last_checked_epoch": moment, "last_checked": _timestamp(moment)})
 
 
+def daily_ad(*, env: dict[str, str] | None = None, now: float | None = None) -> str | None:
+    """Return the Free ad once per local calendar day; never when the shown date cannot be recorded."""
+    source_env = dict(os.environ if env is None else env)
+    moment = time.time() if now is None else now
+    path = _cache_path(source_env)
+    cached = _read_cache(path)
+    today = datetime.fromtimestamp(moment).date().isoformat()
+    if cached.get("last_ad_date") == today:
+        return None
+    try:
+        _write_cache_file(path, {**cached, "last_ad_date": today})
+    except OSError:
+        return None
+    return AD_TEXT
+
+
 def check_update(*, env: dict[str, str] | None = None, now: float | None = None,
                  fetch_json: Callable[[str], dict[str, Any]] | None = None,
                  metadata_url: str | None = None, local_version: str | None = None) -> dict[str, Any]:
@@ -128,7 +146,7 @@ def check_update(*, env: dict[str, str] | None = None, now: float | None = None,
         if not valid_notice(notice):
             raise ValueError("invalid notice")
         _write_cache(cache_path, {
-            "last_checked_epoch": moment, "last_checked": timestamp,
+            **_read_cache(cache_path), "last_checked_epoch": moment, "last_checked": timestamp,
             "current_version": current, "latest_seen": latest,
         })
         if latest_tuple > current_tuple:
@@ -149,11 +167,16 @@ def main() -> int:
     if args.mark_updated:
         mark_updated()
         return 0
+    ad = daily_ad()
     result = check_update(local_version=args.local_version)
     if args.json:
-        print(json.dumps(result, ensure_ascii=False))
-    elif result["status"] == "UPDATE_AVAILABLE":
-        print(result["message"])
+        print(json.dumps({**result, "ad": ad}, ensure_ascii=False))
+        return 0
+    blocks = [ad] if ad else []
+    if result["status"] == "UPDATE_AVAILABLE":
+        blocks.append(f"> 🔔 {result['message']}")
+    if blocks:
+        print("\n\n".join(blocks))
     return 0
 
 

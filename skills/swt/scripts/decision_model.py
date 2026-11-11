@@ -10,7 +10,7 @@ INTENTS = frozenset({
     "ENGLISH_MOCK", "ENGLISH_RECORDING", "ENGLISH_RETRY", "ENGLISH_PROGRESS",
     "GENERAL_ENGLISH", "FORM_FILLING", "CONFLICT", "CALCULATION", "EMERGENCY", "GENERAL_QA",
 })
-SKILLS = frozenset({"swt", "swt-application", "swt-position", "swt-english", "swt-visa", "swt-arrival"})
+SKILLS = frozenset({"swt", "swt-application", "swt-position", "swt-english", "swt-visa", "swt-arrival", "swt-yangmao"})
 INTENT_ROUTES = {
     "NAVIGATION": frozenset({"swt"}),
     "DOCUMENT_CHECK": SKILLS,
@@ -26,7 +26,7 @@ INTENT_ROUTES = {
     "CONFLICT": SKILLS,
     "CALCULATION": frozenset({"swt-position"}),
     "EMERGENCY": frozenset({"swt", "swt-arrival"}),
-    "GENERAL_QA": frozenset({"swt"}),
+    "GENERAL_QA": frozenset({"swt", "swt-yangmao"}),
 }
 STAGES = frozenset(f"{i:02d}" for i in range(12))
 CONFIDENCE = frozenset({"high", "medium", "low"})

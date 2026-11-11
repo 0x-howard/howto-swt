@@ -2,7 +2,7 @@
 
 ```text
 howto-swt/
-├── skills/*/SKILL.md               六个可独立发现的 Skill 行为规则
+├── skills/*/SKILL.md               七个可独立发现的 Skill 行为规则
 ├── references/                     跨 Specialist 共用知识层与运行时资料
 │   ├── knowledge/state_context/    唯一州级 State Context
 │   └── shared-runtime/             由 shared/ 同步生成
@@ -15,7 +15,7 @@ howto-swt/
 USER_DATA_ROOT/                     用户显式配置的独立持久化目录
 ```
 
-用户安装一次 Plugin。宿主发现 `skills/` 下六个 Skill；`swt` 是 Orchestrator / Router，其余五个是 Domain Executor。
+用户安装一次 Plugin。宿主发现 `skills/` 下七个 Skill；`swt` 是 Orchestrator / Router，其余六个是 Domain Executor。
 
 ```text
 Router -> Routing Policy -> Handoff Contract -> Domain Executor -> Executor State Machine
@@ -29,7 +29,7 @@ Router 选择 `DIRECT / CONFIRM / CLARIFY` 并整理已知上下文；明确任�
 
 面向用户的回答按 `shared/answer-framework.md` 的 Analyze → Compress → Present → Edit 形成。Compress 按当前用户问题把信息分为 P1–P4，复杂回答先生成通常 3–5 个有独立信息价值的编号结论；`shared/editorial-policy.md` 的 Clarity Gate 再检查只看编号和首句能否理解答案。风险、证据、状态 Schema、任务类型及州级字段均可用于后台完整核查，但不是默认可见提纲；Specialist 输出先合并、压缩，再呈现。完整州级卡仅在用户明确需要字段清单时提供。
 
-每个 `skills/{skill}/SKILL.md` 手工维护；同目录下的 `references/`、`scripts/`、`assets/` 由同步脚本从根目录真源生成，供单个 Skill 独立安装，不得手工编辑。`--runtime-root` 可把六个自包含 Skill 复制到 `~/.workbuddy/skills/` 等扁平部署目录。
+每个 `skills/{skill}/SKILL.md` 手工维护；同目录下的 `references/`、`scripts/`、`assets/` 由同步脚本从根目录真源生成，供单个 Skill 独立安装，不得手工编辑。`--runtime-root` 可把七个自包含 Skill 复制到 `~/.workbuddy/skills/` 等扁平部署目录。
 
 ## 责任边界
 
@@ -38,7 +38,8 @@ Router 选择 `DIRECT / CONFIRM / CLARIFY` 并整理已知上下文；明确任�
 - `swt-position`：岗位／城市／住房／通勤比较、二工可行性和预算情景。
 - `swt-english`：场景化英语 Assessment 与基于弱项的口语 Practice、Sponsor／雇主面试、工作沟通、口语模拟与纠错。
 - `swt-visa`：DS-2019、DS-160、SEVIS Fee、预约、面签、签证材料和冲突。
-- `swt-arrival`：行前、入境、SEVIS Check-in、I-94、SSN、保险、变更与项目结束。
+- `swt-arrival`：行前、入境、SEVIS Check-in、I-94、SSN、保险、变更与项目结束；驾照、州 ID、J1 转 F1、电话卡、银行卡和信用卡。
+- `swt-yangmao`：帮带、纽约测试、免费餐、HPV 疫苗、网购返利等省钱赚钱。
 
 脚本只处理确定性计算、校验和构建，不代替业务判断。SWT Map 原始抓取、当前下载与清洗中间产物存放在工作区私有的 `workspace-docs/source-data/swt-data-source/`；安装包只保留经核验的运行层数据。跨 conversation 用户状态只可在用户明确配置的外部 `USER_DATA_ROOT` 中保存，不回退写入插件仓库。
 

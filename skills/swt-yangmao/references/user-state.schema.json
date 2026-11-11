@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HowTo SWT minimal user state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "updated_at"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "profile": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "program_year": {"type": ["integer", "null"], "minimum": 2000, "maximum": 2100},
+        "home_country": {"type": ["string", "null"], "maxLength": 100},
+        "school_name": {"type": ["string", "null"], "maxLength": 160},
+        "major": {"type": ["string", "null"], "maxLength": 120},
+        "school_status": {"type": ["string", "null"], "enum": ["enrolled", "graduated", "unknown", null]},
+        "target_profile": {"type": ["string", "null"], "enum": ["agency", "sponsor", "host", "visa", null]}
+      }
+    },
+    "stage": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "current": {"type": ["string", "null"], "pattern": "^(0[0-9]|1[01])$"},
+        "completed": {"type": "array", "items": {"type": "string", "pattern": "^(0[0-9]|1[01])$"}, "uniqueItems": true}
+      }
+    },
+    "preferences": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "priorities": {"type": "array", "items": {"type": "string", "maxLength": 80}, "maxItems": 10},
+        "constraints": {"type": "array", "items": {"type": "string", "maxLength": 160}, "maxItems": 20}
+      }
+    },
+    "program": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "agency_name": {"type": ["string", "null"], "maxLength": 120},
+        "sponsor_name": {"type": ["string", "null"], "maxLength": 120},
+        "position_summary": {"type": ["string", "null"], "maxLength": 500},
+        "verified_program_dates": {"type": ["string", "null"], "maxLength": 120}
+      }
+    },
+    "offers": {
+      "type": "array", "maxItems": 10,
+      "items": {"type": "object", "additionalProperties": false, "required": ["role", "status"], "properties": {
+        "role": {"type": "string", "maxLength": 120},
+        "employer_name": {"type": ["string", "null"], "maxLength": 160},
+        "location": {"type": ["string", "null"], "maxLength": 120},
+        "wage_summary": {"type": ["string", "null"], "maxLength": 120},
+        "housing_summary": {"type": ["string", "null"], "maxLength": 200},
+        "status": {"type": "string", "enum": ["researching", "applied", "offered", "accepted", "declined", "completed", "unknown"]}
+      }}
+    },
+    "english": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "assessment_summary": {"type": ["object", "null"], "additionalProperties": false, "properties": {
+          "profile": {"type": "string", "enum": ["agency_generic", "sponsor_generic", "host_generic", "visa_interview_generic", "comprehensive"]},
+          "readiness": {"type": ["string", "null"], "maxLength": 80},
+          "top_weaknesses": {"type": "array", "items": {"type": "string", "maxLength": 80}, "maxItems": 7},
+          "assessed_at": {"type": ["string", "null"], "format": "date-time"}
+        }},
+        "practice_summary": {"type": ["object", "null"], "additionalProperties": false, "properties": {
+          "profile": {"type": "string", "enum": ["agency_practice", "sponsor_practice", "host_practice", "visa_interview_practice"]},
+          "focus_dimensions": {"type": "array", "items": {"type": "string", "maxLength": 80}, "maxItems": 7},
+          "session_improvements": {"type": "array", "items": {"type": "string", "maxLength": 160}, "maxItems": 10},
+          "completed_at": {"type": ["string", "null"], "format": "date-time"}
+        }}
+      }
+    },
+    "visa": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "verified_facts": {"type": "array", "maxItems": 20, "items": {"type": "object", "additionalProperties": false, "required": ["field", "value", "status"], "properties": {
+          "field": {"type": "string", "enum": ["program_year", "sponsor_name", "role", "program_start", "program_end", "interview_language_goal"]},
+          "value": {"type": "string", "maxLength": 180},
+          "status": {"type": "string", "enum": ["confirmed", "pending_verification"]}
+        }}}
+      }
+    },
+    "arrival": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "arrival_window": {"type": ["string", "null"], "maxLength": 100},
+        "checkin_status": {"type": ["string", "null"], "enum": ["not_started", "in_progress", "complete", "unknown", null]},
+        "pending_tasks": {"type": "array", "items": {"type": "string", "maxLength": 120}, "maxItems": 20}
+      }
+    }
+  }
+}

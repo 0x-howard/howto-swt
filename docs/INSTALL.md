@@ -12,6 +12,8 @@ npx -y skills add 0x-howard/howto-swt -g --all
 
 装好后开一个新对话，输入 `你好小How` 试一下
 
+第一次使用时，Agent 可能弹窗询问是否允许运行 `free_update.py`。这是小How 检查新版本用的，选“总是允许”后就不会再问
+
 安装前电脑上需要有 Node.js（用来运行 `npx`）和 Python 3（小How 算收入、回本时要用）
 
 ## Windows 用户
@@ -45,9 +47,9 @@ npx -y skills add 0x-howard/howto-swt -g --all
 
 有新版本时，小How 会在回答最后提醒一句，例如：
 
-> 🔔 HowTo SWT v1.6.0：xxx 回复 1，我现在帮你更新。
+> 🔔 HowTo SWT v1.6.0：xxx 回复「更新」，我现在帮你更新。
 
-回复 `1`，或随时对小How说“更新小How”，它会帮你运行更新命令。Agent 弹出权限窗口时，选择允许即可。更新后开一个新对话
+回复“更新”，或随时对小How说“更新小How”，它会帮你运行更新命令。Agent 弹出权限窗口时，选择允许即可。更新后开一个新对话
 
 也可以自己在终端运行：
 
@@ -60,5 +62,5 @@ Pro 版不走这个更新，新版本由 Howard 发新的安装包
 ## 卸载
 
 ```bash
-npx skills remove swt swt-application swt-position swt-english swt-visa swt-arrival
+npx skills remove swt swt-application swt-position swt-english swt-visa swt-arrival swt-yangmao
 ```

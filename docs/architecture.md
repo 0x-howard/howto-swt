@@ -7,15 +7,16 @@
 任务不清楚 / 涉及多件事 → swt 先判断阶段 → 交给对应 Skill
 ```
 
-`swt` 负责导航：判断阶段、选择 Skill、把已知信息传过去。其余 5 个 Skill 各管一件事：
+`swt` 负责导航：判断阶段、选择 Skill、把已知信息传过去。其余 6 个 Skill 各管一件事：
 
 | Skill | 负责 |
 | --- | --- |
 | `swt-application` | 报名、机构、Sponsor、合同付款、申请材料 |
 | `swt-position` | Offer 分析与比较、回本测算 |
 | `swt-english` | 英语测评、练习、面试模拟 |
-| `swt-visa` | DS-2019、DS-160、SEVIS 费、面签 |
-| `swt-arrival` | 行前、入境、SSN、换岗、在美生活 |
+| `swt-visa` | DS-2019、DS-160、SEVIS 费、面签、加拿大签证 |
+| `swt-arrival` | 行前、入境、SSN、换岗、在美生活，驾照、州 ID、J1 转 F1、电话卡、银行卡、信用卡 |
+| `swt-yangmao` | 帮带、纽约测试、免费餐、HPV 疫苗、网购返利 |
 
 Agent 不能直接切换 Skill 时，小How 会告诉你怎么继续。交接规则见 [`shared/handoff-contract.md`](../shared/handoff-contract.md)，各 Skill 的处理步骤见 [`shared/executor-state-machines.md`](../shared/executor-state-machines.md)
 

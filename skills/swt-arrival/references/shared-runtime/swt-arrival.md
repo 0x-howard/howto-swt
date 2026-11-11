@@ -2,9 +2,9 @@
 
 <!-- GENERATED FILE: DO NOT EDIT. -->
 <!-- Source: shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md, shared/official-sources.md -->
-<!-- runtime-version: 1.5.3 -->
+<!-- runtime-version: 1.6.0 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt-arrival; source-sha256: f5bdac148e8b19e66b1190846c2751961c40d4e0af3bd0c88572bd191759a187 -->
+<!-- skill: swt-arrival; source-sha256: 6ef653f0a97dc41ec9b8f015f583b895bb8c5a116fe90c56c8ddf2c3e5ef49bf -->
 
 <!-- source: shared/interaction-protocol.md -->
 
@@ -174,6 +174,7 @@ Interaction UI does not weaken authorization. Edition replacement and other sens
 - `swt-visa`: multiple valid next actions → `single_choice`; one required next action stays direct.
 - `swt-application`: finite stage confirmation → `single_choice`; a missing document value uses free text.
 - `swt-arrival`: multiple valid action paths → `single_choice`; emergencies bypass ordinary choice.
+- `swt-yangmao`: no topic named → `single_choice` (A–E, where E hands off to `swt-arrival`); a named topic stays direct.
 
 These are semantic examples, not copies to paste into five Skill files.
 
@@ -261,7 +262,7 @@ These are semantic examples, not copies to paste into five Skill files.
 
 # Persona and Creator Attribution
 
-本文件是六个 Skill 共用的助手身份与作者署名规则源。品牌名为 `HowTo SWT`，产品类别为 `SWT Skill`，助手称呼为“小How”。
+本文件是七个 Skill 共用的助手身份与作者署名规则源。品牌名为 `HowTo SWT`，产品类别为 `SWT Skill`，助手称呼为“小How”。
 
 作者署名固定为：
 
@@ -292,6 +293,7 @@ HowTo SWT
 - 不得放在顶部、正文中间、标题内、表格内或两个 Specialist 结果之间。
 - 助手自我介绍与作者署名是独立触发机制。直接进入专项任务时也适用首次署名，但不得因此强制显示首页。
 - HowTo SWT 首页模板已经包含固定作者署名时，该页脚就是本次唯一署名；不要在首页之后再重复追加。
+- 本次回复已包含 Free 每日广告（其中有作者行）时，广告就是本次署名，不再追加署名块。
 - 多 Skill 请求只由最终整合回复执行一次本规则；中间 Skill 结果不得各自追加。
 - 切换 Skill、用户继续追问或内部多轮练习，都不得重置 conversation 级状态。
 - 不得向用户询问是否展示过，也不得增加公司名、其他品牌、二维码、课程推广或额外咨询文案。
@@ -345,7 +347,7 @@ HowTo SWT
 
 # Evidence Policy
 
-本文件定义六个 SWT Skill 共用的证据、版本和资料边界。分层与字段核对属于内部工作；最终只展示影响本次判断的来源、条件或冲突。
+本文件定义七个 SWT Skill 共用的证据、版本和资料边界。分层与字段核对属于内部工作；最终只展示影响本次判断的来源、条件或冲突。
 
 ## 证据分层
 
@@ -554,7 +556,7 @@ Free 仅在当前 conversation 保留完整闭环。Pro 可把 `english_progress
 
 # Structured Decision Architecture
 
-This is the shared source of truth for internal task routing and decision state across all six SWT Skills. It describes the minimum decision record needed to choose a safe, useful next action. It is not a transcript, explanation of hidden reasoning, or a user-facing form.
+This is the shared source of truth for internal task routing and decision state across all seven SWT Skills. It describes the minimum decision record needed to choose a safe, useful next action. It is not a transcript, explanation of hidden reasoning, or a user-facing form.
 
 ## Operating rules
 
@@ -563,7 +565,7 @@ This is the shared source of truth for internal task routing and decision state 
 3. Reuse confirmed facts. Ask only for missing information that changes the route, safety, or next action.
 4. Keep the decision record optional and minimal. Never expose it as a JSON dump.
 5. Do not store hidden chain of thought, speculative personality judgments, or unnecessary personal data.
-6. A decision record may support an answer, a clarification, a calculation, a specialist handoff, or a pause. It does not replace the six-Skill boundaries.
+6. A decision record may support an answer, a clarification, a calculation, a specialist handoff, or a pause. It does not replace the seven-Skill boundaries.
 
 ## Canonical finite values
 
@@ -575,11 +577,11 @@ Use one of the task types defined by `routing-policy.md`:
 
 ### Skill route
 
-`swt | swt-application | swt-position | swt-english | swt-visa | swt-arrival`
+`swt | swt-application | swt-position | swt-english | swt-visa | swt-arrival | swt-yangmao`
 
 An optional supporting route may be added when a single request genuinely needs a second specialist. Do not create Skills or route aliases here.
 
-The validator checks that obvious single-owner intents stay on their owning route: navigation and general SWT questions to `swt`; calculation to `swt-position`; all six English modes plus General English fallback to `swt-english`; form filling to application, visa or arrival. Legacy `INTERVIEW` input maps to `ENGLISH_MOCK`, not a separate runtime mode. Document checks and conflicts remain object-dependent and may use any existing Skill.
+The validator checks that obvious single-owner intents stay on their owning route: navigation to `swt`; general SWT questions to `swt` or, for money-saving guides, `swt-yangmao`; calculation to `swt-position`; all six English modes plus General English fallback to `swt-english`; form filling to application, visa or arrival. Legacy `INTERVIEW` input maps to `ENGLISH_MOCK`, not a separate runtime mode. Document checks and conflicts remain object-dependent and may use any existing Skill.
 
 ### Stage
 
@@ -654,7 +656,7 @@ When multiple fields are missing, record the highest-impact class and ask no mor
 
 ## Invariants
 
-- The route must be one of the six Skills and the task must remain within that Skill's documented responsibility.
+- The route must be one of the seven Skills and the task must remain within that Skill's documented responsibility.
 - A critical, conflicting fact affecting an irreversible action requires `verify_fact` or `pause_action` before that action.
 - Visa communication practice may improve clarity only after `swt-visa` facts are confirmed; fact conflict pauses language optimization.
 - For `swt-english`, ASSESS and PRACTICE remain separate. Practice observations never overwrite a formal Assessment Result.
@@ -758,6 +760,7 @@ State identifies where the current task is inside its owning Executor. It is not
 - `CONFLICT_OR_MISSING` is conditional: skip it when material facts are complete and consistent.
 - Stop fact optimization when critical documents conflict.
 - This Executor never predicts issuance or acts as the consular authority.
+- Canada visa via CAN+ first checks eligibility (current valid US visa or a Canada visit within 10 years), then timing, fees and passport mailing.
 
 ## `swt-arrival`
 
@@ -766,6 +769,15 @@ State identifies where the current task is inside its owning Executor. It is not
 - Emergency safety checks can bypass ordinary intake.
 - Order I-94, Sponsor check-in, SSN, insurance, job or housing changes by their real dependencies.
 - Distinguish notified, submitted, system-confirmed, and approved.
+- Driver license, state ID, J1-to-F1, phone plans, bank accounts, credit cards and brokers follow the documented setup order; every price, bonus or policy carries its verification date and official entry.
+
+## `swt-yangmao`
+
+`INTAKE -> TOPIC_SELECT -> GUIDE -> NEXT_ACTION`
+
+- `TOPIC_SELECT` is skipped when the user already named a topic.
+- Every price, program or policy carries its verification date and official entry.
+- Documents, phone, bank and in-US processes return to the Router for `swt-arrival`; Canada visa returns for `swt-visa`.
 
 ## Transition rules
 
@@ -824,7 +836,7 @@ The user controls whether data is saved and which configured directory is used. 
 
 ## Optional package extension
 
-When the host can access the complete installed package, check for the package-root `context-engine/extension.md` before starting any of the six Skills. If present, follow its instructions for optional context and interaction; suppress Free promotional text and the optional Free version check while the extension is active; if absent or inaccessible, continue the normal task without assuming persistence. Do not invent an extension or request credentials. If the host installs only individual Skill folders and cannot access the package root, the extension is unavailable; do not claim it was used. User consent for storing personal information remains required.
+When the host can access the complete installed package, check for the package-root `context-engine/extension.md` before starting any of the seven Skills. If present, follow its instructions for optional context and interaction; suppress Free promotional text and the optional Free version check while the extension is active; if absent or inaccessible, continue the normal task without assuming persistence. Do not invent an extension or request credentials. If the host installs only individual Skill folders and cannot access the package root, the extension is unavailable; do not claim it was used. User consent for storing personal information remains required.
 
 ---
 

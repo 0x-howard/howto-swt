@@ -17,7 +17,7 @@ from budget import calculate_position_overview, format_position_overview  # noqa
 from decision_model import validate_decision  # noqa: E402
 from user_state import load_state, save_state  # noqa: E402
 
-SKILLS = {"swt", "swt-application", "swt-position", "swt-english", "swt-visa", "swt-arrival"}
+SKILLS = {"swt", "swt-application", "swt-position", "swt-english", "swt-visa", "swt-arrival", "swt-yangmao"}
 INTENTS = {"NAVIGATION", "DOCUMENT_CHECK", "DECISION", "ENGLISH_ASSESSMENT", "ENGLISH_PRACTICE", "ENGLISH_MOCK", "ENGLISH_RECORDING", "ENGLISH_RETRY", "ENGLISH_PROGRESS", "GENERAL_ENGLISH", "FORM_FILLING", "CONFLICT", "CALCULATION", "EMERGENCY", "GENERAL_QA"}
 
 class PackageTests(unittest.TestCase):
@@ -48,7 +48,7 @@ class PackageTests(unittest.TestCase):
         self.assertIn("0x-howard/howto-swt", install)
         self.assertNotIn("远端仓库改名和发布完成前", readme)
 
-    def test_exactly_six_discoverable_skills(self):
+    def test_exactly_seven_discoverable_skills(self):
         found = {p.parent.name for p in (ROOT / "skills").glob("*/SKILL.md")}
         self.assertEqual(found, SKILLS)
         for skill in SKILLS:
@@ -102,19 +102,61 @@ class PackageTests(unittest.TestCase):
         self.assertIn("用户只说“你好”“hello”“hi”或“在吗”时，不要求未激活的宿主抢占", homepage)
         self.assertIn("HowTo SWT 怎么用", homepage)
         self.assertIn("HowTo SWT\n作者：Howard", identity)
-        footer = re.sub(r"  \n", "\n", homepage)
-        self.assertIn(marker, footer)
-        self.assertEqual(footer.count(marker), 1)
+        script = (ROOT / "scripts/free_update.py").read_text(encoding="utf-8")
+        self.assertIn(marker.replace("\n", '\\n"\n           "'), script)
+        self.assertNotIn("加入 HowTo SWT Pro", homepage)
+        self.assertIn("广告只来自下面脚本的输出", homepage)
         self.assertIn("不展示首页，立即处理任务", identity)
         self.assertIn("同一 conversation 后续不重复自我介绍", identity)
         self.assertEqual(identity.count("HowTo SWT\n作者：Howard"), 1)
+
+    def test_canada_visa_arrival_setup_and_yangmao_split(self):
+        def read(rel):
+            return (ROOT / rel).read_text(encoding="utf-8")
+        router = read("skills/swt/SKILL.md")
+        self.assertIn("references/visa-canada.md", read("skills/swt-visa/SKILL.md"))
+        arrival = read("skills/swt-arrival/SKILL.md")
+        for name in ("arrival-documents.md", "arrival-phone.md", "arrival-bank.md"):
+            self.assertIn(f"references/{name}", arrival)
+        yangmao = read("skills/swt-yangmao/SKILL.md")
+        self.assertIn("references/yangmao-saving.md", yangmao)
+        self.assertNotIn("arrival-", yangmao)
+        self.assertIn("CAN+", read("references/visa-canada.md"))
+        self.assertIn("州 ID", read("references/arrival-documents.md"))
+        self.assertIn("_referral=P33V8D25", read("references/arrival-phone.md"))
+        saving = read("references/yangmao-saving.md")
+        self.assertIn("uTest ID：2922925", saving)
+        self.assertIn("由 Howard 上传 refer 表", saving)
+        self.assertIn("rakuten.com/r/LIGUOH5", saving)
+        self.assertIn("6. 薅羊毛：省钱赚钱", router)
+        self.assertNotIn("skills remove swt-arrival", router)
+        for name in ("visa-canada.md", "arrival-documents.md", "arrival-phone.md", "arrival-bank.md", "yangmao-saving.md"):
+            self.assertNotIn("Fake DD", read(f"references/{name}"))
+
+    def test_contract_review_entry_and_guide(self):
+        router = (ROOT / "skills/swt/SKILL.md").read_text(encoding="utf-8")
+        application = (ROOT / "skills/swt-application/SKILL.md").read_text(encoding="utf-8")
+        guide = (ROOT / "references/contract-red-flags.md").read_text(encoding="utf-8")
+        self.assertIn("1. 报名 / 申请 / 看机构合同", router)
+        self.assertIn("用户可回复数字", router)
+        self.assertNotIn("用户可回复字母", router)
+        self.assertIn("你现在到哪一步了？", router)
+        self.assertIn("数字回复一律按首页或当前菜单的选项处理", router)
+        self.assertIn("小How帮我看看这份合同", router)
+        self.assertIn("B. 看机构合同有没有坑", application)
+        self.assertIn("你已经签了吗？", application)
+        for marker in (
+            "## 缺页检查", "## 签约前与签约后", "各阶段退出能拿回多少",
+            "退款只承诺“协助”", "| 条款 | 风险 | 建议 |", "不在回答中复述",
+        ):
+            self.assertIn(marker, guide)
 
     def test_direct_router_and_free_ad_stays_outside_handoff(self):
         router = (ROOT / "skills/swt/SKILL.md").read_text(encoding="utf-8")
         handoff = (ROOT / "shared/handoff-contract.md").read_text(encoding="utf-8")
         for item in (
             "1. 报名 / 申请", "2. 岗位 / Offer", "3. 英语测评 / 面试练习",
-            "4. Visa", "5. 行前 / 入境 / 美国生活", "6. 不确定，帮我判断下一步",
+            "4. 签证 / 加拿大签证", "5. 行前 / 入境 / 美国生活", "6. 薅羊毛：省钱赚钱", "7. 不确定，帮我判断下一步",
         ):
             self.assertIn(item, router)
         self.assertIn("直接交给对应 Skill 执行", router)
@@ -124,10 +166,10 @@ class PackageTests(unittest.TestCase):
         start = router.index("<!-- FREE_ROUTER_AD_START -->")
         end = router.index("<!-- FREE_ROUTER_AD_END -->")
         ad = router[start:end]
-        self.assertEqual(ad.count("加入 HowTo SWT Pro"), 1)
+        self.assertIn("Free 版每天第一次访问出现一次", ad)
 
     def test_current_naming_and_discovery_metadata(self):
-        names = ("swt", "swt-application", "swt-position", "swt-english", "swt-visa", "swt-arrival")
+        names = ("swt", "swt-application", "swt-position", "swt-english", "swt-visa", "swt-arrival", "swt-yangmao")
         self.assertEqual({p.parent.name for p in (ROOT / "skills").glob("*/SKILL.md")}, set(names))
 
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -189,14 +231,15 @@ class PackageTests(unittest.TestCase):
 
     def test_canonical_references_are_bundled_from_root_sources(self):
         expected = {
-            "swt-application": {"agency-sponsor.md", "application-materials.md"},
+            "swt-application": {"agency-sponsor.md", "application-materials.md", "contract-red-flags.md"},
             "swt-position": {"location-offer.md", "budget-method.md", "tax-estimation.md", "state-income-tax.md", "default-assumptions.json"},
             "swt-english": {
                 "english-practice.md", "english-assessment.md", "english-rubric.md",
                 "english-profiles.md", "english-question-bank.md", "english-speaking-coach.md",
             },
-            "swt-visa": {"visa-ds2019.md"},
-            "swt-arrival": {"predeparture-program.md"},
+            "swt-visa": {"visa-ds2019.md", "visa-canada.md"},
+            "swt-arrival": {"predeparture-program.md", "arrival-documents.md", "arrival-phone.md", "arrival-bank.md"},
+            "swt-yangmao": {"yangmao-saving.md"},
             "swt": {"interaction-adapters.md"},
         }
         for skill, references in expected.items():
@@ -277,7 +320,7 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(len(list((ROOT / "references/knowledge/state_context").glob("STATE_INDEX.md"))), 1)
         self.assertEqual(len(list(ROOT.rglob("state_context.py"))), 2)
         self.assertEqual(len(list(ROOT.rglob("budget.py"))), 2)
-        self.assertEqual(len(list((ROOT / "skills").glob("*/references/shared-runtime/*.md"))), 6)
+        self.assertEqual(len(list((ROOT / "skills").glob("*/references/shared-runtime/*.md"))), len(SKILLS))
         self.assertTrue((ROOT / "references/english-practice.md").is_file())
 
     def test_local_markdown_links_resolve(self):
@@ -404,7 +447,7 @@ class PackageTests(unittest.TestCase):
         self.assertIn("Practice 即时表现", practice)
         self.assertIn("`improved_dimensions`", practice)
         self.assertIn("正式进入 `ASSESS`", skill)
-        self.assertEqual(len(list((ROOT / "skills").glob("*/SKILL.md"))), 6)
+        self.assertEqual(len(list((ROOT / "skills").glob("*/SKILL.md"))), len(SKILLS))
 
     def test_no_legacy_layout_references(self):
         for path in ROOT.rglob("*.md"):

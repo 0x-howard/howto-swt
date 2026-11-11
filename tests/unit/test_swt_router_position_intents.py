@@ -40,6 +40,16 @@ class SwtRouterPositionIntentTests(unittest.TestCase):
     def test_location_word_does_not_override_arrival_intent(self):
         self.assert_route_row(SPECIALIST_PRIORITY, "到了 Myrtle Beach 第一周要做什么", "swt-arrival")
 
+    def test_bank_yangmao_with_location_routes_to_arrival(self):
+        self.assert_route_row(SPECIALIST_PRIORITY, "我在 Myrtle Beach 地区，帮我看看附近有没有银行羊毛可薅", "swt-arrival")
+        self.assertIn("“羊毛”只是说法，按对象路由", ROUTING)
+
+    def test_free_meal_with_location_routes_to_yangmao(self):
+        self.assert_route_row(SPECIALIST_PRIORITY, "Myrtle Beach 有没有免费餐", "swt-yangmao")
+
+    def test_canada_visa_routes_to_visa(self):
+        self.assert_route_row(SPECIALIST_PRIORITY, "能不能用 J1 美签办加拿大签证", "swt-visa")
+
     def test_location_word_does_not_override_application_intent(self):
         self.assert_route_row(SPECIALIST_PRIORITY, "申请 South Carolina 的岗位要准备什么材料", "swt-application")
 

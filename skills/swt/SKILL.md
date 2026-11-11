@@ -1,6 +1,6 @@
 ---
 name: swt
-description: 在用户明确称呼“小How”“小how”“小 HOW”“HowToSWT”“howtoswt”“HowTo SWT”“howto swt”或“howto-swt”及合理大小写／空格变体时调用本 Skill 作主入口，包括“你好小How”“你好小how”“小How你好”“小How你能干嘛”“HowTo SWT 怎么用”。明确任务绕过首页，例如“小How帮我看看这个岗位”直接调用 swt-position、“小How帮我准备 Sponsor 面试”直接调用 swt-english MOCK。仅“你好”“hello”“hi”“在吗”不触发；Skill 已激活后普通问候或 help 才显示首页。
+description: 在用户明确称呼“小How”“小how”“小 HOW”“HowToSWT”“howtoswt”“HowTo SWT”“howto swt”或“howto-swt”及合理大小写／空格变体时调用本 Skill 作主入口，包括“你好小How”“你好小how”“小How你好”“小How你能干嘛”“HowTo SWT 怎么用”。明确任务绕过首页，例如“小How帮我看看这个岗位”直接调用 swt-position、“小How帮我看看这份合同”直接调用 swt-application、“小How有什么羊毛可以薅”直接调用 swt-yangmao、“小How我在 Myrtle Beach，附近有没有银行羊毛”直接调用 swt-arrival、“小How帮我准备 Sponsor 面试”直接调用 swt-english MOCK。仅“你好”“hello”“hi”“在吗”不触发；Skill 已激活后普通问候或 help 才显示首页。
 ---
 
 # HowTo SWT Orchestrator
@@ -23,35 +23,37 @@ description: 在用户明确称呼“小How”“小how”“小 HOW”“HowToS
 
 ## 首页
 
-仅在 HowTo SWT 已激活且用户没有提出实际任务时简短显示：
-
-用户只说“你好”“hello”“hi”或“在吗”时，不要求未激活的宿主抢占。
+仅在 HowTo SWT 已激活且用户没有提出实际任务时简短显示以下菜单：
 
 你好，我在。你可以直接选一项：
 
-1. 报名 / 申请
+1. 报名 / 申请 / 看机构合同
 2. 岗位 / Offer
 3. 英语测评 / 面试练习
-4. Visa
-5. 行前 / 入境 / 美国生活
-6. 不确定，帮我判断下一步
+4. 签证 / 加拿大签证
+5. 行前 / 入境 / 美国生活：驾照、电话卡、银行卡
+6. 薅羊毛：省钱赚钱
+7. 不确定，帮我判断下一步
 
-回复数字，或者直接说你要办的事。选定后直接进入对应 Skill；宿主无法调度时才使用手动交接。
+回复数字，或者直接说你要办的事。
 
-不要同时展开完整流程。用户可回复字母，也可继续用自然语言。
+菜单只显示到上一句。选定后直接进入对应 Skill；宿主无法调度时才使用手动交接。不要同时展开完整流程。用户可回复数字，也可继续用自然语言。用户只说“你好”“hello”“hi”或“在吗”时，不要求未激活的宿主抢占。
+
+用户选 7 时，只问一次：“你现在到哪一步了？A. 还没报名，在选机构　B. 已报名，在申请岗位　C. 拿到 Offer 了　D. 在办签证　E. 准备出发　F. 已经在美国”。A、B 进入 `swt-application`；C 先问要评估 Offer（`swt-position`）还是处理签署流程（`swt-application`）；D 进入 `swt-visa`；E、F 进入 `swt-arrival`。用户补充的具体问题优先于这张对照。
 
 ## Executor 边界
 
 | 用户此刻要完成的任务 | Executor |
 |---|---|
-| 报名／申请链、机构与 Sponsor、合同付款、简历、视频、Sponsor 系统、雇主申请、Offer 流程完整性 | `swt-application` |
+| 报名／申请链、机构与 Sponsor、合同雷点检查与付款、简历、视频、Sponsor 系统、雇主申请、Offer 流程完整性 | `swt-application` |
 | 岗位／Offer 评估与比较、岗位选择、城市或州的 SWT 地点背景与比较、与岗位选择直接相关的地点判断、住房、通勤、生活成本、二工可行性、收益情景 | `swt-position` |
 | SWT 场景英语测评（Agency／Sponsor／Host／Visa／Comprehensive） | `swt-english` / `ASSESS`；Visa 事实核对同时用 `swt-visa` |
 | 按 Assessment 弱项训练、短反馈后 Retry、指定英语 Drill | `swt-english` / `PRACTICE`；Visa 事实核对同时用 `swt-visa` |
 | Sponsor／雇主／Visa 正式面试模拟 | `swt-english` / `MOCK`；Visa 事实核对同时用 `swt-visa` |
 | 非结构化工作沟通与表达纠错 | `swt-english` / `PRACTICE` 或 General English fallback |
-| DS-2019、DS-160、SEVIS Fee、签证预约、面签、签证材料和冲突 | `swt-visa` |
-| 行前、机票、入境、I-94、SEVIS Check-in、SSN、保险、在美变更和项目结束 | `swt-arrival` |
+| DS-2019、DS-160、SEVIS Fee、签证预约、面签、签证材料和冲突；用 J1 美签申请加拿大签证 | `swt-visa` |
+| 行前、机票、入境、I-94、SEVIS Check-in、SSN、保险、在美变更和项目结束；驾照、州 ID、J1 转 F1、电话卡与保号、银行卡、信用卡、美股券商，包括这些事项的开户和开卡奖励（银行羊毛、信用卡羊毛） | `swt-arrival` |
+| 帮带、纽约测试、免费餐、HPV 疫苗、网购返利等省钱赚钱；没说对象的“有什么羊毛” | `swt-yangmao` |
 
 主 Skill 自己只处理 `NAVIGATION`、紧急分流和尚未形成专项任务的一般 SWT 问题。完整路由表、地点词与专项任务的优先级、Handoff 字段和 Executor 状态机均以共享运行规则为准。
 
@@ -70,31 +72,28 @@ description: 在用户明确称呼“小How”“小how”“小 HOW”“HowToS
 ## Free 主入口广告
 
 <!-- FREE_ROUTER_AD_START -->
-仅当能可靠确认当前 Edition 为 Free 时，在首页菜单或完整回答**之后**，且不混入专业任务内容最多追加一次以下两行；不得复制进 Handoff，不得由任何子 Skill、MOCK、PRACTICE、ASSESS、RECORDING 或 RETRY 输出。Edition 不确定时省略。
-
-想让小How持续记住你的 SWT 进度并获得真人陪跑？加入 HowTo SWT Pro。
-作者：Howard｜@哎哟不想上早八啊（全平台同名）
+广告只来自下面脚本的输出：Free 版每天第一次访问出现一次，其他任何回复都不写广告，不自行补写、复述或改写；不得复制进 Handoff，不得由任何子 Skill 输出。
 <!-- FREE_ROUTER_AD_END -->
 
-## Free 版本检查
+## Free 广告与版本检查
 
-每个新的联网会话首次调用 HowTo SWT 时，定位本 `SKILL.md` 所在目录，运行：
+每个新会话首次调用 HowTo SWT 时，定位本 `SKILL.md` 所在目录，运行：
 
 ```bash
-python3 "<本 SKILL.md 所在目录>/scripts/free_update.py" --local-version 1.5.3
+python3 "<本 SKILL.md 所在目录>/scripts/free_update.py" --local-version 1.6.0
 ```
 
-- 命令有输出时，把输出原样放在本次完整回答的最末尾，单独一段：`> 🔔 {输出内容}`。同一次回复只放一次。
-- 命令无输出、失败或超时，直接继续，不提版本。不要编造提醒。
+- 命令有输出时（当天广告和／或 🔔 更新提醒），在本次回答正文之后原样放一次。输出里有广告时，广告中的作者行就是本次署名，不再追加署名块。
+- 命令无输出、失败或超时，直接继续，不提广告和版本。不要编造提醒。
 - 脚本 24 小时内最多联网一次，只读取 GitHub 上公开的 `UPDATE.json`，不修改已安装的文件。
-- 包根目录的扩展已启用时，不运行本检查。
+- 包根目录的扩展已启用（Pro）时，不运行本命令，也不出现广告。
 
 ## 更新小How
 
 以下两种情况直接执行更新，不再文字确认；宿主要求 Shell 权限时，由用户在权限窗口里决定：
 
 - 用户明确说“更新小How”“更新 HowTo SWT”“升级 howto-swt”等；
-- 上一条回复里有 🔔 更新提醒，用户紧接着只回复 `1`。没有这条提醒时，不把 `1` 当成更新。
+- 上一条回复里有 🔔 更新提醒，用户紧接着只回复“更新”。数字回复一律按首页或当前菜单的选项处理，不当成更新。
 
 包根目录的扩展已启用时不执行，告诉用户：Pro 版更新请找 Howard 获取新的安装包。
 
@@ -105,4 +104,4 @@ python3 "<本 SKILL.md 所在目录>/scripts/free_update.py" --local-version 1.5
 3. 告诉用户：更新完成，开一个新对话就能用新版本。
 4. 失败时用一句话说明原因和需要用户处理的事，例如网络或权限；不贴完整终端日志。
 
-只更新 HowTo SWT 的 6 个 Skill，不动用户装的其他 Skill，也不动用户保存的资料。
+只更新 HowTo SWT 自己的 Skill，不动用户装的其他 Skill，也不动用户保存的资料。

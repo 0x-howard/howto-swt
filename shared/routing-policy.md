@@ -2,7 +2,7 @@
 
 路由同时使用 `Task Type + SWT Stage + Known Context + Risk Level`，不得由单个关键词或阶段编号机械决定。
 
-六 Skill 共用的 Decision Record、有限枚举、Materiality 和缺失信息映射见 [decision-model.md](decision-model.md)。记录是可选的内部决策摘要；不输出隐藏推理，也不替代下列路由顺序及各 Skill 的职责边界。
+七个 Skill 共用的 Decision Record、有限枚举、Materiality 和缺失信息映射见 [decision-model.md](decision-model.md)。记录是可选的内部决策摘要；不输出隐藏推理，也不替代下列路由顺序及各 Skill 的职责边界。
 
 ## 三种路由决策
 
@@ -12,7 +12,7 @@
 - `CONFIRM`：存在两到四个合理且会产生不同结果的方向，只给对应的两到四个短选项，用户选择后再交接。
 - `CLARIFY`：缺少决定路由或安全性的最小必要信息，只问一个最高影响问题。
 
-五个明确任务都应 `DIRECT`：报名材料到 `swt-application`，岗位／Offer 分析到 `swt-position`，Sponsor 面试练习到 `swt-english`，DS-2019 核对到 `swt-visa`，抵美后 I-94 到 `swt-arrival`。“我收到一份 Offer，帮我处理”无法判断是申请状态还是岗位价值时用 `CONFIRM`。“帮我看看这个”且当前上下文没有对象时用 `CLARIFY`。
+六个明确任务都应 `DIRECT`：报名材料到 `swt-application`，岗位／Offer 分析到 `swt-position`，Sponsor 面试练习到 `swt-english`，DS-2019 核对到 `swt-visa`，抵美后 I-94 到 `swt-arrival`，纽约测试或免费餐到 `swt-yangmao`。“我收到一份 Offer，帮我处理”无法判断是申请状态还是岗位价值时用 `CONFIRM`。“帮我看看这个”且当前上下文没有对象时用 `CLARIFY`。
 
 必要时按 [Handoff Contract](handoff-contract.md) 内部传递上下文，或在宿主无法调度时回退到手动交接；交给 Executor 后使用 [Domain Executor State Machines](executor-state-machines.md)。已知事实不得重复询问，`changed_facts` 对同名旧事实优先。
 
@@ -30,9 +30,14 @@
 | “我在 Myrtle Beach 面签要准备什么” | `swt-visa` |
 | “帮我练 Myrtle Beach 雇主面试英语” | `swt-english` |
 | “到了 Myrtle Beach 第一周要做什么” | `swt-arrival` |
+| “Myrtle Beach 有没有免费餐” | `swt-yangmao` |
+| “我在 Myrtle Beach 地区，帮我看看附近有没有银行羊毛可薅” | `swt-arrival` |
+| “J1 能办什么信用卡”、“电话卡有什么羊毛” | `swt-arrival` |
+| “能不能用 J1 美签办加拿大签证” | `swt-visa` |
 | “申请 South Carolina 的岗位要准备什么材料” | `swt-application` |
 
 地点只是对象或背景，不覆盖明确的签证、英语、抵美或申请动作。
+“羊毛”只是说法，按对象路由：银行开户奖励、信用卡开卡奖励、券商、电话卡、驾照和州 ID 到 `swt-arrival`；加拿大签证到 `swt-visa`；帮带、测试、免费餐、HPV 疫苗、网购返利，或没说对象的“有什么羊毛”到 `swt-yangmao`。
 单独输入一个地名且当前没有任务对象时，留在 `swt` 总入口并使用 `CLARIFY`，不猜测为岗位分析。
 
 ## 路由顺序
@@ -66,7 +71,7 @@
 | `CONFLICT` | 文件、通知、版本、日期或状态不一致 | `swt` 先判风险，再按对象路由 |
 | `CALCULATION` | 预算、收入、启动现金或收益情景 | `swt-position` |
 | `EMERGENCY` | 人身、医疗、犯罪、即时安全或重大身份紧急问题 | `swt` 先紧急分流，必要时 arrival |
-| `GENERAL_QA` | 不属于以上类型的一般 SWT 问题 | `swt`；需专项知识时再路由 |
+| `GENERAL_QA` | 不属于以上类型的一般 SWT 问题 | `swt`；省钱赚钱和免费福利到 `swt-yangmao`；需其他专项知识时再路由 |
 
 ## 对象与责任
 
@@ -82,9 +87,10 @@
 - “测一下美签英语”：Visa domain context + `swt-english` / ASSESS with `visa_interview_generic`。
 - “综合 SWT 英语测评”：`swt-english` / ASSESS Comprehensive; gather one shared evidence set.
 - Host Assessment reuses existing Position Context. Other assessment wording includes “测一下口语”“机构口测”“测我的 Sponsor 英语” and “英语能不能面试 cashier”.
-- DS-2019、DS-160、I-901 SEVIS Fee、签证预约、面签材料和跨文件冲突：`swt-visa`。
+- DS-2019、DS-160、I-901 SEVIS Fee、签证预约、面签材料和跨文件冲突，以及用 J1 美签申请加拿大签证：`swt-visa`。
 - “签证需要什么材料”、DS-160 字段、面签事实核对或材料冲突：`swt-visa`，不因出现“英语”路由到 English。若用户同时要求测面签英语，Visa 负责提供／核实事实，English 负责表达测评。
-- 行前、机票、入境、I-94、SEVIS Check-in、SSN、保险、抵美后的 Sponsor 要求、换岗二工和项目结束：`swt-arrival`。
+- 行前、机票、入境、I-94、SEVIS Check-in、SSN、保险、抵美后的 Sponsor 要求、换岗二工和项目结束，以及驾照、州 ID、J1 转 F1、电话卡和保号、银行卡、信用卡和券商：`swt-arrival`。
+- 帮带、纽约测试、免费餐、HPV 疫苗和网购返利等省钱赚钱：`swt-yangmao`。
 
 SEVIS Fee 与 SEVIS Check-in 是不同任务：前者属于签证链，后者属于抵美报到链。
 

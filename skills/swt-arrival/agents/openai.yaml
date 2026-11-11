@@ -1,4 +1,4 @@
 interface:
   display_name: "swt-arrival（行前在美）"
-  short_description: "机票、入境、SEVIS 报到、SSN、保险、换岗和在美生活"
+  short_description: "机票、入境、SEVIS 报到、SSN、保险、换岗，驾照州 ID、J1 转 F1、电话卡、银行卡和信用卡"
   default_prompt: "使用 $swt-arrival，我快出发了，按先后顺序告诉我要办哪些事。"

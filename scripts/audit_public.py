@@ -20,6 +20,9 @@ PATTERNS = {
         re.IGNORECASE,
     ),
 }
+EXAMPLE_DOMAINS = {"example.com", "example.org", "example.net", "example.invalid"}
+# Referral contact the author chose to publish in the yangmao guide.
+PUBLISHED_EMAILS = {"leo040228@gmail.com"}
 TEXT_SUFFIXES = {".js", ".mjs", ".json", ".md", ".txt", ".py", ".toml", ".yaml", ".yml", ""}
 
 
@@ -54,8 +57,9 @@ for relative in publishable_files():
     for label, pattern in PATTERNS.items():
         if pattern.search(text):
             findings.append(f"{relative}: {label}")
-    for email in re.findall(r"[A-Z0-9._%+-]+@([A-Z0-9.-]+\.[A-Z]{2,})", text, re.IGNORECASE):
-        if email.lower() not in {"example.com", "example.org", "example.net", "example.invalid"}:
+    for email in re.findall(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", text, re.IGNORECASE):
+        domain = email.rsplit("@", 1)[1].lower()
+        if domain not in EXAMPLE_DOMAINS and email.lower() not in PUBLISHED_EMAILS:
             findings.append(f"{relative}: non-example email address")
 
 if findings:

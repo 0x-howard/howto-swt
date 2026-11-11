@@ -1,6 +1,6 @@
 {
   "product": "howto-swt",
-  "version": "1.5.3",
-  "notice": "口语测试支持语音输入，开场先问面试类型，结果格式统一。",
+  "version": "1.6.0",
+  "notice": "新增合同雷点检查、加拿大签证、在美驾照电话卡银行卡指南和省钱赚钱 Skill；Free 广告每天只出现一次；回复「更新」才更新。",
   "details_url": "https://github.com/0x-howard/howto-swt/blob/main/docs/CHANGELOG.md"
 }

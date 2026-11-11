@@ -1,6 +1,6 @@
 {
   "plugin": "howto-swt",
-  "version": "1.5.3",
+  "version": "1.6.0",
   "behavior_contract": {
     "routing_dimensions": [
       "Task Type",
@@ -1249,6 +1249,30 @@
         "由 swt-visa 核对并暂停不可逆动作",
         "不因用户要求润色而掩盖事实冲突"
       ]
+    },
+    {
+      "id": "application-contract-intake",
+      "conversation": "new",
+      "turns": ["小How帮我看看机构合同有没有坑"],
+      "expected": ["直接进入 swt-application，不显示首页", "请用户发完整合同，包括特别告知、附件、补充协议和缴费告知单", "问用户是否已经签约"]
+    },
+    {
+      "id": "application-contract-signed-review",
+      "conversation": "new",
+      "turns": ["我已经签了这份合同。合同写：申请人自愿接受主办方安排的岗位，不接受则项目费不予退还；申请人通过签证后，所交项目费不予退还；项目费由主办方代收，退款时主办方协助申请人向境外主办方申请退还。身份证号 110101200301011234。缴费告知单我没拍。"],
+      "expected": ["先问缴费告知单或收款账户，或把收款账户未确认写成风险", "列出各阶段退出能拿回多少的退款时间线", "用条款、风险、建议三列表格列出高风险条款，包括退款只承诺协助", "按已签约给建议，不写要求删除条款", "不复述身份证号"]
+    },
+    {
+      "id": "arrival-bank-yangmao-nearby",
+      "conversation": "new",
+      "turns": ["小How我在 Myrtle Beach 地区，帮我看看附近有没有银行羊毛可薅"],
+      "expected": ["直接进入 swt-arrival，不进入 swt-yangmao，也不因地名进入 swt-position", "说明资料里的开户奖励来自全国性银行和线上账户，在 Myrtle Beach 也能参加，并写核验日期", "按有没有 SSN 和工资入账给先开哪个的建议", "给官方网点查询入口，不编造具体网点地址或当地限定活动"]
+    },
+    {
+      "id": "yangmao-free-meal-location",
+      "conversation": "new",
+      "turns": ["小How Myrtle Beach 有没有免费餐"],
+      "expected": ["直接进入 swt-yangmao", "给教堂免费餐和 Food Pantry 的通用找法和查找入口", "资料里没有 Myrtle Beach 具体地点时不编造地址或时间"]
     }
   ],
   "product": "HowTo SWT"

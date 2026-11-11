@@ -2,9 +2,9 @@
 
 <!-- GENERATED FILE: DO NOT EDIT. -->
 <!-- Source: shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md, shared/routing-policy.md, shared/stage-model.md -->
-<!-- runtime-version: 1.5.3 -->
+<!-- runtime-version: 1.6.0 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt; source-sha256: 1d2a3dd82ca862e6b88193f850812c2628ba62b70de2901086d40c2d44c65bdf -->
+<!-- skill: swt; source-sha256: dd2dd35d4ab0c178a81a60377002e9981f7f496eca7ec7fefad8580db35bbadc -->
 
 <!-- source: shared/interaction-protocol.md -->
 
@@ -174,6 +174,7 @@ Interaction UI does not weaken authorization. Edition replacement and other sens
 - `swt-visa`: multiple valid next actions → `single_choice`; one required next action stays direct.
 - `swt-application`: finite stage confirmation → `single_choice`; a missing document value uses free text.
 - `swt-arrival`: multiple valid action paths → `single_choice`; emergencies bypass ordinary choice.
+- `swt-yangmao`: no topic named → `single_choice` (A–E, where E hands off to `swt-arrival`); a named topic stays direct.
 
 These are semantic examples, not copies to paste into five Skill files.
 
@@ -261,7 +262,7 @@ These are semantic examples, not copies to paste into five Skill files.
 
 # Persona and Creator Attribution
 
-本文件是六个 Skill 共用的助手身份与作者署名规则源。品牌名为 `HowTo SWT`，产品类别为 `SWT Skill`，助手称呼为“小How”。
+本文件是七个 Skill 共用的助手身份与作者署名规则源。品牌名为 `HowTo SWT`，产品类别为 `SWT Skill`，助手称呼为“小How”。
 
 作者署名固定为：
 
@@ -292,6 +293,7 @@ HowTo SWT
 - 不得放在顶部、正文中间、标题内、表格内或两个 Specialist 结果之间。
 - 助手自我介绍与作者署名是独立触发机制。直接进入专项任务时也适用首次署名，但不得因此强制显示首页。
 - HowTo SWT 首页模板已经包含固定作者署名时，该页脚就是本次唯一署名；不要在首页之后再重复追加。
+- 本次回复已包含 Free 每日广告（其中有作者行）时，广告就是本次署名，不再追加署名块。
 - 多 Skill 请求只由最终整合回复执行一次本规则；中间 Skill 结果不得各自追加。
 - 切换 Skill、用户继续追问或内部多轮练习，都不得重置 conversation 级状态。
 - 不得向用户询问是否展示过，也不得增加公司名、其他品牌、二维码、课程推广或额外咨询文案。
@@ -345,7 +347,7 @@ HowTo SWT
 
 # Evidence Policy
 
-本文件定义六个 SWT Skill 共用的证据、版本和资料边界。分层与字段核对属于内部工作；最终只展示影响本次判断的来源、条件或冲突。
+本文件定义七个 SWT Skill 共用的证据、版本和资料边界。分层与字段核对属于内部工作；最终只展示影响本次判断的来源、条件或冲突。
 
 ## 证据分层
 
@@ -554,7 +556,7 @@ Free 仅在当前 conversation 保留完整闭环。Pro 可把 `english_progress
 
 # Structured Decision Architecture
 
-This is the shared source of truth for internal task routing and decision state across all six SWT Skills. It describes the minimum decision record needed to choose a safe, useful next action. It is not a transcript, explanation of hidden reasoning, or a user-facing form.
+This is the shared source of truth for internal task routing and decision state across all seven SWT Skills. It describes the minimum decision record needed to choose a safe, useful next action. It is not a transcript, explanation of hidden reasoning, or a user-facing form.
 
 ## Operating rules
 
@@ -563,7 +565,7 @@ This is the shared source of truth for internal task routing and decision state 
 3. Reuse confirmed facts. Ask only for missing information that changes the route, safety, or next action.
 4. Keep the decision record optional and minimal. Never expose it as a JSON dump.
 5. Do not store hidden chain of thought, speculative personality judgments, or unnecessary personal data.
-6. A decision record may support an answer, a clarification, a calculation, a specialist handoff, or a pause. It does not replace the six-Skill boundaries.
+6. A decision record may support an answer, a clarification, a calculation, a specialist handoff, or a pause. It does not replace the seven-Skill boundaries.
 
 ## Canonical finite values
 
@@ -575,11 +577,11 @@ Use one of the task types defined by `routing-policy.md`:
 
 ### Skill route
 
-`swt | swt-application | swt-position | swt-english | swt-visa | swt-arrival`
+`swt | swt-application | swt-position | swt-english | swt-visa | swt-arrival | swt-yangmao`
 
 An optional supporting route may be added when a single request genuinely needs a second specialist. Do not create Skills or route aliases here.
 
-The validator checks that obvious single-owner intents stay on their owning route: navigation and general SWT questions to `swt`; calculation to `swt-position`; all six English modes plus General English fallback to `swt-english`; form filling to application, visa or arrival. Legacy `INTERVIEW` input maps to `ENGLISH_MOCK`, not a separate runtime mode. Document checks and conflicts remain object-dependent and may use any existing Skill.
+The validator checks that obvious single-owner intents stay on their owning route: navigation to `swt`; general SWT questions to `swt` or, for money-saving guides, `swt-yangmao`; calculation to `swt-position`; all six English modes plus General English fallback to `swt-english`; form filling to application, visa or arrival. Legacy `INTERVIEW` input maps to `ENGLISH_MOCK`, not a separate runtime mode. Document checks and conflicts remain object-dependent and may use any existing Skill.
 
 ### Stage
 
@@ -654,7 +656,7 @@ When multiple fields are missing, record the highest-impact class and ask no mor
 
 ## Invariants
 
-- The route must be one of the six Skills and the task must remain within that Skill's documented responsibility.
+- The route must be one of the seven Skills and the task must remain within that Skill's documented responsibility.
 - A critical, conflicting fact affecting an irreversible action requires `verify_fact` or `pause_action` before that action.
 - Visa communication practice may improve clarity only after `swt-visa` facts are confirmed; fact conflict pauses language optimization.
 - For `swt-english`, ASSESS and PRACTICE remain separate. Practice observations never overwrite a formal Assessment Result.
@@ -758,6 +760,7 @@ State identifies where the current task is inside its owning Executor. It is not
 - `CONFLICT_OR_MISSING` is conditional: skip it when material facts are complete and consistent.
 - Stop fact optimization when critical documents conflict.
 - This Executor never predicts issuance or acts as the consular authority.
+- Canada visa via CAN+ first checks eligibility (current valid US visa or a Canada visit within 10 years), then timing, fees and passport mailing.
 
 ## `swt-arrival`
 
@@ -766,6 +769,15 @@ State identifies where the current task is inside its owning Executor. It is not
 - Emergency safety checks can bypass ordinary intake.
 - Order I-94, Sponsor check-in, SSN, insurance, job or housing changes by their real dependencies.
 - Distinguish notified, submitted, system-confirmed, and approved.
+- Driver license, state ID, J1-to-F1, phone plans, bank accounts, credit cards and brokers follow the documented setup order; every price, bonus or policy carries its verification date and official entry.
+
+## `swt-yangmao`
+
+`INTAKE -> TOPIC_SELECT -> GUIDE -> NEXT_ACTION`
+
+- `TOPIC_SELECT` is skipped when the user already named a topic.
+- Every price, program or policy carries its verification date and official entry.
+- Documents, phone, bank and in-US processes return to the Router for `swt-arrival`; Canada visa returns for `swt-visa`.
 
 ## Transition rules
 
@@ -824,7 +836,7 @@ The user controls whether data is saved and which configured directory is used. 
 
 ## Optional package extension
 
-When the host can access the complete installed package, check for the package-root `context-engine/extension.md` before starting any of the six Skills. If present, follow its instructions for optional context and interaction; suppress Free promotional text and the optional Free version check while the extension is active; if absent or inaccessible, continue the normal task without assuming persistence. Do not invent an extension or request credentials. If the host installs only individual Skill folders and cannot access the package root, the extension is unavailable; do not claim it was used. User consent for storing personal information remains required.
+When the host can access the complete installed package, check for the package-root `context-engine/extension.md` before starting any of the seven Skills. If present, follow its instructions for optional context and interaction; suppress Free promotional text and the optional Free version check while the extension is active; if absent or inaccessible, continue the normal task without assuming persistence. Do not invent an extension or request credentials. If the host installs only individual Skill folders and cannot access the package root, the extension is unavailable; do not claim it was used. User consent for storing personal information remains required.
 
 ---
 
@@ -834,7 +846,7 @@ When the host can access the complete installed package, check for the package-r
 
 路由同时使用 `Task Type + SWT Stage + Known Context + Risk Level`，不得由单个关键词或阶段编号机械决定。
 
-六 Skill 共用的 Decision Record、有限枚举、Materiality 和缺失信息映射见 [decision model](#structured-decision-architecture)。记录是可选的内部决策摘要；不输出隐藏推理，也不替代下列路由顺序及各 Skill 的职责边界。
+七个 Skill 共用的 Decision Record、有限枚举、Materiality 和缺失信息映射见 [decision model](#structured-decision-architecture)。记录是可选的内部决策摘要；不输出隐藏推理，也不替代下列路由顺序及各 Skill 的职责边界。
 
 ## 三种路由决策
 
@@ -844,7 +856,7 @@ When the host can access the complete installed package, check for the package-r
 - `CONFIRM`：存在两到四个合理且会产生不同结果的方向，只给对应的两到四个短选项，用户选择后再交接。
 - `CLARIFY`：缺少决定路由或安全性的最小必要信息，只问一个最高影响问题。
 
-五个明确任务都应 `DIRECT`：报名材料到 `swt-application`，岗位／Offer 分析到 `swt-position`，Sponsor 面试练习到 `swt-english`，DS-2019 核对到 `swt-visa`，抵美后 I-94 到 `swt-arrival`。“我收到一份 Offer，帮我处理”无法判断是申请状态还是岗位价值时用 `CONFIRM`。“帮我看看这个”且当前上下文没有对象时用 `CLARIFY`。
+六个明确任务都应 `DIRECT`：报名材料到 `swt-application`，岗位／Offer 分析到 `swt-position`，Sponsor 面试练习到 `swt-english`，DS-2019 核对到 `swt-visa`，抵美后 I-94 到 `swt-arrival`，纽约测试或免费餐到 `swt-yangmao`。“我收到一份 Offer，帮我处理”无法判断是申请状态还是岗位价值时用 `CONFIRM`。“帮我看看这个”且当前上下文没有对象时用 `CLARIFY`。
 
 必要时按 [Handoff Contract](#skill-to-skill-handoff-contract) 内部传递上下文，或在宿主无法调度时回退到手动交接；交给 Executor 后使用 [Domain Executor State Machines](#domain-executor-state-machines)。已知事实不得重复询问，`changed_facts` 对同名旧事实优先。
 
@@ -862,9 +874,14 @@ When the host can access the complete installed package, check for the package-r
 | “我在 Myrtle Beach 面签要准备什么” | `swt-visa` |
 | “帮我练 Myrtle Beach 雇主面试英语” | `swt-english` |
 | “到了 Myrtle Beach 第一周要做什么” | `swt-arrival` |
+| “Myrtle Beach 有没有免费餐” | `swt-yangmao` |
+| “我在 Myrtle Beach 地区，帮我看看附近有没有银行羊毛可薅” | `swt-arrival` |
+| “J1 能办什么信用卡”、“电话卡有什么羊毛” | `swt-arrival` |
+| “能不能用 J1 美签办加拿大签证” | `swt-visa` |
 | “申请 South Carolina 的岗位要准备什么材料” | `swt-application` |
 
 地点只是对象或背景，不覆盖明确的签证、英语、抵美或申请动作。
+“羊毛”只是说法，按对象路由：银行开户奖励、信用卡开卡奖励、券商、电话卡、驾照和州 ID 到 `swt-arrival`；加拿大签证到 `swt-visa`；帮带、测试、免费餐、HPV 疫苗、网购返利，或没说对象的“有什么羊毛”到 `swt-yangmao`。
 单独输入一个地名且当前没有任务对象时，留在 `swt` 总入口并使用 `CLARIFY`，不猜测为岗位分析。
 
 ## 路由顺序
@@ -898,7 +915,7 @@ When the host can access the complete installed package, check for the package-r
 | `CONFLICT` | 文件、通知、版本、日期或状态不一致 | `swt` 先判风险，再按对象路由 |
 | `CALCULATION` | 预算、收入、启动现金或收益情景 | `swt-position` |
 | `EMERGENCY` | 人身、医疗、犯罪、即时安全或重大身份紧急问题 | `swt` 先紧急分流，必要时 arrival |
-| `GENERAL_QA` | 不属于以上类型的一般 SWT 问题 | `swt`；需专项知识时再路由 |
+| `GENERAL_QA` | 不属于以上类型的一般 SWT 问题 | `swt`；省钱赚钱和免费福利到 `swt-yangmao`；需其他专项知识时再路由 |
 
 ## 对象与责任
 
@@ -914,9 +931,10 @@ When the host can access the complete installed package, check for the package-r
 - “测一下美签英语”：Visa domain context + `swt-english` / ASSESS with `visa_interview_generic`。
 - “综合 SWT 英语测评”：`swt-english` / ASSESS Comprehensive; gather one shared evidence set.
 - Host Assessment reuses existing Position Context. Other assessment wording includes “测一下口语”“机构口测”“测我的 Sponsor 英语” and “英语能不能面试 cashier”.
-- DS-2019、DS-160、I-901 SEVIS Fee、签证预约、面签材料和跨文件冲突：`swt-visa`。
+- DS-2019、DS-160、I-901 SEVIS Fee、签证预约、面签材料和跨文件冲突，以及用 J1 美签申请加拿大签证：`swt-visa`。
 - “签证需要什么材料”、DS-160 字段、面签事实核对或材料冲突：`swt-visa`，不因出现“英语”路由到 English。若用户同时要求测面签英语，Visa 负责提供／核实事实，English 负责表达测评。
-- 行前、机票、入境、I-94、SEVIS Check-in、SSN、保险、抵美后的 Sponsor 要求、换岗二工和项目结束：`swt-arrival`。
+- 行前、机票、入境、I-94、SEVIS Check-in、SSN、保险、抵美后的 Sponsor 要求、换岗二工和项目结束，以及驾照、州 ID、J1 转 F1、电话卡和保号、银行卡、信用卡和券商：`swt-arrival`。
+- 帮带、纽约测试、免费餐、HPV 疫苗和网购返利等省钱赚钱：`swt-yangmao`。
 
 SEVIS Fee 与 SEVIS Check-in 是不同任务：前者属于签证链，后者属于抵美报到链。
 

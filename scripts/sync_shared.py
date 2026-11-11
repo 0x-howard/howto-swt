@@ -36,18 +36,20 @@ SOURCES_BY_SKILL = {
     "swt-english": COMMON_SOURCES,
     "swt-visa": COMMON_SOURCES + ("official-sources.md",),
     "swt-arrival": COMMON_SOURCES + ("official-sources.md",),
+    "swt-yangmao": COMMON_SOURCES,
 }
 
 DOMAIN_REFERENCES_BY_SKILL = {
     "swt": ("interaction-adapters.md",),
-    "swt-application": ("agency-sponsor.md", "application-materials.md"),
+    "swt-application": ("agency-sponsor.md", "application-materials.md", "contract-red-flags.md"),
     "swt-position": ("position-example.md", "offer-extraction.md", "location-offer.md", "budget-method.md", "tax-estimation.md", "state-income-tax.md", "default-assumptions.json"),
     "swt-english": (
         "english-practice.md", "english-assessment.md", "english-rubric.md",
         "english-profiles.md", "english-question-bank.md", "english-speaking-coach.md",
     ),
-    "swt-visa": ("visa-ds2019.md",),
-    "swt-arrival": ("predeparture-program.md",),
+    "swt-visa": ("visa-ds2019.md", "visa-canada.md"),
+    "swt-arrival": ("predeparture-program.md", "arrival-documents.md", "arrival-phone.md", "arrival-bank.md"),
+    "swt-yangmao": ("yangmao-saving.md",),
 }
 
 COMMON_PORTABLE_SCRIPTS = ("decision_model.py", "orchestration.py", "interaction.py", "paths.py", "user_state.py")
@@ -60,6 +62,7 @@ PORTABLE_SCRIPTS_BY_SKILL = {
     "swt-english": COMMON_PORTABLE_SCRIPTS + ("speaking_score.py", "english_speaking.py"),
     "swt-visa": COMMON_PORTABLE_SCRIPTS,
     "swt-arrival": COMMON_PORTABLE_SCRIPTS,
+    "swt-yangmao": COMMON_PORTABLE_SCRIPTS,
 }
 PORTABLE_ASSETS_BY_SKILL = {
     "swt-position": (

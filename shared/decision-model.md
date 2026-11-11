@@ -1,6 +1,6 @@
 # Structured Decision Architecture
 
-This is the shared source of truth for internal task routing and decision state across all six SWT Skills. It describes the minimum decision record needed to choose a safe, useful next action. It is not a transcript, explanation of hidden reasoning, or a user-facing form.
+This is the shared source of truth for internal task routing and decision state across all seven SWT Skills. It describes the minimum decision record needed to choose a safe, useful next action. It is not a transcript, explanation of hidden reasoning, or a user-facing form.
 
 ## Operating rules
 
@@ -9,7 +9,7 @@ This is the shared source of truth for internal task routing and decision state 
 3. Reuse confirmed facts. Ask only for missing information that changes the route, safety, or next action.
 4. Keep the decision record optional and minimal. Never expose it as a JSON dump.
 5. Do not store hidden chain of thought, speculative personality judgments, or unnecessary personal data.
-6. A decision record may support an answer, a clarification, a calculation, a specialist handoff, or a pause. It does not replace the six-Skill boundaries.
+6. A decision record may support an answer, a clarification, a calculation, a specialist handoff, or a pause. It does not replace the seven-Skill boundaries.
 
 ## Canonical finite values
 
@@ -21,11 +21,11 @@ Use one of the task types defined by `routing-policy.md`:
 
 ### Skill route
 
-`swt | swt-application | swt-position | swt-english | swt-visa | swt-arrival`
+`swt | swt-application | swt-position | swt-english | swt-visa | swt-arrival | swt-yangmao`
 
 An optional supporting route may be added when a single request genuinely needs a second specialist. Do not create Skills or route aliases here.
 
-The validator checks that obvious single-owner intents stay on their owning route: navigation and general SWT questions to `swt`; calculation to `swt-position`; all six English modes plus General English fallback to `swt-english`; form filling to application, visa or arrival. Legacy `INTERVIEW` input maps to `ENGLISH_MOCK`, not a separate runtime mode. Document checks and conflicts remain object-dependent and may use any existing Skill.
+The validator checks that obvious single-owner intents stay on their owning route: navigation to `swt`; general SWT questions to `swt` or, for money-saving guides, `swt-yangmao`; calculation to `swt-position`; all six English modes plus General English fallback to `swt-english`; form filling to application, visa or arrival. Legacy `INTERVIEW` input maps to `ENGLISH_MOCK`, not a separate runtime mode. Document checks and conflicts remain object-dependent and may use any existing Skill.
 
 ### Stage
 
@@ -100,7 +100,7 @@ When multiple fields are missing, record the highest-impact class and ask no mor
 
 ## Invariants
 
-- The route must be one of the six Skills and the task must remain within that Skill's documented responsibility.
+- The route must be one of the seven Skills and the task must remain within that Skill's documented responsibility.
 - A critical, conflicting fact affecting an irreversible action requires `verify_fact` or `pause_action` before that action.
 - Visa communication practice may improve clarity only after `swt-visa` facts are confirmed; fact conflict pauses language optimization.
 - For `swt-english`, ASSESS and PRACTICE remain separate. Practice observations never overwrite a formal Assessment Result.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "swt-yangmao（省钱赚钱）"
+  short_description: "帮带、纽约测试、免费餐、HPV 疫苗、网购返利等省钱赚钱攻略"
+  default_prompt: "使用 $swt-yangmao，我在美国，有哪些省钱赚钱的羊毛可以薅？"
