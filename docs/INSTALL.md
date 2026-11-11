@@ -12,6 +12,14 @@ npx -y skills add 0x-howard/howto-swt -g --all
 
 装好后开一个新对话，输入 `你好小How` 试一下
 
+安装前电脑上需要有 Node.js（用来运行 `npx`）和 Python 3（小How 算收入、回本时要用）
+
+## Windows 用户
+
+- 在 PowerShell 里运行上面的安装命令
+- 从 [python.org](https://www.python.org/downloads/) 安装 Python，安装时勾选 “Add python.exe to PATH”
+- 装好后在 PowerShell 输入 `python --version`，能看到版本号就说明可以用了
+
 ## 各 Agent 的安装位置和调用方式
 
 | Agent | 全局安装位置 | 手动调用 |
