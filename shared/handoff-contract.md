@@ -1,6 +1,6 @@
 # Skill-to-Skill Handoff Contract
 
-HowTo SWT uses one semantic handoff shape between the `swt` Router and the five Domain Executors. The Router uses it as an internal context exchange when the host supports direct Skill dispatch; user-facing prompts are a fallback only. It is an operational contract, not hidden chain of thought.
+HowTo SWT uses one semantic handoff shape between the `swt` Router and the six Domain Executors. The Router uses it as an internal context exchange when the host supports direct Skill dispatch; user-facing prompts are a fallback only. It is an operational contract, not hidden chain of thought.
 
 ## Canonical shape
 
@@ -48,3 +48,11 @@ Missing facts needed inside an already selected Executor do not automatically ch
 An Executor accepts either a direct user task or a matching internal/manual handoff, starts at a valid state, performs domain work, and returns a compact result containing conclusion, material evidence or uncertainty, current state, blockers, and next action. It may request another specialist through the Router, but it must not silently take ownership of another domain.
 
 The Router does not combine results in the handoff turn. It does not rewrite domain facts or perform the specialist's analysis. The rendered prompt may expose the operational fields needed for user confirmation, but never hidden reasoning.
+
+## Composition
+
+When one goal needs more than one Executor, the Router reads each candidate's「接手与交出」and walks backward from the requested result. A step whose incoming state is already satisfied is skipped. Before starting, the Router writes three lines: what it received, the order and what each Executor returns, and why that order. A single Executor starts without that preface. Only an Executor whose method was actually followed counts as used.
+
+## Re-plan
+
+Return to routing when a premise the plan relied on is contradicted, the user says the result missed the goal, or the current Executor cannot proceed and can name the missing capability. First state which judgment changed, keep confirmed facts, then switch or redo. Supplying more material, or one expression of dissatisfaction, does not by itself require a different Executor.

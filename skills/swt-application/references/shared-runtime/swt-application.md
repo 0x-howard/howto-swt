@@ -2,9 +2,9 @@
 
 <!-- GENERATED FILE: DO NOT EDIT. -->
 <!-- Source: shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md -->
-<!-- runtime-version: 1.6.0 -->
+<!-- runtime-version: 1.6.1 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt-application; source-sha256: b434a5a2d3ff5db9527a9ccaef67de3a4f49eddbbce6a2169a6959bba1397005 -->
+<!-- skill: swt-application; source-sha256: b9a7812a780c20b48649bf619e8d5064a69cc9686c39d1efe6d36ebe71b4e124 -->
 
 <!-- source: shared/interaction-protocol.md -->
 
@@ -113,7 +113,7 @@
 
 # Cross-Agent Interaction Capability Layer
 
-This shared semantic layer is the single source of truth for `swt` and all five Domain Executors. Skills describe an `Interaction Request`; a host adapter chooses a real UI only when the current runtime exposes it. No Skill hardcodes Codex, Claude Code, WorkBuddy, or Doubao APIs.
+This shared semantic layer is the single source of truth for `swt` and all six Domain Executors. Skills describe an `Interaction Request`; a host adapter chooses a real UI only when the current runtime exposes it. No Skill hardcodes Codex, Claude Code, WorkBuddy, or Doubao APIs.
 
 ## Priority and routing
 
@@ -669,7 +669,7 @@ When multiple fields are missing, record the highest-impact class and ask no mor
 
 # Skill-to-Skill Handoff Contract
 
-HowTo SWT uses one semantic handoff shape between the `swt` Router and the five Domain Executors. The Router uses it as an internal context exchange when the host supports direct Skill dispatch; user-facing prompts are a fallback only. It is an operational contract, not hidden chain of thought.
+HowTo SWT uses one semantic handoff shape between the `swt` Router and the six Domain Executors. The Router uses it as an internal context exchange when the host supports direct Skill dispatch; user-facing prompts are a fallback only. It is an operational contract, not hidden chain of thought.
 
 ## Canonical shape
 
@@ -717,6 +717,14 @@ Missing facts needed inside an already selected Executor do not automatically ch
 An Executor accepts either a direct user task or a matching internal/manual handoff, starts at a valid state, performs domain work, and returns a compact result containing conclusion, material evidence or uncertainty, current state, blockers, and next action. It may request another specialist through the Router, but it must not silently take ownership of another domain.
 
 The Router does not combine results in the handoff turn. It does not rewrite domain facts or perform the specialist's analysis. The rendered prompt may expose the operational fields needed for user confirmation, but never hidden reasoning.
+
+## Composition
+
+When one goal needs more than one Executor, the Router reads each candidate's「接手与交出」and walks backward from the requested result. A step whose incoming state is already satisfied is skipped. Before starting, the Router writes three lines: what it received, the order and what each Executor returns, and why that order. A single Executor starts without that preface. Only an Executor whose method was actually followed counts as used.
+
+## Re-plan
+
+Return to routing when a premise the plan relied on is contradicted, the user says the result missed the goal, or the current Executor cannot proceed and can name the missing capability. First state which judgment changed, keep confirmed facts, then switch or redo. Supplying more material, or one expression of dissatisfaction, does not by itself require a different Executor.
 
 ---
 

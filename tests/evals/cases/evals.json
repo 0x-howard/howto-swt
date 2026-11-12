@@ -1,6 +1,6 @@
 {
   "plugin": "howto-swt",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "behavior_contract": {
     "routing_dimensions": [
       "Task Type",
@@ -1273,6 +1273,30 @@
       "conversation": "new",
       "turns": ["小How Myrtle Beach 有没有免费餐"],
       "expected": ["直接进入 swt-yangmao", "给教堂免费餐和 Food Pantry 的通用找法和查找入口", "资料里没有 Myrtle Beach 具体地点时不编造地址或时间"]
+    },
+    {
+      "id": "router-navigation-no-brand",
+      "conversation": "new",
+      "turns": ["我在准备 J-1 SWT，完全不知道从哪开始"],
+      "expected": ["调用 swt 主入口", "用 8 个学员阶段各一句话讲清全流程", "标出用户现在在哪一步并给一个下一步动作", "不展示内部 00–11 节点表"]
+    },
+    {
+      "id": "router-emergency-first-line",
+      "conversation": "new",
+      "turns": ["小How 我老板把我护照扣了还威胁我"],
+      "expected": ["第一句先给安全行动和 911", "给 Sponsor 24 小时紧急电话的查找位置", "Sponsor 联系不上时给 J-1 紧急热线 1-866-283-9090", "不先显示首页或广告"]
+    },
+    {
+      "id": "router-situation-card",
+      "conversation": "new",
+      "turns": ["小How 我现在该做什么"],
+      "expected": ["留在 swt，不直接进入某个专项", "先给情况卡：现在在哪一步、已经完成什么、卡在哪里、下一步", "标明这是我的假设", "最多问一个会改变下一步的问题"]
+    },
+    {
+      "id": "router-replan-on-correction",
+      "conversation": "new",
+      "turns": ["小How帮我比较这两个 Offer", "不对，我要的是看合同有没有坑，Offer 先放着"],
+      "expected": ["先说明改了哪个判断", "保留已确认的事实", "改由 swt-application 看合同", "不继续做岗位对比"]
     }
   ],
   "product": "HowTo SWT"

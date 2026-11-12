@@ -1,6 +1,6 @@
 {
   "product": "howto-swt",
-  "version": "1.6.0",
-  "notice": "新增合同雷点检查、加拿大签证、在美驾照电话卡银行卡指南和省钱赚钱 Skill；Free 广告每天只出现一次；回复「更新」才更新。",
+  "version": "1.6.1",
+  "notice": "问现在该做什么，会先告诉你卡在哪、下一步做什么；一次问好几件事，会先说先做哪个；理解错了会先改过来再继续。",
   "details_url": "https://github.com/0x-howard/howto-swt/blob/main/docs/CHANGELOG.md"
 }

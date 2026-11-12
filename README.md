@@ -1,6 +1,6 @@
 # HowTo SWT
 
-![版本](https://img.shields.io/badge/version-1.6.0-2563EB.svg?style=flat-square) ![语言](https://img.shields.io/badge/语言-中文-16A34A.svg?style=flat-square)
+![版本](https://img.shields.io/badge/version-1.6.1-2563EB.svg?style=flat-square) ![语言](https://img.shields.io/badge/语言-中文-16A34A.svg?style=flat-square)
 
 ## HowTo SWT 是什么
 
@@ -96,11 +96,11 @@ npx -y skills add 0x-howard/howto-swt -g --all
 <!-- CHANGELOG_LATEST_START -->
 | 版本 | 更新 |
 |---|---|
+| v1.6.1 | 问现在该做什么，会先告诉你卡在哪、下一步做什么；一次问好几件事，会先说先做哪个；理解错了会先改过来再继续。 |
 | v1.6.0 | 新增合同雷点检查、加拿大签证、在美驾照电话卡银行卡指南和省钱赚钱 Skill；Free 广告每天只出现一次；回复「更新」才更新。 |
 | v1.5.3 | 口语测试支持语音输入，开场先问面试类型，结果格式统一。 |
 | v1.5.2 | 岗位分析改为结论加三部分；多份 Offer 按赴美诉求对比；读不到的信息直接请你补充。 |
 | v1.5.1 | 回复 1 就能直接更新；Codex 里显示中文用途；补充 Windows 安装说明。 |
-| v1.5.0 | 读取 PDF 和截图里的 Offer，按最新汇率换算人民币，支持更多 Agent。 |
 <!-- CHANGELOG_LATEST_END -->
 
 [完整更新记录](docs/CHANGELOG.md)

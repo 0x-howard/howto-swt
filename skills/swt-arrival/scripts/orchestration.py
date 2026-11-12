@@ -53,7 +53,7 @@ def validate_handoff(handoff: dict[str, Any]) -> None:
         raise ValueError("unsupported handoff version or router")
     executor = handoff["executor"]
     if executor not in EXECUTOR_STATES:
-        raise ValueError("handoff executor must be one of the five Domain Executors")
+        raise ValueError("handoff executor must be one of the six Domain Executors")
     if handoff["state"] not in EXECUTOR_STATES[executor]:
         raise ValueError("state does not belong to the selected executor")
     for field in ("intent", "user_goal", "execution_cadence", "requested_output"):

@@ -1,6 +1,6 @@
 # Cross-Agent Interaction Capability Layer
 
-This shared semantic layer is the single source of truth for `swt` and all five Domain Executors. Skills describe an `Interaction Request`; a host adapter chooses a real UI only when the current runtime exposes it. No Skill hardcodes Codex, Claude Code, WorkBuddy, or Doubao APIs.
+This shared semantic layer is the single source of truth for `swt` and all six Domain Executors. Skills describe an `Interaction Request`; a host adapter chooses a real UI only when the current runtime exposes it. No Skill hardcodes Codex, Claude Code, WorkBuddy, or Doubao APIs.
 
 ## Priority and routing
 

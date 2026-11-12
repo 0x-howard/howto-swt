@@ -47,7 +47,7 @@ npx -y skills add 0x-howard/howto-swt -g --all
 
 有新版本时，小How 会在回答最后提醒一句，例如：
 
-> 🔔 HowTo SWT v1.6.0：xxx 回复「更新」，我现在帮你更新。
+> 🔔 HowTo SWT v1.6.1：xxx 回复「更新」，我现在帮你更新。
 
 回复“更新”，或随时对小How说“更新小How”，它会帮你运行更新命令。Agent 弹出权限窗口时，选择允许即可。更新后开一个新对话
 

@@ -110,6 +110,23 @@ class PackageTests(unittest.TestCase):
         self.assertIn("同一 conversation 后续不重复自我介绍", identity)
         self.assertEqual(identity.count("HowTo SWT\n作者：Howard"), 1)
 
+    def test_router_navigation_emergency_and_light_handoff(self):
+        router = (ROOT / "skills/swt/SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("不知道从哪开始、问全流程怎么走或现在该做什么时，也调用本 Skill", router)
+        self.assertIn("不必先通读共享规则", router)
+        for item in ("911", "24 小时紧急电话", "1-866-283-9090"):
+            self.assertIn(item, router)
+        self.assertIn("学员可见的 8 个阶段", router)
+        self.assertIn("不向学生展示内部的 00–11 节点表", router)
+        self.assertIn("G. 项目快结束，准备回国", router)
+        self.assertIn("比如「帮我看看这个 Offer 值不值」", router)
+        for item in ("接手与交出", "我收到的", "情况卡", "改了哪个判断", "这是我的假设"):
+            self.assertIn(item, router)
+        for skill in SKILLS - {"swt"}:
+            text = (ROOT / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("## 接手与交出", text)
+            self.assertIn("不交出：", text)
+
     def test_canada_visa_arrival_setup_and_yangmao_split(self):
         def read(rel):
             return (ROOT / rel).read_text(encoding="utf-8")
