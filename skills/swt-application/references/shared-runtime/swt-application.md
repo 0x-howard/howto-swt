@@ -1,10 +1,26 @@
 # Generated Shared Runtime
 
 <!-- GENERATED FILE: DO NOT EDIT. -->
-<!-- Source: shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md -->
-<!-- runtime-version: 1.6.1 -->
+<!-- Source: shared/logic-architecture.md, shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md -->
+<!-- runtime-version: 1.6.2 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt-application; source-sha256: b9a7812a780c20b48649bf619e8d5064a69cc9686c39d1efe6d36ebe71b4e124 -->
+<!-- skill: swt-application; source-sha256: 2e1da9576defaedadc54f421ef8970d8556aee2a67b9d43f09b163929daa514c -->
+
+<!-- source: shared/logic-architecture.md -->
+
+# 回答逻辑
+
+七个 Skill 共用。先判定现在是哪一种状态，只进入一种，再套该状态的输出模板。不把几种状态的步骤连着做完。各 Skill 正文里的状态和模板优先于本页。
+
+1. 先读已有：当前对话、附件、用户确认过的话。抽得到的不再问。
+2. 材料够，直接交出该状态的模板。只缺一个会改变结果的事实，先做能做的，只问这一个，问完停下。连要什么都说不清，给入口或情况卡，问一个问题后停下。
+3. 出门前检查：答案对得上选定的状态；依据能指出来；能判断这轮做完没有；没有做「不交出」里的事；估算标成估算。过不了就停，不补一段泛泛的建议。
+4. 两个结论互相打架时分成两行，不揉成一句“总体还行”。
+5. 用户说结果不对、新事实推翻前提，或当前做法走不下去：先说明改了哪个判断，保留已确认的事实，再换状态。只补充材料或表示一次不满意，留在原状态。
+
+说话直接、具体。用户用中文就用中文。
+
+---
 
 <!-- source: shared/interaction-protocol.md -->
 

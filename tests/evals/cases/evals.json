@@ -1,6 +1,6 @@
 {
   "plugin": "howto-swt",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "behavior_contract": {
     "routing_dimensions": [
       "Task Type",
@@ -57,62 +57,116 @@
     {
       "id": "activation-01-brand-greeting",
       "conversation": "new",
-      "turns": ["你好小How"],
-      "expected": ["激活 swt 主入口", "显示精简首页", "署名作为最后独立一行"]
+      "turns": [
+        "你好小How"
+      ],
+      "expected": [
+        "激活 swt 主入口",
+        "显示精简首页",
+        "署名作为最后独立一行"
+      ]
     },
     {
       "id": "activation-02-main-brand-name",
       "conversation": "new",
-      "turns": ["HowTo SWT 怎么用"],
-      "expected": ["激活 swt 主入口", "显示精简首页", "介绍如何直接说出任务"]
+      "turns": [
+        "HowTo SWT 怎么用"
+      ],
+      "expected": [
+        "激活 swt 主入口",
+        "显示精简首页",
+        "介绍如何直接说出任务"
+      ]
     },
     {
       "id": "activation-03-lowercase-brand-alias",
       "conversation": "new",
-      "turns": ["howto swt"],
-      "expected": ["激活 swt 主入口", "显示精简首页"]
+      "turns": [
+        "howto swt"
+      ],
+      "expected": [
+        "激活 swt 主入口",
+        "显示精简首页"
+      ]
     },
     {
       "id": "activation-04-hyphenated-brand-alias",
       "conversation": "new",
-      "turns": ["howto-swt"],
-      "expected": ["激活 swt 主入口", "显示精简首页"]
+      "turns": [
+        "howto-swt"
+      ],
+      "expected": [
+        "激活 swt 主入口",
+        "显示精简首页"
+      ]
     },
     {
       "id": "activation-05-direct-position-task",
       "conversation": "new",
-      "turns": ["小How帮我分析这个 Offer"],
-      "expected": ["激活主入口", "直接路由 swt-position", "不显示首页"]
+      "turns": [
+        "小How帮我分析这个 Offer"
+      ],
+      "expected": [
+        "激活主入口",
+        "直接路由 swt-position",
+        "不显示首页"
+      ]
     },
     {
       "id": "activation-06-direct-english-task",
       "conversation": "new",
-      "turns": ["小How测一下 Sponsor 面试英语"],
-      "expected": ["识别品牌别名", "直接路由 swt-english", "不显示首页"]
+      "turns": [
+        "小How测一下 Sponsor 面试英语"
+      ],
+      "expected": [
+        "识别品牌别名",
+        "直接路由 swt-english",
+        "不显示首页"
+      ]
     },
     {
       "id": "activation-07-ordinary-greeting-no-trigger",
       "conversation": "new",
-      "turns": ["你好"],
-      "expected": ["不要求未激活宿主调用 swt", "不强行显示 HowTo SWT 首页"]
+      "turns": [
+        "你好"
+      ],
+      "expected": [
+        "不要求未激活宿主调用 swt",
+        "不强行显示 HowTo SWT 首页"
+      ]
     },
     {
       "id": "activation-08-active-greeting-homepage",
       "conversation": "active-howto-swt",
-      "turns": ["你好"],
-      "expected": ["HowTo SWT 已激活时显示精简首页", "不重复自我介绍"]
+      "turns": [
+        "你好"
+      ],
+      "expected": [
+        "HowTo SWT 已激活时显示精简首页",
+        "不重复自我介绍"
+      ]
     },
     {
       "id": "activation-09-bare-persona-name",
       "conversation": "new",
-      "turns": ["小How"],
-      "expected": ["激活 swt 主入口", "显示精简首页"]
+      "turns": [
+        "小How"
+      ],
+      "expected": [
+        "激活 swt 主入口",
+        "显示精简首页"
+      ]
     },
     {
       "id": "activation-10-workbuddy-greeting-no-trigger",
       "conversation": "new",
-      "turns": ["WorkBuddy 你好"],
-      "expected": ["不因宿主名称和普通问候触发 swt", "不强行显示 HowTo SWT 首页"]
+      "turns": [
+        "WorkBuddy 你好"
+      ],
+      "expected": [
+        "不因宿主名称和普通问候触发 swt",
+        "不强行显示 HowTo SWT 首页"
+      ]
     },
     {
       "id": "attribution-02-continuation",
@@ -1253,50 +1307,106 @@
     {
       "id": "application-contract-intake",
       "conversation": "new",
-      "turns": ["小How帮我看看机构合同有没有坑"],
-      "expected": ["直接进入 swt-application，不显示首页", "请用户发完整合同，包括特别告知、附件、补充协议和缴费告知单", "问用户是否已经签约"]
+      "turns": [
+        "小How帮我看看机构合同有没有坑"
+      ],
+      "expected": [
+        "直接进入 swt-application，不显示首页",
+        "请用户发完整合同，包括特别告知、附件、补充协议和缴费告知单",
+        "问用户是否已经签约"
+      ]
     },
     {
       "id": "application-contract-signed-review",
       "conversation": "new",
-      "turns": ["我已经签了这份合同。合同写：申请人自愿接受主办方安排的岗位，不接受则项目费不予退还；申请人通过签证后，所交项目费不予退还；项目费由主办方代收，退款时主办方协助申请人向境外主办方申请退还。身份证号 110101200301011234。缴费告知单我没拍。"],
-      "expected": ["先问缴费告知单或收款账户，或把收款账户未确认写成风险", "列出各阶段退出能拿回多少的退款时间线", "用条款、风险、建议三列表格列出高风险条款，包括退款只承诺协助", "按已签约给建议，不写要求删除条款", "不复述身份证号"]
+      "turns": [
+        "我已经签了这份合同。合同写：申请人自愿接受主办方安排的岗位，不接受则项目费不予退还；申请人通过签证后，所交项目费不予退还；项目费由主办方代收，退款时主办方协助申请人向境外主办方申请退还。身份证号 110101200301011234。缴费告知单我没拍。"
+      ],
+      "expected": [
+        "先问缴费告知单或收款账户，或把收款账户未确认写成风险",
+        "列出各阶段退出能拿回多少的退款时间线",
+        "用条款、风险、建议三列表格列出高风险条款，包括退款只承诺协助",
+        "按已签约给建议，不写要求删除条款",
+        "不复述身份证号"
+      ]
     },
     {
       "id": "arrival-bank-yangmao-nearby",
       "conversation": "new",
-      "turns": ["小How我在 Myrtle Beach 地区，帮我看看附近有没有银行羊毛可薅"],
-      "expected": ["直接进入 swt-arrival，不进入 swt-yangmao，也不因地名进入 swt-position", "说明资料里的开户奖励来自全国性银行和线上账户，在 Myrtle Beach 也能参加，并写核验日期", "按有没有 SSN 和工资入账给先开哪个的建议", "给官方网点查询入口，不编造具体网点地址或当地限定活动"]
+      "turns": [
+        "小How我在 Myrtle Beach 地区，帮我看看附近有没有银行羊毛可薅"
+      ],
+      "expected": [
+        "直接进入 swt-arrival，不进入 swt-yangmao，也不因地名进入 swt-position",
+        "说明资料里的开户奖励来自全国性银行和线上账户，在 Myrtle Beach 也能参加，并写核验日期",
+        "按有没有 SSN 和工资入账给先开哪个的建议",
+        "给官方网点查询入口，不编造具体网点地址或当地限定活动"
+      ]
     },
     {
       "id": "yangmao-free-meal-location",
       "conversation": "new",
-      "turns": ["小How Myrtle Beach 有没有免费餐"],
-      "expected": ["直接进入 swt-yangmao", "给教堂免费餐和 Food Pantry 的通用找法和查找入口", "资料里没有 Myrtle Beach 具体地点时不编造地址或时间"]
+      "turns": [
+        "小How Myrtle Beach 有没有免费餐"
+      ],
+      "expected": [
+        "直接进入 swt-yangmao",
+        "给教堂免费餐和 Food Pantry 的通用找法和查找入口",
+        "资料里没有 Myrtle Beach 具体地点时不编造地址或时间"
+      ]
     },
     {
       "id": "router-navigation-no-brand",
       "conversation": "new",
-      "turns": ["我在准备 J-1 SWT，完全不知道从哪开始"],
-      "expected": ["调用 swt 主入口", "用 8 个学员阶段各一句话讲清全流程", "标出用户现在在哪一步并给一个下一步动作", "不展示内部 00–11 节点表"]
+      "turns": [
+        "我在准备 J-1 SWT，完全不知道从哪开始"
+      ],
+      "expected": [
+        "调用 swt 主入口",
+        "用 8 个学员阶段各一句话讲清全流程",
+        "标出用户现在在哪一步并给一个下一步动作",
+        "不展示内部 00–11 节点表"
+      ]
     },
     {
       "id": "router-emergency-first-line",
       "conversation": "new",
-      "turns": ["小How 我老板把我护照扣了还威胁我"],
-      "expected": ["第一句先给安全行动和 911", "给 Sponsor 24 小时紧急电话的查找位置", "Sponsor 联系不上时给 J-1 紧急热线 1-866-283-9090", "不先显示首页或广告"]
+      "turns": [
+        "小How 我老板把我护照扣了还威胁我"
+      ],
+      "expected": [
+        "第一句先给安全行动和 911",
+        "给 Sponsor 24 小时紧急电话的查找位置",
+        "Sponsor 联系不上时给 J-1 紧急热线 1-866-283-9090",
+        "不先显示首页或广告"
+      ]
     },
     {
       "id": "router-situation-card",
       "conversation": "new",
-      "turns": ["小How 我现在该做什么"],
-      "expected": ["留在 swt，不直接进入某个专项", "先给情况卡：现在在哪一步、已经完成什么、卡在哪里、下一步", "标明这是我的假设", "最多问一个会改变下一步的问题"]
+      "turns": [
+        "小How 我现在该做什么"
+      ],
+      "expected": [
+        "留在 swt，不直接进入某个专项",
+        "先给情况卡：现在在哪一步、已经完成什么、卡在哪里、下一步",
+        "标明这是我的假设",
+        "最多问一个会改变下一步的问题"
+      ]
     },
     {
       "id": "router-replan-on-correction",
       "conversation": "new",
-      "turns": ["小How帮我比较这两个 Offer", "不对，我要的是看合同有没有坑，Offer 先放着"],
-      "expected": ["先说明改了哪个判断", "保留已确认的事实", "改由 swt-application 看合同", "不继续做岗位对比"]
+      "turns": [
+        "小How帮我比较这两个 Offer",
+        "不对，我要的是看合同有没有坑，Offer 先放着"
+      ],
+      "expected": [
+        "先说明改了哪个判断",
+        "保留已确认的事实",
+        "改由 swt-application 看合同",
+        "不继续做岗位对比"
+      ]
     }
   ],
   "product": "HowTo SWT"

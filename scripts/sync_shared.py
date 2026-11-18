@@ -14,6 +14,7 @@ from paths import PLUGIN_ROOT, REFERENCES_ROOT, RUNTIME_ROOT, SHARED_ROOT, SKILL
 CURRENT_VERSION = json.loads((PLUGIN_ROOT / "plugin.json").read_text(encoding="utf-8"))["version"]
 
 COMMON_SOURCES = (
+    "logic-architecture.md",
     "interaction-protocol.md",
     "interaction-contract.md",
     "answer-framework.md",
@@ -42,7 +43,7 @@ SOURCES_BY_SKILL = {
 DOMAIN_REFERENCES_BY_SKILL = {
     "swt": ("interaction-adapters.md",),
     "swt-application": ("agency-sponsor.md", "application-materials.md", "contract-red-flags.md"),
-    "swt-position": ("position-example.md", "offer-extraction.md", "location-offer.md", "budget-method.md", "tax-estimation.md", "state-income-tax.md", "default-assumptions.json"),
+    "swt-position": ("position-example.md", "offer-extraction.md", "job-facts-handoff.md", "location-offer.md", "budget-method.md", "tax-estimation.md", "state-income-tax.md", "default-assumptions.json"),
     "swt-english": (
         "english-practice.md", "english-assessment.md", "english-rubric.md",
         "english-profiles.md", "english-question-bank.md", "english-speaking-coach.md",

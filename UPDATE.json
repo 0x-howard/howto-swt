@@ -1,6 +1,6 @@
 {
   "product": "howto-swt",
-  "version": "1.6.1",
-  "notice": "问现在该做什么，会先告诉你卡在哪、下一步做什么；一次问好几件事，会先说先做哪个；理解错了会先改过来再继续。",
+  "version": "1.6.2",
+  "notice": "岗位分析后会在对话内部保留清洗同构的 12 字段事实，同对话清洗可直接复用，不必再认一遍材料。",
   "details_url": "https://github.com/0x-howard/howto-swt/blob/main/docs/CHANGELOG.md"
 }

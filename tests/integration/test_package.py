@@ -126,6 +126,10 @@ class PackageTests(unittest.TestCase):
             text = (ROOT / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn("## 接手与交出", text)
             self.assertIn("不交出：", text)
+        for skill in SKILLS:
+            text = (ROOT / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("## 按状态做", text)
+            self.assertIn("## 出门前检查", text)
 
     def test_canada_visa_arrival_setup_and_yangmao_split(self):
         def read(rel):
