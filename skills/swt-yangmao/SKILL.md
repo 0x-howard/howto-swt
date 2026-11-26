@@ -1,6 +1,6 @@
 ---
 name: swt-yangmao
-description: J-1 SWT 省钱赚钱攻略：宠物和物品帮带、纽约手环科技测试（uTest、Focus Group）、教堂免费餐和 Food Pantry、九价 HPV 疫苗、网购返利。用户问怎么省钱、薅羊毛、多赚点钱、有什么免费福利时使用；银行开户奖励、信用卡、电话卡和证件的羊毛由 swt-arrival 处理。
+description: J-1 SWT 省钱赚钱攻略：宠物和物品帮带、纽约手环科技测试（uTest、Focus Group）、教堂免费餐和 Food Pantry、九价 HPV 疫苗、网购返利。用户问怎么省钱、薅羊毛、多赚点钱、有什么免费福利时使用；小How／/swt +「羊毛｜帮带｜免费餐｜纽约测试｜HPV｜返利」等关键词强制进入本 Skill（银行／信用卡／电话卡羊毛仍走 swt-arrival）。
 ---
 
 # SWT 羊毛

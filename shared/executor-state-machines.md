@@ -12,9 +12,10 @@ State identifies where the current task is inside its owning Executor. It is not
 
 ## `swt-position`
 
-`INTAKE -> NORMALIZE -> LOCATION_RESOLVE -> ANALYZE -> BUDGET -> RISK -> DECISION -> NEXT_ACTION`
+`INTAKE -> NORMALIZE -> LOCATION_RESOLVE -> ANALYZE -> CONFIRM_ASSUMPTIONS -> BUDGET -> RISK -> DECISION -> NEXT_ACTION`
 
 - Normalize each offer independently; never borrow location or financial facts from another offer.
+- `CONFIRM_ASSUMPTIONS` is required before the full ROI report: show editable planning defaults; skip only when the user already confirmed or said to use defaults this turn.
 - Location and budget states are optional for a narrow question that does not need them.
 - The Executor supports a decision but does not make the user's final value choice.
 

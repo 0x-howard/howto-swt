@@ -1,17 +1,25 @@
 # 用 J1 美签简化加拿大签证（CAN+）
 
-整理自 Howard《J1 学生青年大学习》，规则核验于 2026 年 7 月。不构成移民或法律意见；办理前让学生按下方官方入口再核对一次。
+整理自 Howard《J1 学生青年大学习》及本人／同伴实操帖（含 IRCC 在线表手把手标注）。规则核验于 2026 年 7 月；实操步骤以帖子为准，费用与入口办理前再核官方页。不构成移民或法律意见。
 
-加拿大驻华清单 IMM 5884 规定：过去 10 年去过加拿大，或目前持有有效美国非移民签证并能提交证明的人，可以按 CAN+ 准备材料，不用交常规财力证明。
+**本 Skill 覆盖加拿大**：问加拿大签证时按本文走 CAN+／手把手填表，**禁止**开场说「`swt-visa` 不管加拿大」或先甩一整套普通访客签（TRV）财力流水长文。不符合 CAN+ 时才简要说明要走普通旅游申请，并指出差异。
 
-**流程**：拿到有效 J1 → IRCC 在线申请 → 上传美签与行程 → 缴费 → 生物识别（按指纹）→ 审理 → 收到 OPR（Original Passport Request）→ 递交护照贴签 → 收回护照。
+加拿大驻华清单 IMM 5884：过去 10 年去过加拿大，或目前持有有效美国非移民签证并能提交证明的人，可按 CAN+ 准备材料，**不用交常规财力证明**（银行流水／存款／房产等）。
+
+**适用人群（帖子口径）**：持有效美签；J1 交流生／留学生；白本／无出境记录也可参考 CAN+（仍须当前有效美签或 10 年内赴加记录）。
+
+## 总流程
+
+拿到有效 J1 → IRCC 在线申请 → 上传美签与行程等 → 缴费 → 生物识别（指纹）→ 审理 → 收到 OPR（Original Passport Request；有的邮件也称护照请求）→ 递交护照贴签 → 收回护照。
 
 **参考时间线**（Howard 本人）：4 月 27 日广州面签，4 月 28 日美签签发；5 月 29 日在南京按指纹；6 月 2 日飞美国；6 月 3 日到工作地收到 OPR；6 月 26 日寄出护照；7 月 6 日收回护照拿到加签。
+
+**另一条实操时间线**（帖子：美签到手到出发仅约两周，国内极限录指纹后赴美寄护照）：9.10 填表提交 → 9.11 收到生物采集信、白天约 9.15 指纹 → 9.22 已在美国收到 OPR → 10.1 USPS 寄出 → 约 10.14 收回护照（约 9 个工作日），获十年有效期。
 
 | 对比 | CAN+ 简化申请 | 普通旅游申请 |
 |---|---|---|
 | 前提 | 有效美国非移民签证（如 J1），或 10 年内去过加拿大 | 不符合 CAN+ |
-| 额外材料 | 美签页；入境美国后可附 I-94；DS-2019、Sponsor／雇主信息、返校或回国安排 | 银行流水、存款、房产车辆等资产证明 |
+| 额外材料 | 美签页；入境美国后可附 I-94；DS-2019、Sponsor／雇主信息、返校或回国安排；行程；在校证明等 | 银行流水、存款、房产车辆等资产证明 |
 | 财力证明 | 免交常规财力证明 | 需要 |
 | 准备难度 | 2／5 | 4／5 |
 
@@ -19,20 +27,104 @@
 
 | 时间 | 优点 | 风险 |
 |---|---|---|
-| 赴美前在国内申请 | 不占用美国项目时间 | 审理或贴签延误可能影响赴美航班 |
+| 赴美前在国内申请 | 不占用美国项目时间；可在国内录指纹 | 审理或贴签延误可能影响赴美航班 |
 | 抵美后申请 | 可以补充 I-94 和美国记录 | SWT 时间短，生物识别和寄护照时间紧 |
 | 回国后申请 | 无 | J1 失效后不再满足“当前有效美签”，不能走 CAN+ |
 
-**费用**：个人 Visitor Visa 申请费 100 加元，生物识别费 85 加元；签证中心、快递和可选服务另算。
+**费用**：个人 Visitor Visa 100 加元 + 生物识别 85 加元 = **185 加元／人**。可与朋友**同一账号一起申**（两人合计约 370 加元）；录指纹和贴签不同步也可以，到馆／审理彼此独立。签证中心、快递和可选服务另算。
 
-**在美国用 USPS 寄护照贴签**：收到 OPR 后，把护照寄到加拿大签证中心（VAC），由 VAC 转交 IRCC 贴签。美国有纽约和洛杉矶两个 VAC，纽约地址：Canada Visa Application Centre, 128 E 32nd Street, 3rd Floor, New York, NY 10016（寄前核对当期地址）。VFS 官方双程快递 91.10 美元；Howard 用 USPS Priority Mail 加 Money Order，共约 50 美元。
+**付款卡（实操经验，非银行承诺）**：Visa 卡常见可用；帖子反馈部分工商星座卡可用，额度不够时用过港卡；多张工行／国内储蓄卡、部分中行 Visa 储蓄卡试过失败。以当时支付页实际结果为准，失败就换卡，不要反复撞同一张。
 
-1. 准备：护照原件、OPR 打印件、签好名的 TT Services／VFS Consent Form、护照资料页复印件、Money Order、写好地址并预付邮资的 Priority Mail 回邮信封。
-2. Money Order 在 USPS 买，面额等于当时的 Package Transmission Fee，手续费另付。Pay to：VFS Services (USA) Inc.；Purchaser／From：本人姓名和美国地址；Memo：护照号或加拿大签证申请号。
-3. 信封 A 去程：From 写自己的美国地址，To 写纽约 VAC。信封 B 回程：From 写 VAC 地址，To 写自己的美国地址，预付回程邮资，折好放进信封 A。
-4. 一定向工作人员要两个 Tracking Number：去程在 USPS 小票上，回程在 Return Label 底部可撕下的 Receipt Label 上。
+## 手把手：注册与提交
 
-**十年加签的价值**：签证有效期内可以多次前往加拿大，每次停留由边检决定，通常不超过 6 个月。部分国家接受有效加签作为免签或过境文件：
+1. **注册账号**  
+   打开 IRCC 账户页，按提示填写信息获取 **Invitation Code（邀请码）**，再用该码注册。入口见文末。
+
+2. **网上填表**  
+   按下方「表单分区」逐项填写。签证类型选 visitor visa（帖子口径：旅行十年签意向）；目的选旅游访问；行程用英文写清日期与合理安排（可参考样例，按本人行程改）。
+
+3. **教育／工作时间不要打架（易报错）**  
+   - 学生教育经历直接写高中 → 大学校名。  
+   - 高中一般 6 月毕业、大学 9 月开学会「断开」：填表时把高中结束写到 **8 月**，大学从 **9 月** 起，连贯后系统通常不再报错。  
+   - **大学教育经历与 18 岁后工作／活动经历的时间不能重叠**，否则提交不了。大学期间实习一般**不必**写入工作史；暑假空档可按实情填 `Unemployed`（帖子例：暑假 6–8 月、另有时段按个人情况填 Unemployed）。
+
+4. **上传材料（CAN+ 帖子清单）**  
+   必须／常用：美签页；身份证正反扫描 PDF；护照首页 PDF；在校证明中英 PDF；行程安排 PDF。可按清单再附解释信、DS-2019、回国／返校约束力说明等。**不要**按普通旅游签去堆存款证明；有强回国或在美约束力即可（帖子口径）。
+
+5. **支付**  
+   确认 185 加元／人（或多人合计）后付款。成功后可能要等约一天，系统发 **Biometric Instruction Letter（生物信息采集指引信）**。
+
+6. **预约指纹（VFS）**  
+   登录 VFS 建账号预约。帖子反馈：官网预约常卡死、加载不出——**别死磕网页，直接打电话约**。中国预约电话（帖子）：`400-088-6637`（需与语音菜单周旋约数分钟转到人工；转到后告知拼音姓名、IRCC 号、出生日期、邮箱）。邮箱会收到链接，上传录指纹信并选三个时间（可同一天三个志愿，一般按先后次序给号）。
+
+7. **线下录指纹需带**（预约后邮件常附后几项 PDF，直接打印即可）  
+   - 有效护照原件 + 生物信息页复印件  
+   - 生物识别指示信复印件  
+   - 预约信复印件  
+   - 1 份有签名的同意书原件  
+   - 签署好的《个人信息保护法》同意书签名原件  
+   录完拿回执。城市按本人选择（帖子例：武汉）。
+
+8. **赴美后寄护照贴签**  
+   见下方「在美国用 USPS 寄护照贴签」。J1 有效期短时抓紧；已过期则不能再走 CAN+。
+
+## 表单分区（IRCC 在线表 · 手把手）
+
+面向学生可见时可按分区讲解；字段含义用中文说清，**选项必须按本人事实**，下表「常见写法」只是 SWT／CAN+ 场景参考，不是替用户勾选。样例行程与日期为结构示例，不代表真实预约。
+
+| 分区（英文） | 在讲什么 | 常见写法／注意 |
+|---|---|---|
+| Application Summary · Group | 是否多人一起申 | 1 人选 No；两人及以上按实际选团队／多人 |
+| Application Summary · Visit | 签证类型与目的、行程、出入境日 | 类型：visitor visa or super visa；目的：tourist；英文简述行程，日期清晰合理；出入境日与行程一致 |
+| Application Summary · Representative | 是否代别人申 | 自己申选 No |
+| Travel document | 护照姓名、生日、性别、护照号、签发／到期、绿卡、十年内加签、**当前是否有效美签**、是否换照申加签、是否乘飞机赴加 | 有有效美签选 Yes（CAN+ 关键）；填美签编号与到期日；绿卡／旧加签按事实；乘飞机赴加按事实 |
+| Citizenship and places lived | 出生国／城市、是否多重国籍、身份证 | 中国护照常见：出生 China、公民自出生勾选；有身份证填号码与签发信息 |
+| Names used in the past | 曾用名 | 无则 No |
+| Contact information | 住址、是否与邮寄地址相同、近五年居住＞6 个月的国家与身份 | 英文地址顺序常见：门牌 → 区 → 城市 → 邮编 → 省 → 国家；居住史按事实 |
+| Biometrics | 是否已有有效指纹／照片 | 没有录过选 No |
+| Finances | 赴加带多少钱（加元）、是否他人出资 | CAN+ 仍可能问随身资金；他人出资按事实。免的是常规存款／流水类财力包，不是把本栏乱填 |
+| Education history | 高中后／大学等学历 | 见上文「教育／工作时间」；校名、起止、专业、是否在读、学校地址 |
+| Work / activities history | 工作或活动；是否军警等 | 学生空档可 Unemployed；不与在读学期重叠；军警题按事实（多数 No） |
+| Travel history | 五年内外访、加国逾期／非法学习工作、各国拒签遣返 | 含港澳；按事实。隐瞒拒签史是风险 |
+| Criminality and security | 犯罪／逮捕／起诉／定罪、极端组织等 | 多数申请人全 No；含酒驾等，按事实 |
+| Medical background | 体检、结核、透析、成瘾、精神健康、梅毒等 | 多数申请人全 No；按事实 |
+| Family information | 婚姻、子女、父母 | 婚姻状态、有无子女按事实；父母姓／名／关系／生日／出生地／职业／是否同址／是否同行 |
+| Language | 母语、能否英法交流、希望联系语言 | 常见：母语 Chinese；交流／联系选 English（或按能力） |
+| Contact · Email / Phone | 邮箱、手机 | 邮箱填两遍；中国手机国家／地区常选 Other，号码带 +86 |
+| Documents to support | 上传清单与费用页 | 见上传清单；费用页应显示 Biometrics 85 + Visitor visa 100 = 185／人 |
+
+**行程写作提示**：英文、按日、交通与住宿说得清即可。结构示例（须改成本人真实计划，勿照抄地名当事实）：
+
+```text
+Sept 20: Fly from San Francisco to Calgary with classmates. Bus to Banff. Check into [hotel].
+Sept 21: Visit Lake Louise / Moraine by shuttle.
+Sept 22: Banff Gondola / local sights.
+Sept 23: Banff town; return to Calgary.
+Sept 24: Depart Calgary.
+```
+
+## 在美国用 USPS 寄护照贴签
+
+收到 OPR 后，把护照寄到加拿大签证中心（VAC），由 VAC 转交 IRCC 贴签。美国有纽约和洛杉矶两个 VAC，纽约地址：Canada Visa Application Centre, 128 E 32nd Street, 3rd Floor, New York, NY 10016（寄前核对当期地址）。VFS 官方双程快递约 91.10 美元；实操「穷人版」：USPS 线上买来回 label，邮局取两个信封，工作人员可帮忙把回邮信封折进去程信封，**总花费约 50 美元**量级。
+
+**寄出前清单**：
+
+- OPR（护照请求信）打印件  
+- 服务同意书 Consent Form（签好名）  
+- Money Order（帖子当时 Package Transmission 约 24.30 美元 + money order 手续费，合计约 26.95 美元；**以当时 VFS 公示为准**）  
+- 护照原件  
+- 护照资料页复印件（若清单要求）  
+- 预付邮资的回邮安排／两份 label 与 tracking  
+
+Money Order：Pay to：VFS Services (USA) Inc.；Purchaser／From：本人姓名和美国地址；Memo：护照号或加拿大签证申请号。
+
+1. 信封 A 去程：From 自己的美国地址，To 当期 VAC。  
+2. 信封 B 回程：From VAC，To 自己的美国地址，预付回程邮资，折好放进信封 A。  
+3. 一定留两个 Tracking Number：去程小票；回程 Return Label 底部可撕 Receipt。
+
+## 十年加签的价值
+
+签证有效期内可多次前往加拿大，每次停留由边检决定，通常不超过 6 个月。部分国家接受有效加签作为免签或过境文件：
 
 | 目的地 | 便利 | 条件 |
 |---|---|---|
@@ -43,8 +135,16 @@
 | 黑山 | 最多 30 天 | 不超过加签剩余有效期 |
 | 英国机场过境 | 部分路线免过境签 | 视是否过边检、机场和航班而定 |
 
+## 风险与边界
+
+- 不要先买不可退的赴加／绕路机票当赌资。  
+- 隐瞒拒签史、目的不清、材料日期自相矛盾，是常见风险。  
+- 宿主可按分区讲解怎么填，**不得替用户提交、不得编造护照号／行程／资金**。  
+- 面向学生讲解时可用合成示例；不要复述或传播他人真实证件号、住址、父母姓名等隐私。
+
 ## 官方入口
 
-- IRCC Visitor Visa：https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/apply-visitor-visa.html
-- CAN+ 清单 IMM 5884：https://ircc.canada.ca/english/pdf/kits/forms/IMM5884E.pdf
-- VFS 美国加拿大签证中心寄护照：https://visa.vfsglobal.com/usa/en/can/passport-submission?tab=submission-by-courier
+- IRCC 账户登录／创建：https://www.canada.ca/en/immigration-refugees-citizenship/services/application/account.html  
+- IRCC Visitor Visa：https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/apply-visitor-visa.html  
+- CAN+ 清单 IMM 5884：https://ircc.canada.ca/english/pdf/kits/forms/IMM5884E.pdf  
+- VFS 美国加拿大签证中心寄护照：https://visa.vfsglobal.com/usa/en/can/passport-submission?tab=submission-by-courier  

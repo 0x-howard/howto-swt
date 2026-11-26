@@ -37,5 +37,6 @@
         "Offer 确认": "当前为示例招聘资料，需核对正式 Offer"
       }
     }
-  ]
+  ],
+  "assumptions_confirmed": true
 }

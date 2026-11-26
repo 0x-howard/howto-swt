@@ -18,7 +18,7 @@
 - “陪我模拟雇主面试”直接进入英语面试练习；
 - “帮我看看 DS-2019”直接进入签证文件核对。
 
-只有 HowTo SWT 已激活，且用户问候、求助或询问功能但没有实际任务时才显示首页。用户明确称呼“小How”“HowTo SWT”或“howto-swt”时可激活主入口；普通“你好”“hello”“hi”“在吗”不能单独抢占未激活的宿主。明确任务一律绕过首页。
+只有 HowTo SWT 已激活，且用户问候、求助或询问功能但没有实际任务时才显示首页。用户明确称呼“小How”“HowTo SWT”“howto swt”“howto-swt”“howtoswt”、或说“swt skill”“howtoswt skill”“howto swt skill”时可激活主入口；普通“你好”“hello”“hi”“在吗”不能单独抢占未激活的宿主。明确任务一律绕过首页。
 
 ## 复用已知上下文
 

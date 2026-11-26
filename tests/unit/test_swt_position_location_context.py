@@ -29,6 +29,7 @@ class SwtPositionLocationContextTests(unittest.TestCase):
 
         offer = {
             "mode": "position_overview",
+            "assumptions_confirmed": True,
             "offers": [{
                 "id": "myrtle",
                 "label": "Myrtle Beach offer",
@@ -61,6 +62,7 @@ class SwtPositionLocationContextTests(unittest.TestCase):
 
         offer = {
             "mode": "position_overview",
+            "assumptions_confirmed": True,
             "offers": [{
                 "id": "ri", "label": "Rhode Island offer", "state": "Rhode Island",
                 "wage_usd_per_hour": 15, "hours_per_week": 35, "work_weeks": 12,
@@ -115,6 +117,7 @@ class SwtPositionLocationContextTests(unittest.TestCase):
 
         offer = {
             "mode": "position_overview",
+            "assumptions_confirmed": True,
             "offers": [{
                 "id": "unknown", "label": "Offer without location",
                 "wage_usd_per_hour": 15, "hours_per_week": 35, "work_weeks": 12,

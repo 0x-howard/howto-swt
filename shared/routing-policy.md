@@ -1,6 +1,6 @@
 # Intent Router
 
-路由同时使用 `Task Type + SWT Stage + Known Context + Risk Level`，不得由单个关键词或阶段编号机械决定。
+路由同时使用 `Task Type + SWT Stage + Known Context + Risk Level`。普通语义路由不得仅凭单个关键词或阶段编号机械决定；**例外**：已激活 HowTo SWT（小How／howto swt／howtoswt skill／`swt skill`／`/swt` 等）后，命中 [keyword-triggers.md](keyword-triggers.md) 的品牌＋关键词／斜杠快捷时，**强制 `DIRECT` 进入对应专项**，见该文件。
 
 七个 Skill 共用的 Decision Record、有限枚举、Materiality 和缺失信息映射见 [decision-model.md](decision-model.md)。记录是可选的内部决策摘要；不输出隐藏推理，也不替代下列路由顺序及各 Skill 的职责边界。
 
@@ -42,16 +42,17 @@
 
 ## 路由顺序
 
-`Emergency check → Direct task / Homepage → Known Context → Intent → Stage → Risk → Specialist Skill`
+`Emergency check → Brand+Keyword force → Direct task / Homepage → Known Context → Intent → Stage → Risk → Specialist Skill`
 
 1. 先判断紧急或红色风险并阻止不安全动作。
-2. 显式品牌调用优先进入 `swt` 主入口，包括“小How”“小how”“小 HOW”“HowTo SWT”“howto swt”“howto-swt”及“你好小How”“小How你好”“小How你能干嘛”“HowTo SWT 怎么用”等表达。品牌称呼不是首页请求；任务明确时直接路由，不显示首页。
-3. 普通“你好”“hello”“hi”“在吗”本身不要求未激活的宿主调用 `swt`；HowTo SWT 已 active 时，普通问候或 help 才显示首页。
-4. 从当前 conversation、宿主上下文和已加载材料恢复已知事实，不重复询问。
-5. Intent 表示用户此刻想完成什么；Stage 只限制可执行范围；Risk 决定能否给具体操作。
-6. 只加载完成任务所需的最少 Executor；多 Intent 可按依赖顺序调用多个 Executor，由 `swt` 合并。
+2. 显式品牌调用优先进入 `swt` 主入口，包括“小How”“小how”“小 HOW”“HowTo SWT”“howto swt”“HowToSWT”“howtoswt”“howto-swt”、以及“swt skill”“howtoswt skill”“howto swt skill”“HowTo SWT skill”等 Skill 名说法；“你好小How”“小How你好”“小How你能干嘛”“HowTo SWT 怎么用”；以及 `/swt`、`/howto-swt`。品牌／Skill 名称呼不是首页请求。
+3. **品牌／`howto swt`／`howtoswt skill`／`swt skill`／主入口已激活，或本句含激活前缀时**：按 [keyword-triggers.md](keyword-triggers.md) 做强制分流。例如「小How 签证」「howto swt 岗位」「howtoswt skill 机票」「/swt 机票」「小How 羊毛」直接 `DIRECT` 进对应 Skill，不显示首页。多板块关键词冲突时 `CONFIRM` 一次。
+4. 普通“你好”“hello”“hi”“在吗”本身不要求未激活的宿主调用 `swt`；HowTo SWT 已 active 时，普通问候或 help 才显示首页。
+5. 从当前 conversation、宿主上下文和已加载材料恢复已知事实，不重复询问。
+6. Intent 表示用户此刻想完成什么；Stage 只限制可执行范围；Risk 决定能否给具体操作。未命中强制表时，仍按语义路由，不单靠零散词猜测。
+7. 只加载完成任务所需的最少 Executor；多 Intent 可按依赖顺序调用多个 Executor，由 `swt` 合并。
 
-“小How帮我分析这个 Offer”直接路由 `swt-position`；“小How测一下 Sponsor 面试英语”直接路由 `swt-english`；“小How帮我看看 DS-2019”直接路由 `swt-visa`。这些明确任务不先显示首页。
+“小How帮我分析这个 Offer”直接路由 `swt-position`；“小How测一下 Sponsor 面试英语”直接路由 `swt-english`；“小How帮我看看 DS-2019”直接路由 `swt-visa`；“小How 机票”／“/swt 机票”直接路由 `swt-arrival`。这些明确任务或强制关键词不先显示首页。
 
 ## Task Type
 

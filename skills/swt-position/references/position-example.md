@@ -25,10 +25,32 @@ Offer 上确实没写的，回复「没写」，我按估算继续。
 
 ---
 
-**示例二：单 Offer**
+**示例二：单 Offer（先确认假设，再出报告）**
+
+未带 `assumptions_confirmed` 时，脚本先返回确认表（节选）：
+
+我已从你发的 Offer／截图里读出能用的数字，并填进测算。  
+下面分成「已读到」和「默认／估」……
+
+### 已从材料读到（核对有没有读错）
+| 字段 | 将使用的值 | 来源 |
+|---|---|---|
+| 时薪 | $14.5 | 已从 Offer 读到 |
+| … | … | … |
+
+### 默认／估（可改；不知道就留着）
+| 字段 | 将使用的值 | 来源 |
+|---|---|---|
+| 项目费 | ¥25,000 | 默认（估） |
+| … | … | … |
+
+1. 没问题，按上表测算  
+2. 我要改  
+
+用户回 `1` 或只改估的项后，输入加 `"assumptions_confirmed": true`：
 
 ```json
-{"mode":"position_overview","fx_cny_per_usd":6.8,"fx_source":"人民币中间价 6.7191","fx_quote_date":"2026-11-11","offers":[{"id":"meredith","label":"Meredith Dunkin","city":"Meredith","state":"NH","wage_usd_per_hour":14.5,"hours_per_week":32,"rent_usd_per_week":100,"details":{"sponsor":"CHI","tips":true,"meals":"free_at_work","housing_utilities_included":true,"housing_deducted_from_pay":true,"housing_furnished_kitchen":true,"housing_deposit_usd":0,"housing_people_per_room":"2–4","housing_contract":true,"commute_bike_minutes":40,"commute_drive_minutes":12,"employer_transport":"assist","second_job_allowed":true,"ssn_required_before_work":true,"ssn_employer_assist":true,"ssn_office":"Concord, NH","ssn_office_miles":30,"start":"尽快","training_reduced_hours":true,"open_availability":true,"multiple_locations":3,"dress_code":"自备防滑鞋、蓝色牛仔裤，以及纯黑或纯白的有领 Polo 衫。","arrival":"从波士顿 Logan 机场坐 Concord Coach 大巴到 Meredith，约 2 小时；提前告知雇主到达时间，可能安排车站接人；深夜到达需自订旅舍，每晚 $50 起。","area":"位于新罕布什尔湖区（Lake Winnipesaukee 一带），靠近白山，适合户外活动。","nearest_city":"Boston","nearest_city_hours":2,"customer_facing":true,"english_level":"Intermediate","amenities":["超市","洗衣房"],"cultural_activities":"雇主每年办员工 BBQ。"},"offer_start_date":"2026-06-01","offer_end_date":"2026-08-31"}]}
+{"mode":"position_overview","assumptions_confirmed":true,"fx_cny_per_usd":6.8,"fx_source":"人民币中间价 6.7191","fx_quote_date":"2026-11-11","offers":[{"id":"meredith","label":"Meredith Dunkin","city":"Meredith","state":"NH","wage_usd_per_hour":14.5,"hours_per_week":32,"rent_usd_per_week":100,"details":{"sponsor":"CHI","tips":true,"meals":"free_at_work","housing_utilities_included":true,"housing_deducted_from_pay":true,"housing_furnished_kitchen":true,"housing_deposit_usd":0,"housing_people_per_room":"2–4","housing_contract":true,"commute_bike_minutes":40,"commute_drive_minutes":12,"employer_transport":"assist","second_job_allowed":true,"ssn_required_before_work":true,"ssn_employer_assist":true,"ssn_office":"Concord, NH","ssn_office_miles":30,"start":"尽快","training_reduced_hours":true,"open_availability":true,"multiple_locations":3,"dress_code":"自备防滑鞋、蓝色牛仔裤，以及纯黑或纯白的有领 Polo 衫。","arrival":"从波士顿 Logan 机场坐 Concord Coach 大巴到 Meredith，约 2 小时；提前告知雇主到达时间，可能安排车站接人；深夜到达需自订旅舍，每晚 $50 起。","area":"位于新罕布什尔湖区（Lake Winnipesaukee 一带），靠近白山，适合户外活动。","nearest_city":"Boston","nearest_city_hours":2,"customer_facing":true,"english_level":"Intermediate","amenities":["超市","洗衣房"],"cultural_activities":"雇主每年办员工 BBQ。"},"offer_start_date":"2026-06-01","offer_end_date":"2026-08-31"}]}
 ```
 
 **假设项目费 ¥25,000，按 $14.50/h、平均每周 32 小时计算，在美净剩约 $3,057，最终预计结余约 −$619（约 −¥4,212），单靠本岗位无法回本。**

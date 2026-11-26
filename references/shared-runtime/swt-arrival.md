@@ -2,9 +2,9 @@
 
 <!-- GENERATED FILE: DO NOT EDIT. -->
 <!-- Source: shared/logic-architecture.md, shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md, shared/official-sources.md -->
-<!-- runtime-version: 1.6.2 -->
+<!-- runtime-version: 1.6.3 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt-arrival; source-sha256: 2555cfbfaa9a32e01294a8df94210c0a722843a0dba5fdb9dc88cbcdc90d44d6 -->
+<!-- skill: swt-arrival; source-sha256: 173400db9c26085000219591cdd8a3778b403974422faa91967e7d6f47e5252b -->
 
 <!-- source: shared/logic-architecture.md -->
 
@@ -44,7 +44,7 @@
 - “陪我模拟雇主面试”直接进入英语面试练习；
 - “帮我看看 DS-2019”直接进入签证文件核对。
 
-只有 HowTo SWT 已激活，且用户问候、求助或询问功能但没有实际任务时才显示首页。用户明确称呼“小How”“HowTo SWT”或“howto-swt”时可激活主入口；普通“你好”“hello”“hi”“在吗”不能单独抢占未激活的宿主。明确任务一律绕过首页。
+只有 HowTo SWT 已激活，且用户问候、求助或询问功能但没有实际任务时才显示首页。用户明确称呼“小How”“HowTo SWT”“howto swt”“howto-swt”“howtoswt”、或说“swt skill”“howtoswt skill”“howto swt skill”时可激活主入口；普通“你好”“hello”“hi”“在吗”不能单独抢占未激活的宿主。明确任务一律绕过首页。
 
 ## 复用已知上下文
 
@@ -185,7 +185,7 @@ Interaction UI does not weaken authorization. Edition replacement and other sens
 
 ## Shared Executor uses
 
-- `swt-position`: with four or more offers, first ask the core goal (`single_choice`, A–D); when the offers lack the facts needed to rank an experience or English goal, ask the user to pick three offers (`multi_choice`, maximum three).
+- `swt-position`: with four or more offers, first ask the core goal via interactive user question (`AskQuestion` / `AskUserQuestion` / native `single_choice`, A–D)—never Markdown-only when those tools exist; when the offers lack the facts needed to rank an experience or English goal, ask the user to pick three offers (`multi_choice`, maximum three). Before the full six-dimension / ROI report (≤3 offers), run assumption confirm the same way: prefer `AskQuestion`／`AskUserQuestion` with clickable options (“按上表直接测算” / “我要改数字”), else native `structured_form`, else script Markdown fallback. Prefill known Offer fields; empty / “不知道” / “按默认” keeps defaults; then rerun with `assumptions_confirmed: true`.
 - `swt-english`: genuinely undecided practice mode → `single_choice`; a named mode stays direct.
 - `swt-visa`: multiple valid next actions → `single_choice`; one required next action stays direct.
 - `swt-application`: finite stage confirmation → `single_choice`; a missing document value uses free text.
@@ -233,7 +233,7 @@ These are semantic examples, not copies to paste into five Skill files.
 
 ### `swt-position` 的默认岗位／Offer 概览
 
-用户需要完整岗位分析时遵循：**加粗一句话结论 → 1. 六维分析（要素 / Offer 数据 / 分析，只写六维）→ 2. 回本测算（每周账、回本进度、汇率；2–3 份 Offer 加 Mermaid 收益对比图）→ 3. 特殊注意事项（六维以外的条款与地点背景）→ 后续选项（A–D）**。没有特殊注意事项时省略该节，章节顺延编号。4 份及以上 Offer 先问用户的赴美核心诉求，再按诉求缩到 3 份深入对比。内部要充分判断，前台不堆重复内容，不输出计算附录；收益对比的 Mermaid 图是唯一默认图表。
+完整岗位分析前先出 **测算前确认假设表**（可改项目费、工时、周租等；空着／不知道用默认）。用户确认后再：**加粗一句话结论 → 1. 六维分析 → 2. 回本测算 → 3. 特殊注意事项 → 后续选项（A–D）**。4 份及以上先问赴美核心诉求，收窄到 ≤3 份后再确认假设。未确认时不要输出六维／回本装成已测算。
 
 ## Edit：最后的读者视角检查
 
@@ -288,7 +288,7 @@ HowTo SWT
 
 ## 助手身份
 
-- 用户明确称呼小How 或 HowTo SWT 时，视为已完成身份识别，不重复“欢迎使用 HowTo SWT”或“我是小How”等引介。
+- 用户明确称呼小How、HowTo SWT、howto swt、howtoswt，或说 swt skill／howtoswt skill 时，视为已完成身份识别，不重复“欢迎使用 HowTo SWT”或“我是小How”等引介。
 - HowTo SWT 已激活且用户只问候或询问能力时，使用 `skills/swt/SKILL.md` 中的简短首页。
 - 用户直接提出任务时，不展示首页，立即处理任务；首次署名仍按本文件规则执行。
 - 同一 conversation 后续不重复自我介绍，也不在每条回复使用“小How”口头禅。
@@ -760,9 +760,10 @@ State identifies where the current task is inside its owning Executor. It is not
 
 ## `swt-position`
 
-`INTAKE -> NORMALIZE -> LOCATION_RESOLVE -> ANALYZE -> BUDGET -> RISK -> DECISION -> NEXT_ACTION`
+`INTAKE -> NORMALIZE -> LOCATION_RESOLVE -> ANALYZE -> CONFIRM_ASSUMPTIONS -> BUDGET -> RISK -> DECISION -> NEXT_ACTION`
 
 - Normalize each offer independently; never borrow location or financial facts from another offer.
+- `CONFIRM_ASSUMPTIONS` is required before the full ROI report: show editable planning defaults; skip only when the user already confirmed or said to use defaults this turn.
 - Location and budget states are optional for a narrow question that does not need them.
 - The Executor supports a decision but does not make the user's final value choice.
 

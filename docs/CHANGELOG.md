@@ -1,5 +1,13 @@
 # HowTo SWT 更新记录
 
+## v1.6.3
+
+- `swt-position`：完整六维／回本前先确认测算数字；已从 Offer 读到的预填，默认／估可改可留
+- 确认交互优先走宿主 `AskQuestion`／`AskUserQuestion`（可点选项）；没有交互提问工具时才用文字编号；有工具却只用 Markdown 冒充视为执行错误
+- `swt-arrival`：新增中美机票／接驳规划估算（底价 × 提前订票 × 旺季），对照实付人票口径
+- 主入口：品牌／`howto swt`／`swt skill`／`/swt` + 关键词强制进对应专项（如「小How 机票」→ `swt-arrival`）
+- `swt-visa`：加拿大按 CAN+／手把手填表走，不再默认整套普通 TRV 长文
+
 ## v1.6.2
 
 - `swt-position` 读取 Offer 后，在对话内部维护与清洗 Skill 同构的 12 字段事实清单（`jobFacts`），不向学生展示

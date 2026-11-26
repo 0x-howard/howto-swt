@@ -4,6 +4,8 @@
 
 `scripts/budget.py` 的 `position_overview` 模式是岗位、Offer、城市＋岗位与回本问题的默认计算入口。最少每个岗位只需 `wage_usd_per_hour` 和 `hours_per_week`（或同义 `expected_hours`）；可选 `min_hours / expected_hours / max_hours`。没有可信上下界时保留单点，不伪造范围；Offer 书面写明保证工时时传 `hours_guaranteed = true`，上下界固定为该工时；估算范围必须同时给出 `hours_range_estimated = true` 和依据。其他普通缺口按 `references/default-assumptions.json` 的城市 → 州 → 通用值补齐。所有回退字段在结构化结果中带来源，在用户表格中标“估”。
 
+**完整报告前**：输入须含 `"assumptions_confirmed": true`，否则脚本返回 `stage: confirm_assumptions`（见 [测算前确认假设](assumption-confirm.md)），不输出六维／回本。用户改完或同意默认后再带该标记重跑。
+
 ## Offer Return Function
 
 `scripts/offer_return.py` 使用每个岗位的确定性结果生成：

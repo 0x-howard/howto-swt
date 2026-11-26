@@ -715,8 +715,11 @@ OFFER_FIELD_CHECKS = (
 )
 
 
-def _missing_fields(raws: list[Any], *, details_too: bool) -> list[dict[str, Any]]:
-    """Ask before analysing; offers typed by hand (no details) only need wage and hours."""
+DEFAULT_HOURS_PER_WEEK = Decimal("32")
+
+
+def _missing_fields(raws: list[Any], *, require_hours: bool) -> list[dict[str, Any]]:
+    """Only hard-block on wage (and hours when calculation cannot wait for the confirm form)."""
     missing = []
     for index, raw in enumerate(raws):
         if not isinstance(raw, dict):
@@ -725,23 +728,136 @@ def _missing_fields(raws: list[Any], *, details_too: bool) -> list[dict[str, Any
         fields = []
         if "wage_usd_per_hour" not in raw:
             fields.append("时薪（Hourly wage）")
-        if "hours_per_week" not in raw and "expected_hours" not in raw:
+        if require_hours and "hours_per_week" not in raw and "expected_hours" not in raw:
             fields.append("每周工时（Estimated hours per week）")
-        if details_too and isinstance(raw.get("details"), dict):
-            for name, keys, in_details in OFFER_FIELD_CHECKS:
-                source = raw["details"] if in_details else raw
-                if not any(key in source for key in keys):
-                    fields.append(name)
         if fields:
             missing.append({"label": raw.get("label", f"岗位 {index + 1}"), "fields": fields})
     return missing
+
+
+def _assumption_field(value: Any, source: str) -> dict[str, Any]:
+    return {"value": value, "source": source}
+
+
+def _material_gaps(raw: dict[str, Any]) -> list[str]:
+    """Soft gaps from the flyer/PDF folded into the confirm form, not a separate wall of text."""
+    gaps = []
+    if "hours_per_week" not in raw and "expected_hours" not in raw:
+        gaps.append("每周工时（材料未写，表内先用默认 32h）")
+    details = raw.get("details") if isinstance(raw.get("details"), dict) else {}
+    for name, keys, in_details in OFFER_FIELD_CHECKS:
+        source = details if in_details else raw
+        if not any(key in source for key in keys):
+            # dates/rent already handled as known or default in the form
+            if name.startswith("工作起止") or name.startswith("住宿费用") or name.startswith("通勤"):
+                continue
+            gaps.append(f"{name}（材料未写）")
+    return gaps
+
+
+def _propose_assumptions(data: dict[str, Any], defaults: dict[str, Any]) -> dict[str, Any]:
+    """Build editable planning inputs before the full ROI report."""
+    global_defaults = defaults["global"]
+    if "project_cost_usd" in data:
+        project = _assumption_field(float(_number(data["project_cost_usd"], "input.project_cost_usd")), "已知")
+        project_key = "project_cost_usd"
+    elif "project_cost_cny" in data:
+        project = _assumption_field(float(_number(data["project_cost_cny"], "input.project_cost_cny")), "已知")
+        project_key = "project_cost_cny"
+    else:
+        project = _assumption_field(float(global_defaults["project_cost_cny"]), "默认（估）")
+        project_key = "project_cost_cny"
+
+    offers_out: list[dict[str, Any]] = []
+    patches: list[dict[str, Any]] = []
+    for index, raw in enumerate(data["offers"]):
+        if not isinstance(raw, dict):
+            raise ValueError(f"input.offers[{index}]: requires an object")
+        path = f"input.offers[{index}]"
+        label = raw.get("label") or raw.get("id") or f"岗位 {index + 1}"
+        if "wage_usd_per_hour" not in raw:
+            raise ValueError(f"{path}.wage_usd_per_hour: required before confirm form")
+        wage = _number(raw["wage_usd_per_hour"], f"{path}.wage_usd_per_hour", positive=True)
+        if "expected_hours" in raw:
+            hours = _number(raw["expected_hours"], f"{path}.expected_hours", positive=True)
+            hours_source = "已从 Offer 读到"
+        elif "hours_per_week" in raw:
+            hours = _number(raw["hours_per_week"], f"{path}.hours_per_week", positive=True)
+            hours_source = "已从 Offer 读到"
+        else:
+            hours = DEFAULT_HOURS_PER_WEEK
+            hours_source = "材料未写，默认（估）"
+            patches.append({"offer_index": index, "hours_per_week": float(hours)})
+        weeks, weeks_source = _overview_period(raw, defaults, path)
+        state = _state_code(raw["state"], f"{path}.state") if "state" in raw else None
+        city = raw.get("city") if isinstance(raw.get("city"), str) else None
+        city_key = f"{state or ''}|{city.strip().casefold()}" if city else ""
+        city_defaults = defaults["city_cost_overrides"].get(city_key, {})
+        profile = _state_reference(state)
+        fields: dict[str, Any] = {
+            "wage_usd_per_hour": _assumption_field(float(wage), "已从 Offer 读到"),
+            "hours_per_week": _assumption_field(float(hours), hours_source),
+            "work_weeks": _assumption_field(
+                float(weeks),
+                {
+                    "offer_dates": "已从 Offer 日期算出",
+                    "user_dates": "已知（你给的日期）",
+                    "provided_weeks": "已知（你给的周数）",
+                    "global_estimate": "默认（估）",
+                }.get(weeks_source, weeks_source),
+            ),
+        }
+        for key, state_field, label_cn in (
+            ("rent_usd_per_week", "常见周租", "住宿／周租"),
+            ("food_usd_per_week", "每周基础开销", "餐饮"),
+            ("transport_usd_per_week", None, "交通"),
+            ("other_weekly_usd", None, "其他生活费"),
+        ):
+            amount, source = _overview_cost(raw, city_defaults, profile, defaults, key, state_field, path)
+            if source == "provided":
+                source_label = "已从 Offer 读到" if key in raw else "已知"
+            elif source.startswith("city"):
+                source_label = "城市参考（估）"
+            elif source.startswith("state"):
+                source_label = "州级参考（估）"
+            else:
+                source_label = "默认（估）"
+            fields[key] = {**_assumption_field(float(amount), source_label), "label": label_cn}
+        offers_out.append({
+            "id": raw.get("id") or str(index + 1),
+            "label": label,
+            "fields": fields,
+            "material_gaps": _material_gaps(raw),
+        })
+
+    return {
+        "shared": {project_key: {**project, "label": "项目费"}},
+        "offers": offers_out,
+        "suggested_patches": patches,
+        "note": "已读到的先核对；默认／估可改可留。材料未写的项见各岗位下方。",
+    }
+
+
+def _with_confirm_defaults(data: dict[str, Any]) -> dict[str, Any]:
+    """After user accepts the confirm form, fill soft defaults so calculation can run."""
+    cloned = dict(data)
+    offers = []
+    for raw in data["offers"]:
+        item = dict(raw)
+        if "hours_per_week" not in item and "expected_hours" not in item:
+            item["hours_per_week"] = float(DEFAULT_HOURS_PER_WEEK)
+        offers.append(item)
+    cloned["offers"] = offers
+    if "missing_confirmed" not in cloned:
+        cloned["missing_confirmed"] = True
+    return cloned
 
 
 def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
     """Calculate a one-result SWT comparison with explicit provenance for every fallback."""
     _exact_keys(
         data, {"mode", "offers", "fx_cny_per_usd", "fx_source", "fx_quote_date", "project_cost_cny", "project_cost_usd", "tax",
-               "comparison_hours", "core_goal", "selected_offer_ids", "missing_confirmed"},
+               "comparison_hours", "core_goal", "selected_offer_ids", "missing_confirmed", "assumptions_confirmed"},
         {"offers"}, "input",
     )
     if data.get("mode", "position_overview") != "position_overview":
@@ -760,20 +876,49 @@ def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("exchange rate metadata requires fx_cny_per_usd")
     if "missing_confirmed" in data and not isinstance(data["missing_confirmed"], bool):
         raise ValueError("input.missing_confirmed: use true or false")
+    if "assumptions_confirmed" in data and not isinstance(data["assumptions_confirmed"], bool):
+        raise ValueError("input.assumptions_confirmed: use true or false")
     defaults = _overview_defaults()
-    missing = _missing_fields(data["offers"], details_too=len(data["offers"]) <= 3 and not data.get("missing_confirmed"))
+    confirmed = data.get("assumptions_confirmed") is True
+    # 用户已点确认后，先补上弹窗里的软默认（如材料未写的 32h），再检查硬缺口。
+    working = _with_confirm_defaults(data) if confirmed else data
+    # PDF／截图：有时薪就先出确认弹窗；小费／餐／押金等并进弹窗。
+    # 4 份及以上比较前仍要有工时；已确认则 working 里应已有工时。
+    require_hours = confirmed or len(working["offers"]) > 3
+    missing = _missing_fields(working["offers"], require_hours=require_hours)
     if missing:
         return {"mode": "position_overview", "assumptions_version": defaults["version"], "stage": "ask_missing",
                 "missing_fields": missing}
-    offers = [_overview_offer(raw, data, defaults, index) for index, raw in enumerate(data["offers"])]
+    if len(working["offers"]) <= 3 and not confirmed:
+        form = _propose_assumptions(working, defaults)
+        return {
+            "mode": "position_overview",
+            "assumptions_version": defaults["version"],
+            "stage": "confirm_assumptions",
+            "assumption_form": form,
+            "interaction": {
+                "type": "single_choice",
+                "id": "position_assumption_confirm",
+                "title": "岗位测算前确认",
+                "allow_skip_defaults": True,
+                "prefer_native_popup": True,
+                "prefer_ask_question": True,
+                "ask_question_tools": ["AskQuestion", "AskUserQuestion", "request_user_input"],
+                "options": [
+                    {"id": "use_defaults", "label": "按上表直接测算", "recommended": True},
+                    {"id": "edit", "label": "我要改数字"},
+                ],
+            },
+        }
+    offers = [_overview_offer(raw, working, defaults, index) for index, raw in enumerate(working["offers"])]
     ids = [item["id"] for item in offers]
     if len(ids) != len(set(ids)):
         raise ValueError("input.offers: duplicate id")
-    goal = data.get("core_goal")
+    goal = working.get("core_goal")
     if goal is not None and goal not in CORE_GOALS:
         raise ValueError(f"input.core_goal: must be one of {sorted(CORE_GOALS)}")
     if len(offers) > 3:
-        return _narrow_offers(data, offers, defaults)
+        return _narrow_offers(working, offers, defaults)
     from offer_return import calculate_offer_return_analysis
 
     return {
@@ -782,8 +927,8 @@ def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
         "comparison_order": [item["id"] for item in (sorted(offers, key=lambda item: Decimal(item["final_project_surplus_usd"]), reverse=True) if all(item["final_project_surplus_usd"] is not None for item in offers) else offers)],
         "comparison_complete": all(item["final_project_surplus_usd"] is not None for item in offers),
         "core_goal": goal,
-        "fx_source": data.get("fx_source"), "fx_quote_date": data.get("fx_quote_date"),
-        "offer_return_analysis": calculate_offer_return_analysis(offers, data.get("comparison_hours")),
+        "fx_source": working.get("fx_source"), "fx_quote_date": working.get("fx_quote_date"),
+        "offer_return_analysis": calculate_offer_return_analysis(offers, working.get("comparison_hours")),
     }
 
 
@@ -901,6 +1046,84 @@ def _narrow_offers(data: dict[str, Any], offers: list[dict[str, Any]], defaults:
     return result
 
 
+def _assumption_display(key: str, value: Any) -> str:
+    if key == "project_cost_cny" or (isinstance(key, str) and key.endswith("_cny")):
+        return f"¥{float(value):,.0f}"
+    if key == "work_weeks":
+        return f"{round(float(value), 1):g} 周"
+    if key == "hours_per_week":
+        return f"{float(value):g} h"
+    if isinstance(value, float) and value == int(value):
+        return f"${int(value)}"
+    if isinstance(value, (int, float)) and "usd" in key:
+        return f"${float(value):g}"
+    return f"{value}"
+
+
+def _is_known_assumption(source: str) -> bool:
+    return source.startswith("已从") or source.startswith("已知")
+
+
+def _format_assumption_confirm(result: dict[str, Any]) -> str:
+    form = result["assumption_form"]
+    labels = {
+        "wage_usd_per_hour": "时薪",
+        "hours_per_week": "平均每周工时",
+        "work_weeks": "工作周数",
+        "rent_usd_per_week": "住宿／周租",
+        "food_usd_per_week": "餐饮／周",
+        "transport_usd_per_week": "交通／周",
+        "other_weekly_usd": "其他生活费／周",
+        "project_cost_cny": "项目费",
+        "project_cost_usd": "项目费（美元）",
+    }
+    known_rows: list[tuple[str, str, str]] = []
+    guess_rows: list[tuple[str, str, str]] = []
+
+    def add_row(prefix: str, key: str, item: dict[str, Any]) -> None:
+        label = item.get("label") or labels.get(key, key)
+        if prefix:
+            label = f"{prefix}{label}"
+        row = (label, _assumption_display(key, item["value"]), item["source"])
+        (known_rows if _is_known_assumption(item["source"]) else guess_rows).append(row)
+
+    for key, item in form["shared"].items():
+        add_row("", key, item)
+    for offer in form["offers"]:
+        prefix = f"{offer['label']} · " if len(form["offers"]) > 1 else ""
+        for key, item in offer["fields"].items():
+            add_row(prefix, key, item)
+
+    lines = [
+        "我已从你发的 Offer／截图里读出能用的数字，并填进测算。",
+        "下面分成「已读到」和「默认／估」：默认项不知道就不用改；有确切数再改。",
+        "**测算是规划估，不是工资单，也不能保证回本。**",
+        "",
+    ]
+    if known_rows:
+        lines.extend(["### 已从材料读到（核对有没有读错）", "", "| 字段 | 将使用的值 | 来源 |", "|---|---|---|"])
+        lines.extend(f"| {label} | {value} | {source} |" for label, value, source in known_rows)
+        lines.append("")
+    if guess_rows:
+        lines.extend(["### 默认／估（可改；不知道就留着）", "", "| 字段 | 将使用的值 | 来源 |", "|---|---|---|"])
+        lines.extend(f"| {label} | {value} | {source} |" for label, value, source in guess_rows)
+        lines.append("")
+    gap_lines: list[str] = []
+    for offer in form["offers"]:
+        for gap in offer.get("material_gaps") or []:
+            prefix = f"{offer['label']}：" if len(form["offers"]) > 1 else ""
+            gap_lines.append(f"- {prefix}{gap}")
+    if gap_lines:
+        lines.extend(["### 材料未写（不影响先测算）", "", *gap_lines, ""])
+    lines.extend([
+        "1. 没问题，按上表测算",
+        "2. 我要改（例：工时 40，项目费 30000，餐费 70）",
+        "",
+        "回复 `1`，或只写出要改的项。",
+    ])
+    return "\n".join(lines)
+
+
 def _format_narrowing(result: dict[str, Any]) -> str:
     if result["stage"] == "ask_missing":
         lines = ["我这里检测不到以下信息，麻烦你看一遍 Offer 提供给我：", ""]
@@ -908,6 +1131,8 @@ def _format_narrowing(result: dict[str, Any]) -> str:
             lines.extend([f"**{entry['label']}**", "", *(f"- {field}" for field in entry["fields"]), ""])
         lines.append("Offer 上确实没写的，回复「没写」，我按估算继续。")
         return "\n".join(lines)
+    if result["stage"] == "confirm_assumptions":
+        return _format_assumption_confirm(result)
     offers = result["offers"]
     if result["stage"] == "ask_core_goal":
         names = "  ".join(f"{index}. {item['label']}" for index, item in enumerate(offers, 1))

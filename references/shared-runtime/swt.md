@@ -1,10 +1,10 @@
 # Generated Shared Runtime
 
 <!-- GENERATED FILE: DO NOT EDIT. -->
-<!-- Source: shared/logic-architecture.md, shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md, shared/routing-policy.md, shared/stage-model.md -->
-<!-- runtime-version: 1.6.2 -->
+<!-- Source: shared/logic-architecture.md, shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md, shared/routing-policy.md, shared/keyword-triggers.md, shared/stage-model.md -->
+<!-- runtime-version: 1.6.3 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt; source-sha256: 303616ef7cca328b5362dc4777b9dca1945a25d0d6f011c2d431008f7e0089c4 -->
+<!-- skill: swt; source-sha256: 8d75c55a2c7e65820e6b84de39b8ae38289cb29c87157a4796ca96c03135a025 -->
 
 <!-- source: shared/logic-architecture.md -->
 
@@ -44,7 +44,7 @@
 - “陪我模拟雇主面试”直接进入英语面试练习；
 - “帮我看看 DS-2019”直接进入签证文件核对。
 
-只有 HowTo SWT 已激活，且用户问候、求助或询问功能但没有实际任务时才显示首页。用户明确称呼“小How”“HowTo SWT”或“howto-swt”时可激活主入口；普通“你好”“hello”“hi”“在吗”不能单独抢占未激活的宿主。明确任务一律绕过首页。
+只有 HowTo SWT 已激活，且用户问候、求助或询问功能但没有实际任务时才显示首页。用户明确称呼“小How”“HowTo SWT”“howto swt”“howto-swt”“howtoswt”、或说“swt skill”“howtoswt skill”“howto swt skill”时可激活主入口；普通“你好”“hello”“hi”“在吗”不能单独抢占未激活的宿主。明确任务一律绕过首页。
 
 ## 复用已知上下文
 
@@ -185,7 +185,7 @@ Interaction UI does not weaken authorization. Edition replacement and other sens
 
 ## Shared Executor uses
 
-- `swt-position`: with four or more offers, first ask the core goal (`single_choice`, A–D); when the offers lack the facts needed to rank an experience or English goal, ask the user to pick three offers (`multi_choice`, maximum three).
+- `swt-position`: with four or more offers, first ask the core goal via interactive user question (`AskQuestion` / `AskUserQuestion` / native `single_choice`, A–D)—never Markdown-only when those tools exist; when the offers lack the facts needed to rank an experience or English goal, ask the user to pick three offers (`multi_choice`, maximum three). Before the full six-dimension / ROI report (≤3 offers), run assumption confirm the same way: prefer `AskQuestion`／`AskUserQuestion` with clickable options (“按上表直接测算” / “我要改数字”), else native `structured_form`, else script Markdown fallback. Prefill known Offer fields; empty / “不知道” / “按默认” keeps defaults; then rerun with `assumptions_confirmed: true`.
 - `swt-english`: genuinely undecided practice mode → `single_choice`; a named mode stays direct.
 - `swt-visa`: multiple valid next actions → `single_choice`; one required next action stays direct.
 - `swt-application`: finite stage confirmation → `single_choice`; a missing document value uses free text.
@@ -233,7 +233,7 @@ These are semantic examples, not copies to paste into five Skill files.
 
 ### `swt-position` 的默认岗位／Offer 概览
 
-用户需要完整岗位分析时遵循：**加粗一句话结论 → 1. 六维分析（要素 / Offer 数据 / 分析，只写六维）→ 2. 回本测算（每周账、回本进度、汇率；2–3 份 Offer 加 Mermaid 收益对比图）→ 3. 特殊注意事项（六维以外的条款与地点背景）→ 后续选项（A–D）**。没有特殊注意事项时省略该节，章节顺延编号。4 份及以上 Offer 先问用户的赴美核心诉求，再按诉求缩到 3 份深入对比。内部要充分判断，前台不堆重复内容，不输出计算附录；收益对比的 Mermaid 图是唯一默认图表。
+完整岗位分析前先出 **测算前确认假设表**（可改项目费、工时、周租等；空着／不知道用默认）。用户确认后再：**加粗一句话结论 → 1. 六维分析 → 2. 回本测算 → 3. 特殊注意事项 → 后续选项（A–D）**。4 份及以上先问赴美核心诉求，收窄到 ≤3 份后再确认假设。未确认时不要输出六维／回本装成已测算。
 
 ## Edit：最后的读者视角检查
 
@@ -288,7 +288,7 @@ HowTo SWT
 
 ## 助手身份
 
-- 用户明确称呼小How 或 HowTo SWT 时，视为已完成身份识别，不重复“欢迎使用 HowTo SWT”或“我是小How”等引介。
+- 用户明确称呼小How、HowTo SWT、howto swt、howtoswt，或说 swt skill／howtoswt skill 时，视为已完成身份识别，不重复“欢迎使用 HowTo SWT”或“我是小How”等引介。
 - HowTo SWT 已激活且用户只问候或询问能力时，使用 `skills/swt/SKILL.md` 中的简短首页。
 - 用户直接提出任务时，不展示首页，立即处理任务；首次署名仍按本文件规则执行。
 - 同一 conversation 后续不重复自我介绍，也不在每条回复使用“小How”口头禅。
@@ -760,9 +760,10 @@ State identifies where the current task is inside its owning Executor. It is not
 
 ## `swt-position`
 
-`INTAKE -> NORMALIZE -> LOCATION_RESOLVE -> ANALYZE -> BUDGET -> RISK -> DECISION -> NEXT_ACTION`
+`INTAKE -> NORMALIZE -> LOCATION_RESOLVE -> ANALYZE -> CONFIRM_ASSUMPTIONS -> BUDGET -> RISK -> DECISION -> NEXT_ACTION`
 
 - Normalize each offer independently; never borrow location or financial facts from another offer.
+- `CONFIRM_ASSUMPTIONS` is required before the full ROI report: show editable planning defaults; skip only when the user already confirmed or said to use defaults this turn.
 - Location and budget states are optional for a narrow question that does not need them.
 - The Executor supports a decision but does not make the user's final value choice.
 
@@ -868,7 +869,7 @@ When the host can access the complete installed package, check for the package-r
 
 # Intent Router
 
-路由同时使用 `Task Type + SWT Stage + Known Context + Risk Level`，不得由单个关键词或阶段编号机械决定。
+路由同时使用 `Task Type + SWT Stage + Known Context + Risk Level`。普通语义路由不得仅凭单个关键词或阶段编号机械决定；**例外**：已激活 HowTo SWT（小How／howto swt／howtoswt skill／`swt skill`／`/swt` 等）后，命中 [品牌＋关键词强制触发](#品牌关键词强制触发) 的品牌＋关键词／斜杠快捷时，**强制 `DIRECT` 进入对应专项**，见该文件。
 
 七个 Skill 共用的 Decision Record、有限枚举、Materiality 和缺失信息映射见 [decision model](#structured-decision-architecture)。记录是可选的内部决策摘要；不输出隐藏推理，也不替代下列路由顺序及各 Skill 的职责边界。
 
@@ -910,16 +911,17 @@ When the host can access the complete installed package, check for the package-r
 
 ## 路由顺序
 
-`Emergency check → Direct task / Homepage → Known Context → Intent → Stage → Risk → Specialist Skill`
+`Emergency check → Brand+Keyword force → Direct task / Homepage → Known Context → Intent → Stage → Risk → Specialist Skill`
 
 1. 先判断紧急或红色风险并阻止不安全动作。
-2. 显式品牌调用优先进入 `swt` 主入口，包括“小How”“小how”“小 HOW”“HowTo SWT”“howto swt”“howto-swt”及“你好小How”“小How你好”“小How你能干嘛”“HowTo SWT 怎么用”等表达。品牌称呼不是首页请求；任务明确时直接路由，不显示首页。
-3. 普通“你好”“hello”“hi”“在吗”本身不要求未激活的宿主调用 `swt`；HowTo SWT 已 active 时，普通问候或 help 才显示首页。
-4. 从当前 conversation、宿主上下文和已加载材料恢复已知事实，不重复询问。
-5. Intent 表示用户此刻想完成什么；Stage 只限制可执行范围；Risk 决定能否给具体操作。
-6. 只加载完成任务所需的最少 Executor；多 Intent 可按依赖顺序调用多个 Executor，由 `swt` 合并。
+2. 显式品牌调用优先进入 `swt` 主入口，包括“小How”“小how”“小 HOW”“HowTo SWT”“howto swt”“HowToSWT”“howtoswt”“howto-swt”、以及“swt skill”“howtoswt skill”“howto swt skill”“HowTo SWT skill”等 Skill 名说法；“你好小How”“小How你好”“小How你能干嘛”“HowTo SWT 怎么用”；以及 `/swt`、`/howto-swt`。品牌／Skill 名称呼不是首页请求。
+3. **品牌／`howto swt`／`howtoswt skill`／`swt skill`／主入口已激活，或本句含激活前缀时**：按 [品牌＋关键词强制触发](#品牌关键词强制触发) 做强制分流。例如「小How 签证」「howto swt 岗位」「howtoswt skill 机票」「/swt 机票」「小How 羊毛」直接 `DIRECT` 进对应 Skill，不显示首页。多板块关键词冲突时 `CONFIRM` 一次。
+4. 普通“你好”“hello”“hi”“在吗”本身不要求未激活的宿主调用 `swt`；HowTo SWT 已 active 时，普通问候或 help 才显示首页。
+5. 从当前 conversation、宿主上下文和已加载材料恢复已知事实，不重复询问。
+6. Intent 表示用户此刻想完成什么；Stage 只限制可执行范围；Risk 决定能否给具体操作。未命中强制表时，仍按语义路由，不单靠零散词猜测。
+7. 只加载完成任务所需的最少 Executor；多 Intent 可按依赖顺序调用多个 Executor，由 `swt` 合并。
 
-“小How帮我分析这个 Offer”直接路由 `swt-position`；“小How测一下 Sponsor 面试英语”直接路由 `swt-english`；“小How帮我看看 DS-2019”直接路由 `swt-visa`。这些明确任务不先显示首页。
+“小How帮我分析这个 Offer”直接路由 `swt-position`；“小How测一下 Sponsor 面试英语”直接路由 `swt-english`；“小How帮我看看 DS-2019”直接路由 `swt-visa`；“小How 机票”／“/swt 机票”直接路由 `swt-arrival`。这些明确任务或强制关键词不先显示首页。
 
 ## Task Type
 
@@ -980,6 +982,61 @@ SEVIS Fee 与 SEVIS Check-in 是不同任务：前者属于签证链，后者属
 ## 多 Skill 顺序
 
 先处理紧急和红色风险，再处理阻塞其他任务的前置事实，然后依赖顺序调用必要 Specialist。最终只展示共同结论、必要专项结果和一条合并后的行动清单；事实、风险、问题和作者署名都不得重复。
+
+---
+
+<!-- source: shared/keyword-triggers.md -->
+
+# 品牌＋关键词强制触发
+
+<a id="品牌关键词强制触发"></a>
+
+在 **HowTo SWT 已激活**（用户说了「小How／HowTo SWT／howto swt／howto-swt／howtoswt／swt skill／howtoswt skill」、调用了 `swt` Skill，或使用 `/swt`、`/howto-swt`）之后，若同一句里命中下表关键词，**强制 `DIRECT` 进入对应专项 Skill**，不显示首页，不做无关澄清。
+
+本表是主入口与宿主发现用的强制入口；紧急人身安全仍优先于本表。没有品牌／主入口激活时，单靠关键词不抢占未激活宿主（与现有问候规则一致）；会话内 HowTo 已激活后，单独关键词也可按本表强制分流。
+
+## 激活前缀（任一即可）
+
+- 称呼：小How、小how、小 HOW、HowTo SWT、howto swt、HowToSWT、howtoswt、howto-swt 及合理空格／大小写／连字符变体  
+- Skill 名：`swt`、`swt skill`、`SWT skill`；`howto swt skill`、`howtoswt skill`、`HowTo SWT skill`、`howto-swt skill`（说这些即激活主入口）  
+- 斜杠：`/swt`、`/howto-swt`、`howto-swt`  
+- 已在本对话激活 HowTo SWT 后的后续消息（可不再重复称呼）
+
+写法示例：`小How 签证`、`howto swt 岗位`、`howtoswt skill 机票`、`swt skill 机票`、`/swt 机票`、会话已激活后只说 `加拿大签证`。
+
+## 强制对照表
+
+同一句命中多块且会导向不同 Skill 时：用 `CONFIRM` 列出命中的板块让用户选一次，不擅自合并长文。
+
+| 强制进入 | 关键词／说法（命中其一即可） |
+|---|---|
+| `swt-application` | 报名、申请、机构、合同、雷点、付款、项目费、简历、视频面试材料、Sponsor 系统、雇主申请流程、Offer 签署／递交状态 |
+| `swt-position` | 岗位、Offer、时薪、回本、结余、对比岗位、值不值得去、住房租金、二工好不好找（岗位比较语境）、SWT 地点／participant count（岗位语境） |
+| `swt-english` | 英语、口语、口测、练英语、面试英语、Sponsor 面试（练／模拟）、雇主面试英语、美签口语练习、测评、MOCK |
+| `swt-visa` | 签证、美签、DS-2019、DS-160、SEVIS Fee、面签材料、预约面签、加拿大签证、CAN+、加签 |
+| `swt-arrival` | 行前、机票、来回机票、交通估算、入境、I-94、SEVIS 报到／Check-in、SSN、保险（抵美）、换岗、驾照、州 ID、转 F1、电话卡、保号、银行卡、信用卡、券商、银行羊毛、信用卡羊毛 |
+| `swt-yangmao` | 羊毛（未指银行／信用卡／电话卡／证件）、帮带、宠物帮带、纽约测试、uTest、Focus Group、免费餐、Food Pantry、九价、HPV、返利 |
+| `swt`（留在主入口） | 全流程、现在该做什么、我进行到哪一步、不确定、帮我判断下一步；或只激活品牌／`/swt` 没有其他任务词 |
+
+## 冲突与例外
+
+- **羊毛**：出现「银行／信用卡／电话卡／驾照／州 ID」→ `swt-arrival`；「加拿大签证」→ `swt-visa`；其余羊毛或未指对象 → `swt-yangmao`。  
+- **Offer**：问值不值得、回本、对比 → `swt-position`；问签没签、怎么交系统 → `swt-application`。  
+- **面签**：材料／表格／事实 → `swt-visa`；练口语／模拟提问 → `swt-english`（事实仍可由 visa 核）。  
+- **单独地名**（如只发 Myrtle Beach）：不强制进岗位；主入口 `CLARIFY`。  
+- 关键词强制进入后，专项 Skill 仍按其「接手与交出」和「不交出」执行，不因关键词扩大职责。
+
+## 斜杠快捷（宿主支持时）
+
+| 输入 | 进入 |
+|---|---|
+| `/swt`、`/howto-swt` | 主入口；无任务词则首页／情况卡 |
+| `/swt-application`、`/swt application`、`/swt 申请` | `swt-application` |
+| `/swt-position`、`/swt position`、`/swt 岗位`、`/swt offer` | `swt-position` |
+| `/swt-english`、`/swt english`、`/swt 英语` | `swt-english` |
+| `/swt-visa`、`/swt visa`、`/swt 签证` | `swt-visa` |
+| `/swt-arrival`、`/swt arrival`、`/swt 机票`、`/swt 行前` | `swt-arrival` |
+| `/swt-yangmao`、`/swt yangmao`、`/swt 羊毛` | `swt-yangmao` |
 
 ---
 

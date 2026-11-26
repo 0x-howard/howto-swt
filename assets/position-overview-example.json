@@ -1,5 +1,6 @@
 {
   "mode": "position_overview",
+  "assumptions_confirmed": true,
   "offers": [
     {
       "id": "a",

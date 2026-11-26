@@ -1,0 +1,119 @@
+{
+  "version": "2026-11-18e",
+  "purpose": "SWT 中美行程机票／接驳规划估值；算法＝走廊底价 × 提前订票曲线 × 旺季系数",
+  "currency_note": "国际段人民币来回；美国国内段美元单程（展示来回时×2）",
+  "disclaimer": "离线模型估，不是锁定价。底价对照作者 2026 人票实付（提前约一个月、可转机）；提前天数与出发月会改结果。不含宠物帮带与可选行李。购票前用航司／比价站核验。",
+  "sources_doc": "travel-estimate-sources.md",
+  "algorithm": {
+    "name": "base_x_advance_x_season",
+    "reference_advance_days": 30,
+    "default_advance_days": 30,
+    "default_travel_month": null,
+    "advance_curve": [
+      {"min_days": 0, "max_days": 7, "factor": 1.45},
+      {"min_days": 8, "max_days": 14, "factor": 1.25},
+      {"min_days": 15, "max_days": 29, "factor": 1.10},
+      {"min_days": 30, "max_days": 44, "factor": 1.00},
+      {"min_days": 45, "max_days": 74, "factor": 0.90},
+      {"min_days": 75, "max_days": 9999, "factor": 0.85}
+    ],
+    "season": {
+      "peak_months": [6, 7, 8],
+      "peak_factor": 1.15,
+      "shoulder_months": [5, 9],
+      "shoulder_factor": 1.05,
+      "off_factor": 0.95
+    },
+    "band_width": {
+      "deal_ratio": 0.82,
+      "stretch_ratio": 1.38,
+      "half_spread": 0.12
+    },
+    "routing": {
+      "connection_ok_factor": 1.0,
+      "prefer_direct_factor": 1.22
+    },
+    "domestic_distance_fallback": {
+      "fixed_usd": 25,
+      "per_mile_usd": 0.10,
+      "min_usd": 55,
+      "max_usd": 450
+    }
+  },
+  "booking_assumption": {
+    "plan_band": "默认提前 30 天、可转机；可用 --advance-days／--month／--direct 调整",
+    "deal_band": "同条件下更早／促销下沿（模型 deal_ratio）",
+    "stretch_band": "同条件下临近／直飞上沿，或把提前天数调短"
+  },
+  "anchors": {
+    "howard_2026_person_fare_ex_pet": {
+      "outbound_can_nrt_nyc_cny": 5000,
+      "domestic_nyc_chs_myr_cny": 588,
+      "domestic_myr_nyc_cny": 650,
+      "return_nyc_yyz_sha_cny": 6673,
+      "return_note": "返程经多伦多含帮带路由；底价不以该加线路校准",
+      "source": "陪跑训练营/机构资料/西米/00_报名、缴费与合同/0_26SWT全流程"
+    },
+    "us_domestic_dot_2025q4": {
+      "myrtle_beach_nyc_each_way_avg_usd": 144,
+      "note": "市场均价；约等于底价×临近提前系数"
+    },
+    "china_us_platform": {
+      "vari_flight_2024_02_avg_cny_ex_tax": 7000,
+      "gba_direct_economy_median_2025q1_cny": 8000,
+      "note": "平台均价作 stretch 交叉校验"
+    }
+  },
+  "cities": {
+    "上海": {"aliases": ["上海", "Shanghai", "PVG", "SHA"], "cn_hub": "east_china", "lat": 31.2, "lon": 121.4},
+    "盐城": {"aliases": ["盐城", "Yancheng", "YNZ"], "cn_hub": "east_china", "lat": 33.4, "lon": 120.2, "via_note": "常经上海或南京出境，本地到枢纽另计约 ¥200–600 单程"},
+    "南京": {"aliases": ["南京", "Nanjing", "NKG"], "cn_hub": "east_china", "lat": 31.7, "lon": 118.9},
+    "杭州": {"aliases": ["杭州", "Hangzhou", "HGH"], "cn_hub": "east_china", "lat": 30.2, "lon": 120.4},
+    "北京": {"aliases": ["北京", "Beijing", "PEK", "PKX"], "cn_hub": "north_china", "lat": 40.1, "lon": 116.6},
+    "广州": {"aliases": ["广州", "Guangzhou", "CAN"], "cn_hub": "south_china", "lat": 23.4, "lon": 113.3},
+    "深圳": {"aliases": ["深圳", "Shenzhen", "SZX"], "cn_hub": "south_china", "lat": 22.6, "lon": 113.8},
+    "成都": {"aliases": ["成都", "Chengdu", "TFU", "CTU"], "cn_hub": "west_china", "lat": 30.6, "lon": 104.0},
+    "纽约": {"aliases": ["纽约", "New York", "NYC", "JFK", "EWR", "LGA"], "us_gateway": "east", "lat": 40.6, "lon": -73.8},
+    "洛杉矶": {"aliases": ["洛杉矶", "Los Angeles", "LAX"], "us_gateway": "west", "lat": 33.9, "lon": -118.4},
+    "旧金山": {"aliases": ["旧金山", "三藩市", "San Francisco", "SFO"], "us_gateway": "west", "lat": 37.6, "lon": -122.4},
+    "西雅图": {"aliases": ["西雅图", "Seattle", "SEA"], "us_gateway": "west", "lat": 47.4, "lon": -122.3},
+    "芝加哥": {"aliases": ["芝加哥", "Chicago", "ORD"], "us_gateway": "central", "lat": 41.9, "lon": -87.9},
+    "亚特兰大": {"aliases": ["亚特兰大", "Atlanta", "ATL"], "us_gateway": "central", "lat": 33.6, "lon": -84.4},
+    "夏洛特": {"aliases": ["夏洛特", "Charlotte", "CLT"], "us_gateway": "central", "lat": 35.2, "lon": -80.9},
+    "达拉斯": {"aliases": ["达拉斯", "Dallas", "DFW"], "us_gateway": "central", "lat": 32.9, "lon": -97.0},
+    "波士顿": {"aliases": ["波士顿", "Boston", "BOS"], "us_gateway": "east", "lat": 42.4, "lon": -71.0},
+    "华盛顿": {"aliases": ["华盛顿", "Washington", "IAD", "DCA"], "us_gateway": "east", "lat": 38.9, "lon": -77.5},
+    "Myrtle Beach": {"aliases": ["Myrtle Beach", "myrtle beach", "MYR", "默特尔比奇", "美特尔海滩"], "us_local": true, "lat": 33.7, "lon": -78.9},
+    "迈阿密": {"aliases": ["迈阿密", "Miami", "MIA"], "us_local": true, "lat": 25.8, "lon": -80.3},
+    "奥兰多": {"aliases": ["奥兰多", "Orlando", "MCO"], "us_local": true, "lat": 28.4, "lon": -81.3}
+  },
+  "international_base_cny_round_trip": {
+    "east_china|east": 6250,
+    "east_china|west": 5650,
+    "east_china|central": 6000,
+    "south_china|east": 6000,
+    "south_china|west": 5850,
+    "south_china|central": 6000,
+    "north_china|east": 6250,
+    "north_china|west": 5650,
+    "north_china|central": 6000,
+    "west_china|east": 6850,
+    "west_china|west": 6250,
+    "west_china|central": 6500,
+    "default": 6250,
+    "note": "T-30、可转机、肩季附近的来回底价中心点；华南东岸对齐作者去程¥5000×约1.2来回折合"
+  },
+  "domestic_base_usd_one_way": {
+    "east|Myrtle Beach": 85,
+    "central|Myrtle Beach": 78,
+    "west|Myrtle Beach": 190,
+    "note": "T-30 优惠底价；east|MYR 对齐作者约¥588–650"
+  },
+  "fx_cny_per_usd_default": 7.2,
+  "pet": {
+    "international_ok_to_mention": true,
+    "domestic_us_note": "美国国内廉价／多数转机段几乎带不了宠物随行；第二段只估算人票，不把帮带当选项。",
+    "offset_usd_per_trip": [700, 1000],
+    "detail_skill": "swt-yangmao"
+  }
+}

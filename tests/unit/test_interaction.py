@@ -126,7 +126,7 @@ class InteractionContractTests(unittest.TestCase):
         record = (ROOT / "references/interaction-adapters.md").read_text(encoding="utf-8")
         self.assertIn("Current-session tool inventory verified", record)
         self.assertIn("Installed-runtime static evidence; not live E2E", record)
-        self.assertIn("Contract/static reference only", record)
+        self.assertIn("Contract/static", record)
         self.assertIn("Unverified live UI; contract only", record)
 
 

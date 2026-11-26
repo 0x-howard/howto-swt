@@ -1,6 +1,6 @@
 {
   "product": "howto-swt",
-  "version": "1.6.2",
-  "notice": "岗位分析后会在对话内部保留清洗同构的 12 字段事实，同对话清洗可直接复用，不必再认一遍材料。",
+  "version": "1.6.3",
+  "notice": "岗位回本测算前会用交互提问确认数字；有 AskQuestion／AskUserQuestion 的宿主必须弹选项。另含中美机票估算与品牌关键词强制分流。",
   "details_url": "https://github.com/0x-howard/howto-swt/blob/main/docs/CHANGELOG.md"
 }

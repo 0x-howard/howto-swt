@@ -31,7 +31,7 @@ COMMON_SOURCES = (
 )
 
 SOURCES_BY_SKILL = {
-    "swt": COMMON_SOURCES + ("routing-policy.md", "stage-model.md"),
+    "swt": COMMON_SOURCES + ("routing-policy.md", "keyword-triggers.md", "stage-model.md"),
     "swt-application": COMMON_SOURCES,
     "swt-position": COMMON_SOURCES,
     "swt-english": COMMON_SOURCES,
@@ -43,13 +43,31 @@ SOURCES_BY_SKILL = {
 DOMAIN_REFERENCES_BY_SKILL = {
     "swt": ("interaction-adapters.md",),
     "swt-application": ("agency-sponsor.md", "application-materials.md", "contract-red-flags.md"),
-    "swt-position": ("position-example.md", "offer-extraction.md", "job-facts-handoff.md", "location-offer.md", "budget-method.md", "tax-estimation.md", "state-income-tax.md", "default-assumptions.json"),
+    "swt-position": (
+        "position-example.md",
+        "offer-extraction.md",
+        "job-facts-handoff.md",
+        "location-offer.md",
+        "budget-method.md",
+        "assumption-confirm.md",
+        "tax-estimation.md",
+        "state-income-tax.md",
+        "default-assumptions.json",
+    ),
     "swt-english": (
         "english-practice.md", "english-assessment.md", "english-rubric.md",
         "english-profiles.md", "english-question-bank.md", "english-speaking-coach.md",
     ),
     "swt-visa": ("visa-ds2019.md", "visa-canada.md"),
-    "swt-arrival": ("predeparture-program.md", "arrival-documents.md", "arrival-phone.md", "arrival-bank.md"),
+    "swt-arrival": (
+        "predeparture-program.md",
+        "travel-estimate.md",
+        "travel-estimate.json",
+        "travel-estimate-sources.md",
+        "arrival-documents.md",
+        "arrival-phone.md",
+        "arrival-bank.md",
+    ),
     "swt-yangmao": ("yangmao-saving.md",),
 }
 
@@ -62,7 +80,7 @@ PORTABLE_SCRIPTS_BY_SKILL = {
     ),
     "swt-english": COMMON_PORTABLE_SCRIPTS + ("speaking_score.py", "english_speaking.py"),
     "swt-visa": COMMON_PORTABLE_SCRIPTS,
-    "swt-arrival": COMMON_PORTABLE_SCRIPTS,
+    "swt-arrival": COMMON_PORTABLE_SCRIPTS + ("travel_estimate.py",),
     "swt-yangmao": COMMON_PORTABLE_SCRIPTS,
 }
 PORTABLE_ASSETS_BY_SKILL = {
@@ -103,6 +121,10 @@ def render(skill: str, sources: tuple[str, ...]) -> str:
     merged_body = merged_body.replace(
         "[Handoff Contract](handoff-contract.md)",
         "[Handoff Contract](#skill-to-skill-handoff-contract)",
+    )
+    merged_body = merged_body.replace(
+        "[keyword-triggers.md](keyword-triggers.md)",
+        "[品牌＋关键词强制触发](#品牌关键词强制触发)",
     )
     merged_body = merged_body.replace(
         "[Domain Executor State Machines](executor-state-machines.md)",

@@ -56,6 +56,14 @@ class SwtRouterPositionIntentTests(unittest.TestCase):
     def test_existing_compare_jobs_intent_still_routes_to_position(self):
         self.assert_route_row(POSITION_INTENTS, "对比岗位", "swt-position")
 
+    def test_keyword_force_table_wired_into_routing(self):
+        triggers = (ROOT / "shared/keyword-triggers.md").read_text(encoding="utf-8")
+        self.assertIn("品牌＋关键词强制触发", triggers)
+        self.assertIn("`swt-arrival`", triggers)
+        self.assertIn("/swt 机票", ROUTING)
+        self.assertIn("Brand+Keyword force", ROUTING)
+        self.assertIn("关键词强制", SKILL_TEXT)
+
     def test_brand_call_activates_home_but_plain_greeting_does_not(self):
         description = SKILL_TEXT.splitlines()[2]
         self.assertIn("小How", description)

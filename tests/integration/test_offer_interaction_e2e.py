@@ -28,7 +28,7 @@ class OfferInteractionE2E(unittest.TestCase):
             raw_offer("A", 10, 100), raw_offer("B", 12, 160), raw_offer("C", 15, 250),
             raw_offer("D", 17, 340), raw_offer("E", 20, 500),
         ]
-        first = calculate_position_overview({"mode": "position_overview", "offers": offers})
+        first = calculate_position_overview({"assumptions_confirmed": True, "mode": "position_overview", "offers": offers})
         analysis = first["offer_return_analysis"]
         self.assertEqual(analysis["analysis_status"], "selection_required")
         self.assertEqual(len(analysis["functions"]), 5)
@@ -44,14 +44,14 @@ class OfferInteractionE2E(unittest.TestCase):
         selected = validate_selection(request, ["A", "C", "E"])["selected_ids"]
         subset = [item for item in offers if item["id"] in selected]
 
-        compared = calculate_position_overview({"mode": "position_overview", "offers": subset})
+        compared = calculate_position_overview({"assumptions_confirmed": True, "mode": "position_overview", "offers": subset})
         functions = compared["offer_return_analysis"]
         self.assertEqual(len(functions["functions"]), 3)
         self.assertGreaterEqual(len(functions["intersections"]), 2)
         self.assertGreaterEqual(len(functions["optimal_regions"]), 2)
 
         changed = [dict(item, expected_hours=40) if item["id"] == "E" else item for item in subset]
-        changed_result = calculate_position_overview({"mode": "position_overview", "offers": changed})
+        changed_result = calculate_position_overview({"assumptions_confirmed": True, "mode": "position_overview", "offers": changed})
         old_e = next(item for item in functions["functions"] if item["id"] == "E")
         new_e = next(item for item in changed_result["offer_return_analysis"]["functions"] if item["id"] == "E")
         self.assertNotEqual(old_e["expected_weekly_net_surplus_usd"], new_e["expected_weekly_net_surplus_usd"])

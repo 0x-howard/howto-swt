@@ -56,7 +56,7 @@ class SwtPositionComparisonMarketTests(unittest.TestCase):
             "Ocean City Summer Work Travel Committee",
         )
 
-        result = calculate_position_overview({"offers": [
+        result = calculate_position_overview({"assumptions_confirmed": True, "offers": [
             make_offer("myrtle", "Myrtle Beach", city="Myrtle Beach", state="SC", rent=120),
             make_offer("ocean", "Ocean City", city="Ocean City", state="MD", wage=16, rent=145),
         ]})
@@ -96,7 +96,7 @@ class SwtPositionComparisonMarketTests(unittest.TestCase):
         self.assertIsNone(newport["state_context"])
         self.assertEqual(newport["swt_market"]["state_market"]["total"], 1030)
 
-        result = calculate_position_overview({"offers": [
+        result = calculate_position_overview({"assumptions_confirmed": True, "offers": [
             make_offer("myrtle", "Myrtle Beach", city="Myrtle Beach", state="SC"),
             make_offer("newport", "Newport", city="Newport", state="RI"),
         ]})
@@ -119,7 +119,7 @@ class SwtPositionComparisonMarketTests(unittest.TestCase):
             make_offer("high", "Higher count", city="Myrtle Beach", state="SC"),
             make_offer("low", "Lower count", city="Decatur", state="AL"),
         ]
-        result = calculate_position_overview({"offers": offers})
+        result = calculate_position_overview({"assumptions_confirmed": True, "offers": offers})
         self.assertEqual(len(result["offers"]), 2)
         self.assertNotIn("participant_count", json.dumps(result, ensure_ascii=False))
         for prohibited in ("不用于 Offer 排序", "participant count 高低不得改变顺序", "不得据此推断工作好找、二工多"):
@@ -130,7 +130,7 @@ class SwtPositionComparisonMarketTests(unittest.TestCase):
         self.assertEqual(shared_context["match_level"], "city_exact")
         self.assertIn("完全相同的规范化 city/state 可复用结果", SKILL_TEXT)
 
-        result = calculate_position_overview({"offers": [
+        result = calculate_position_overview({"assumptions_confirmed": True, "offers": [
             make_offer("one", "Employer A", city="Myrtle Beach", state="SC", wage=14, hours=32, rent=110),
             make_offer("two", "Employer B", city="Myrtle Beach", state="SC", wage=18, hours=40, rent=160),
         ]})
@@ -153,7 +153,7 @@ class SwtPositionComparisonMarketTests(unittest.TestCase):
         self.assertEqual(contexts[0]["match_level"], "city_exact")
         self.assertEqual(resolve_location()["match_level"], "location_not_provided")
 
-        result = calculate_position_overview({"offers": offers})
+        result = calculate_position_overview({"assumptions_confirmed": True, "offers": offers})
         missing = next(item for item in result["offers"] if item["id"] == "unknown")
         self.assertIsNone(missing["state"])
         self.assertEqual(missing["cost_sources"]["rent_usd_per_week"], "global_estimate")

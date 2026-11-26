@@ -207,7 +207,7 @@ class PositionOverviewTests(unittest.TestCase):
                    "ssn_required_before_work": True, "ssn_employer_assist": True, "ssn_office": "Concord, NH",
                    "ssn_office_miles": 30, "training_reduced_hours": True, "open_availability": True,
                    "multiple_locations": 3, "dress_code": "自备防滑鞋。"}
-        answer = format_position_overview(calculate_position_overview({"fx_cny_per_usd": 6.8, "missing_confirmed": True, "offers": [{
+        answer = format_position_overview(calculate_position_overview({"assumptions_confirmed": True, "fx_cny_per_usd": 6.8, "missing_confirmed": True, "offers": [{
             "label": "Dunkin", "city": "Meredith", "state": "NH", "wage_usd_per_hour": 14.5, "hours_per_week": 32,
             "rent_usd_per_week": 100, "details": details}]}))
         self.assertTrue(answer.startswith("**假设项目费 ¥25,000，按 $14.50/h、平均每周 32 小时计算"))
@@ -225,7 +225,7 @@ class PositionOverviewTests(unittest.TestCase):
 
     def test_two_offers_compare_in_analysis_and_group_shared_notes(self):
         shared = {"tips": True, "second_job_allowed": True, "sponsor": "CHI"}
-        answer = format_position_overview(calculate_position_overview({"fx_cny_per_usd": 6.8, "missing_confirmed": True, "offers": [
+        answer = format_position_overview(calculate_position_overview({"assumptions_confirmed": True, "fx_cny_per_usd": 6.8, "missing_confirmed": True, "offers": [
             {"label": "甲", "state": "NH", "wage_usd_per_hour": 14.5, "hours_per_week": 32, "rent_usd_per_week": 100,
              "details": {**shared, "ssn_required_before_work": True}},
             {"label": "乙", "state": "SC", "wage_usd_per_hour": 11, "hours_per_week": 32, "rent_usd_per_week": 150,
@@ -248,7 +248,7 @@ class PositionOverviewTests(unittest.TestCase):
         base = {"wage_usd_per_hour": 14, "hours_per_week": 32}
         for bad in ({"unknown": True}, {"tips": "yes"}, {"meals": "sometimes"}, {"multiple_locations": True}):
             with self.assertRaises(ValueError):
-                calculate_position_overview({"offers": [{**base, "details": bad}]})
+                calculate_position_overview({"assumptions_confirmed": True, "offers": [{**base, "details": bad}]})
 
     def overview(self, *offers, **top):
         state_fixture = {
@@ -259,10 +259,13 @@ class PositionOverviewTests(unittest.TestCase):
         }
         with patch("budget._overview_defaults", return_value=copy.deepcopy(self.defaults)), \
                 patch("budget._state_reference", side_effect=lambda state: state_fixture if state else {}):
-            return calculate_position_overview({"offers": list(offers), "fx_cny_per_usd": 10, **top})
+            payload = {"offers": list(offers), "fx_cny_per_usd": 10, **top}
+            if "assumptions_confirmed" not in payload and len(payload["offers"]) <= 3:
+                payload["assumptions_confirmed"] = True
+            return calculate_position_overview(payload)
 
     def test_chart_cli_writes_svg_outside_skill_folder(self):
-        data = {"fx_cny_per_usd": 6.8, "offers": [
+        data = {"fx_cny_per_usd": 6.8, "assumptions_confirmed": True, "offers": [
             {"id": "A", "label": "A", "state": "MD", "wage_usd_per_hour": 15.5, "expected_hours": 36,
              "min_hours": 32, "max_hours": 40, "work_weeks": 13, "rent_usd_per_week": 150, "project_cost_cny": 25000},
             {"id": "B", "label": "B", "state": "WI", "wage_usd_per_hour": 14, "hours_per_week": 40,
@@ -328,7 +331,7 @@ class PositionOverviewTests(unittest.TestCase):
         self.assertIn("最终预计结余", answer)
 
     def test_missing_fx_leaves_rmb_project_and_final_unknown(self):
-        data = {"offers": [{"wage_usd_per_hour": 16, "hours_per_week": 32, "project_cost_cny": 20000}]}
+        data = {"assumptions_confirmed": True, "offers": [{"wage_usd_per_hour": 16, "hours_per_week": 32, "project_cost_cny": 20000}]}
         result = calculate_position_overview(data)
         item = result["offers"][0]
         self.assertIsNone(item["fx_cny_per_usd"])
@@ -339,7 +342,7 @@ class PositionOverviewTests(unittest.TestCase):
         self.assertIn("缺少汇率", format_position_overview(result))
 
     def test_user_rate_is_not_rounded_and_shared_across_offers(self):
-        result = calculate_position_overview({"fx_cny_per_usd": 6.831, "offers": [
+        result = calculate_position_overview({"assumptions_confirmed": True, "fx_cny_per_usd": 6.831, "offers": [
             {"wage_usd_per_hour": 16, "hours_per_week": 32, "project_cost_cny": 20000},
             {"wage_usd_per_hour": 17, "hours_per_week": 32, "project_cost_cny": 20000}]})
         self.assertEqual([o["fx_cny_per_usd"] for o in result["offers"]], ["6.831", "6.831"])
@@ -354,14 +357,14 @@ class PositionOverviewTests(unittest.TestCase):
     def test_searched_rate_metadata_and_incomplete_comparison(self):
         offers = [{"wage_usd_per_hour": 16, "hours_per_week": 32, "project_cost_cny": 20000},
                   {"wage_usd_per_hour": 17, "hours_per_week": 32, "project_cost_usd": 3000}]
-        missing = calculate_position_overview({"offers": offers})
+        missing = calculate_position_overview({"assumptions_confirmed": True, "offers": offers})
         self.assertFalse(missing["comparison_complete"])
         self.assertIsNone(missing["offers"][0]["final_project_surplus_usd"])
         self.assertIsNotNone(missing["offers"][1]["final_project_surplus_usd"])
-        output = format_position_overview(calculate_position_overview({"offers": offers, "fx_cny_per_usd": 6.9, "fx_source": "ECB", "fx_quote_date": "2026-10-30"}))
+        output = format_position_overview(calculate_position_overview({"assumptions_confirmed": True, "offers": offers, "fx_cny_per_usd": 6.9, "fx_source": "ECB", "fx_quote_date": "2026-10-30"}))
         self.assertIn("汇率 6.9：10 月 30 日 ECB，向上取一位小数。", output)
         with self.assertRaises(ValueError):
-            calculate_position_overview({"offers": offers, "fx_cny_per_usd": 6.9, "fx_quote_date": "invalid"})
+            calculate_position_overview({"assumptions_confirmed": True, "offers": offers, "fx_cny_per_usd": 6.9, "fx_quote_date": "invalid"})
 
     def test_user_rent_overrides_defaults(self):
         item = self.overview({"wage_usd_per_hour": 16, "hours_per_week": 32, "rent_usd_per_week": 100})["offers"][0]

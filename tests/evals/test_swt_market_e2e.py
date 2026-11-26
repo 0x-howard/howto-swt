@@ -158,7 +158,7 @@ def _check_budget_and_structure(case, failures):
         return {"offer_count": 0, "sections": [], "rendered": ""}, True, True, True
 
     try:
-        result = calculate_position_overview({"offers": offers})
+        result = calculate_position_overview({"assumptions_confirmed": True, "offers": offers})
         rendered = format_position_overview(result)
     except Exception as exc:
         _record_failure(failures, "P0", case, "position_overview succeeds", f"{type(exc).__name__}: {exc}", "Budget calculation failed for the provided Offer inputs.", "presentation")
