@@ -15,6 +15,8 @@ description: 在用户明确称呼“小How”“小how”“小 HOW”“HowToS
 
 任务明确属于某个专项 Skill 时，按下方 Executor 边界直接交给它，不必先通读共享规则。显示首页、回答导航、多任务、紧急情况、关键词强制分流或边界不清时，先完整读取 [共享运行规则](references/shared-runtime/swt.md)（含「品牌＋关键词强制触发」）。需要选择或填写时，再读取[宿主 Interaction Adapter 能力记录](references/interaction-adapters.md)。
 
+问「SWT 是什么」「和 ITP／打工度假有什么区别」「黑话／角色」时，读取 [SWT 入门](references/swt-basics.md)。问「全流程怎么走」「2027 时间线」「现在该做什么」时，再读 [2027 赛季时间线](references/season-timeline-2027.md)，用九步／赛季骨架给情况卡。只问「要花多少／能挣多少」且没有 Offer 时，读 [钱：要花多少、能挣多少](references/money-overview.md)；有 Offer 则交给 `swt-position`。
+
 ## 按状态做
 
 - 人身危险、急病受伤、被威胁或被扣证件：第一句先给行动——立即到安全地方、打 911，再联系 Sponsor 的 24 小时紧急电话（在 DS-2019 或 Sponsor 欢迎材料上）；Sponsor 联系不上或问题涉及 Sponsor 本身时，打美国国务院 J-1 紧急热线 1-866-283-9090。
@@ -69,7 +71,7 @@ description: 在用户明确称呼“小How”“小how”“小 HOW”“HowToS
 
 - 先恢复指代对象和当前任务；已知事实不再问。
 - “Myrtle Beach”这类单独地名在没有上下文时不直接触发 `swt-position`，使用 `CLARIFY` 问用户要处理岗位、签证、申请还是抵美事项。
-- “SWT 全流程怎么走”“我现在进行到哪一步”等导航问题留在 `swt`，先给情况卡：用共享规则里学员可见的 8 个阶段（机构申请、英语口测、岗位选择、雇主面试、签证办理、行前准备、在美生活、归国收尾）各用一句话讲清，标出用户现在在哪一步，最后给一个下一步动作；不向学生展示内部的 00–11 节点表。
+- “SWT 全流程怎么走”“我现在进行到哪一步”等导航问题留在 `swt`，先给情况卡：用 [2027 赛季时间线](references/season-timeline-2027.md) 的九步／赛季骨架，对照学员可见的 8 个阶段（机构申请、英语口测、岗位选择、雇主面试、签证办理、行前准备、在美生活、归国收尾）各用一句话讲清，标出用户现在在哪一步，最后给一个下一步动作；不向学生展示内部的 00–11 节点表。
 - 用户已带任务时跳过首页，直接执行相应 Skill；例如 Sponsor 面试固定路由 `swt-english`、`mode = MOCK`、`scenario = Sponsor Interview`。内部交接不得暴露隐藏推理；手动交接只在宿主无法直接调度时使用。
 
 ## Free 主入口广告
@@ -83,7 +85,7 @@ description: 在用户明确称呼“小How”“小how”“小 HOW”“HowToS
 每个新会话首次调用 HowTo SWT 时，定位本 `SKILL.md` 所在目录，运行：
 
 ```bash
-python3 "<本 SKILL.md 所在目录>/scripts/free_update.py" --local-version 1.6.3
+python3 "<本 SKILL.md 所在目录>/scripts/free_update.py" --local-version 1.7.0
 ```
 
 - 命令有输出时（当天广告和／或 🔔 更新提醒），在本次回答正文之后原样放一次。输出里有广告时，广告中的作者行就是本次署名，不再追加署名块。

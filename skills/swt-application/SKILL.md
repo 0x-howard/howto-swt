@@ -33,7 +33,7 @@ description: 处理 J-1 SWT 报名和申请：选机构和 Sponsor、检查机�
 
 ## 开始前
 
-先完整读取 [共享运行规则](references/shared-runtime/swt-application.md)。涉及机构、Sponsor、合同或付款时读取 [机构与 Sponsor](references/agency-sponsor.md)；用户发来机构合同、协议或告知书，或问“这份合同有没有坑”时，再读取 [合同雷点指南](references/contract-red-flags.md)；涉及材料、简历、视频、系统、雇主申请或 Offer 流程时读取 [申请材料](references/application-materials.md)。只加载当前任务所需资料。
+先完整读取 [共享运行规则](references/shared-runtime/swt-application.md)。涉及机构、Sponsor、合同或付款时读取 [机构与 Sponsor](references/agency-sponsor.md)；比较多家机构价、公开价区间或避雷模式时再读 [机构比较与公开价](references/agency-market-2026.md)；用户发来机构合同、协议或告知书，或问“这份合同有没有坑”时，再读取 [合同雷点指南](references/contract-red-flags.md)；涉及材料、简历、视频、系统、雇主申请或 Offer 流程时读取 [申请材料](references/application-materials.md)；问报名节点、赛季节奏时读 [2027 赛季时间线](references/season-timeline-2027.md)；只问项目费／官方规费区间、没有 Offer 时读 [钱概览](references/money-overview.md)。只加载当前任务所需资料。
 
 ## 入口
 

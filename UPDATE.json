@@ -1,6 +1,6 @@
 {
   "product": "howto-swt",
-  "version": "1.6.3",
-  "notice": "岗位回本测算前会用交互提问确认数字；有 AskQuestion／AskUserQuestion 的宿主必须弹选项。另含中美机票估算与品牌关键词强制分流。",
+  "version": "1.7.0",
+  "notice": "直播知识入库：SWT 入门、2027 九步时间线、钱概览、机构公开价；50 州学生指南可按需查阅。",
   "details_url": "https://github.com/0x-howard/howto-swt/blob/main/docs/CHANGELOG.md"
 }

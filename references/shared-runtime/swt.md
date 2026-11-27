@@ -2,9 +2,9 @@
 
 <!-- GENERATED FILE: DO NOT EDIT. -->
 <!-- Source: shared/logic-architecture.md, shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md, shared/routing-policy.md, shared/keyword-triggers.md, shared/stage-model.md -->
-<!-- runtime-version: 1.6.3 -->
+<!-- runtime-version: 1.7.0 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt; source-sha256: 8d75c55a2c7e65820e6b84de39b8ae38289cb29c87157a4796ca96c03135a025 -->
+<!-- skill: swt; source-sha256: dc4e6c0a29f9c54df4091aefed1050e67ee8b0c981ed4aa6edd529dd3187bd7c -->
 
 <!-- source: shared/logic-architecture.md -->
 
@@ -1016,7 +1016,7 @@ SEVIS Fee 与 SEVIS Check-in 是不同任务：前者属于签证链，后者属
 | `swt-visa` | 签证、美签、DS-2019、DS-160、SEVIS Fee、面签材料、预约面签、加拿大签证、CAN+、加签 |
 | `swt-arrival` | 行前、机票、来回机票、交通估算、入境、I-94、SEVIS 报到／Check-in、SSN、保险（抵美）、换岗、驾照、州 ID、转 F1、电话卡、保号、银行卡、信用卡、券商、银行羊毛、信用卡羊毛 |
 | `swt-yangmao` | 羊毛（未指银行／信用卡／电话卡／证件）、帮带、宠物帮带、纽约测试、uTest、Focus Group、免费餐、Food Pantry、九价、HPV、返利 |
-| `swt`（留在主入口） | 全流程、现在该做什么、我进行到哪一步、不确定、帮我判断下一步；或只激活品牌／`/swt` 没有其他任务词 |
+| `swt`（留在主入口） | 全流程、现在该做什么、我进行到哪一步、不确定、帮我判断下一步、SWT 是什么、黑话、角色、要花多少（无 Offer）；或只激活品牌／`/swt` 没有其他任务词 |
 
 ## 冲突与例外
 

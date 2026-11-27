@@ -41,8 +41,20 @@ SOURCES_BY_SKILL = {
 }
 
 DOMAIN_REFERENCES_BY_SKILL = {
-    "swt": ("interaction-adapters.md",),
-    "swt-application": ("agency-sponsor.md", "application-materials.md", "contract-red-flags.md"),
+    "swt": (
+        "interaction-adapters.md",
+        "swt-basics.md",
+        "season-timeline-2027.md",
+        "money-overview.md",
+    ),
+    "swt-application": (
+        "agency-sponsor.md",
+        "agency-market-2026.md",
+        "application-materials.md",
+        "contract-red-flags.md",
+        "season-timeline-2027.md",
+        "money-overview.md",
+    ),
     "swt-position": (
         "position-example.md",
         "offer-extraction.md",
@@ -53,6 +65,7 @@ DOMAIN_REFERENCES_BY_SKILL = {
         "tax-estimation.md",
         "state-income-tax.md",
         "default-assumptions.json",
+        "money-overview.md",
     ),
     "swt-english": (
         "english-practice.md", "english-assessment.md", "english-rubric.md",
@@ -178,7 +191,7 @@ def portable_sources(skill: str) -> dict[Path, Path]:
     for filename in DOMAIN_REFERENCES_BY_SKILL[skill]:
         sources[Path("references") / filename] = REFERENCES_ROOT / filename
     if skill == "swt-position":
-        for directory in ("state_context", "swt_market"):
+        for directory in ("state_context", "swt_market", "state_guides"):
             canonical = REFERENCES_ROOT / "knowledge" / directory
             for path in canonical.rglob("*"):
                 if path.is_file():
