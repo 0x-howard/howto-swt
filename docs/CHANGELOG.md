@@ -1,5 +1,10 @@
 # HowTo SWT 更新记录
 
+## v1.7.2
+
+- `swt-position`：Offer 有城市／州／ZIP／地址时自动查附近 SSA，按同城→同 ZIP→ZIP3→同州排序写入落地便利（非 GPS 里程）
+- `ssa_offices.py` 支持 `--zip`／`--address`
+
 ## v1.7.1
 
 - `swt-position`：按州／城市查 SSA 办公室（`ssa-offices-clean.csv`，官方开放数据 2026-03-09；`ssa_offices.py`），写入落地便利

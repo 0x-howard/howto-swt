@@ -1,6 +1,6 @@
 # HowTo SWT
 
-![版本](https://img.shields.io/badge/version-1.7.1-2563EB.svg?style=flat-square) ![语言](https://img.shields.io/badge/语言-中文-16A34A.svg?style=flat-square)
+![版本](https://img.shields.io/badge/version-1.7.2-2563EB.svg?style=flat-square) ![语言](https://img.shields.io/badge/语言-中文-16A34A.svg?style=flat-square)
 
 ## HowTo SWT 是什么
 
@@ -96,11 +96,11 @@ npx -y skills add 0x-howard/howto-swt -g --all
 <!-- CHANGELOG_LATEST_START -->
 | 版本 | 更新 |
 |---|---|
+| v1.7.2 | 看 Offer 时按地址／城市查附近 SSA（同城→ZIP→同州），写入落地便利；非 GPS 里程。 |
 | v1.7.1 | 岗位分析可按州／城市查 SSA 办公室（落地便利；官方开放数据 2026-03 快照），出发前用 Locator 核实。 |
 | v1.7.0 | 直播知识入库：SWT 入门、2027 九步时间线、钱概览、机构公开价；50 州学生指南与测算数据并存。 |
 | v1.6.3 | 岗位回本测算前用交互提问确认数字；有 AskQuestion 的宿主必须弹选项。另含中美机票估算与关键词强制分流。 |
 | v1.6.2 | 岗位分析后在对话内部保留清洗同构的 12 字段事实；同对话清洗可直接复用，不必再认一遍材料。 |
-| v1.6.1 | 问现在该做什么，会先告诉你卡在哪、下一步做什么；一次问好几件事，会先说先做哪个；理解错了会先改过来再继续。 |
 <!-- CHANGELOG_LATEST_END -->
 
 [完整更新记录](docs/CHANGELOG.md)
