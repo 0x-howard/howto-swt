@@ -1,5 +1,10 @@
 # HowTo SWT 更新记录
 
+## v1.7.3
+
+- `swt-application`：机构调研蒸馏为可查数据（`agencies-market-2026.json`／CSV）+ `agency_market.py`
+- 选机构／比价／问口碑时查表，不替学生选型付款；岗位避雷清单暂不入库
+
 ## v1.7.2
 
 - `swt-position`：Offer 有城市／州／ZIP／地址时自动查附近 SSA，按同城→同 ZIP→ZIP3→同州排序写入落地便利（非 GPS 里程）

@@ -15,6 +15,7 @@ description: 处理 J-1 SWT 报名和申请：选机构和 Sponsor、检查机�
 
 - 要看合同但还没发，或没说签没签：只问完整合同和是否已签，问完停下。
 - 合同和签约状态都有：按合同雷点指南交「条款｜风险｜建议」和退款时间线。签约前和签约后用不同的建议。
+- 要选机构、比价或问某机构口碑：跑 `python3 scripts/agency_market.py --name "<机构>"`（或 `--list`），交公开价／年份／基金会说法／避雷摘要，并强调合同与 BridgeUSA 核名；不替学生选型付款。
 - 要选机构、准备材料或查进度，对象已经明确：交缺什么、找谁确认、下一步。
 - 付款对象、金额或账户不清楚：暂停付款建议，只问会改变能不能付的那一项。
 
@@ -33,7 +34,7 @@ description: 处理 J-1 SWT 报名和申请：选机构和 Sponsor、检查机�
 
 ## 开始前
 
-先完整读取 [共享运行规则](references/shared-runtime/swt-application.md)。涉及机构、Sponsor、合同或付款时读取 [机构与 Sponsor](references/agency-sponsor.md)；比较多家机构价、公开价区间或避雷模式时再读 [机构比较与公开价](references/agency-market-2026.md)；用户发来机构合同、协议或告知书，或问“这份合同有没有坑”时，再读取 [合同雷点指南](references/contract-red-flags.md)；涉及材料、简历、视频、系统、雇主申请或 Offer 流程时读取 [申请材料](references/application-materials.md)；问报名节点、赛季节奏时读 [2027 赛季时间线](references/season-timeline-2027.md)；只问项目费／官方规费区间、没有 Offer 时读 [钱概览](references/money-overview.md)。只加载当前任务所需资料。
+先完整读取 [共享运行规则](references/shared-runtime/swt-application.md)。涉及机构、Sponsor、合同或付款时读取 [机构与 Sponsor](references/agency-sponsor.md)；比较多家机构价、公开价区间或避雷模式时再读 [机构比较与公开价](references/agency-market-2026.md)，并优先用 `scripts/agency_market.py` 查 [agencies 数据](references/knowledge/agencies/INDEX.md)；用户发来机构合同、协议或告知书，或问“这份合同有没有坑”时，再读取 [合同雷点指南](references/contract-red-flags.md)；涉及材料、简历、视频、系统、雇主申请或 Offer 流程时读取 [申请材料](references/application-materials.md)；问报名节点、赛季节奏时读 [2027 赛季时间线](references/season-timeline-2027.md)；只问项目费／官方规费区间、没有 Offer 时读 [钱概览](references/money-overview.md)。只加载当前任务所需资料。
 
 ## 入口
 
@@ -66,6 +67,7 @@ D. 填 Sponsor 系统、查申请进度
 - 要看合同但还没发，或没说签没签 → 先要完整合同（含特别告知、附件、补充协议、缴费告知单）和是否已签。
 - 合同和签约状态已有 → 「条款｜风险｜建议」表、退款时间线、下一步。
 - 要选机构、准备材料或查进度，对象和材料已有 → 缺什么、找谁确认、下一步。
+- 问某机构多少钱／有没有避雷 → `agency_market.py` 查表结果＋核验提醒；不是推荐名单。
 - 不交出：岗位值不值得去、英语练习、签证表格、替用户签署或付款。
 
 ## 边界

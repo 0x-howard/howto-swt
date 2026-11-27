@@ -89,7 +89,7 @@ DOMAIN_REFERENCES_BY_SKILL = {
 COMMON_PORTABLE_SCRIPTS = ("decision_model.py", "orchestration.py", "interaction.py", "paths.py", "user_state.py")
 PORTABLE_SCRIPTS_BY_SKILL = {
     "swt": COMMON_PORTABLE_SCRIPTS + ("free_update.py",),
-    "swt-application": COMMON_PORTABLE_SCRIPTS,
+    "swt-application": COMMON_PORTABLE_SCRIPTS + ("agency_market.py",),
     "swt-position": COMMON_PORTABLE_SCRIPTS + (
         "budget.py", "offer_return.py", "offer_chart.py", "compare_budget.py",
         "location_context.py", "state_context.py", "swt_market.py", "ssa_offices.py",
@@ -199,6 +199,11 @@ def portable_sources(skill: str) -> dict[Path, Path]:
             for path in canonical.rglob("*"):
                 if path.is_file():
                     sources[Path("references") / "knowledge" / directory / path.relative_to(canonical)] = path
+    if skill == "swt-application":
+        canonical = REFERENCES_ROOT / "knowledge" / "agencies"
+        for path in canonical.rglob("*"):
+            if path.is_file():
+                sources[Path("references") / "knowledge" / "agencies" / path.relative_to(canonical)] = path
     for filename in PORTABLE_SCRIPTS_BY_SKILL[skill]:
         sources[Path("scripts") / filename] = PLUGIN_ROOT / "scripts" / filename
     for filename in PORTABLE_ASSETS_BY_SKILL.get(skill, ()):

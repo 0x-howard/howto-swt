@@ -1,6 +1,6 @@
 {
   "product": "howto-swt",
-  "version": "1.7.2",
-  "notice": "看 Offer 时会按地址／城市查附近 SSA 办公室（同城优先，非 GPS 里程），写入落地便利。",
+  "version": "1.7.3",
+  "notice": "选机构时可查公开价与口碑数据表（swt-application）；冲突原样列出，付款前核合同。",
   "details_url": "https://github.com/0x-howard/howto-swt/blob/main/docs/CHANGELOG.md"
 }

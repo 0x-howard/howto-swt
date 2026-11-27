@@ -2,6 +2,15 @@
 
 整理自 2026-11-27《SWT 机构调研 · 交叉验证》与《SWT 全解》第十三～十五节。价格带年份；冲突原样列出。避雷条目是公开讨论摘要，**不等于事实认定**。付款前以合同、正式报价与 BridgeUSA 名录为准。
 
+**可查数据（推荐）**：`knowledge/agencies/agencies-market-2026.json`（同目录 CSV）。学生问某机构价／口碑时运行：
+
+```bash
+python3 scripts/agency_market.py --name "西米"
+python3 scripts/agency_market.py --list
+```
+
+把脚本返回的价格、基金会说法、避雷摘要和 `student_hint_zh` 原样交给学生；不要升级成推荐或定罪。
+
 ## 怎么挑机构（清单）
 
 1. 写出合作 Sponsor 的**英文法定名**，到 [BridgeUSA](https://j1visa.state.gov/sponsors/) 核对。  
