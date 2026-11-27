@@ -66,6 +66,7 @@ DOMAIN_REFERENCES_BY_SKILL = {
         "state-income-tax.md",
         "default-assumptions.json",
         "money-overview.md",
+        "arrival-ssn.md",
     ),
     "swt-english": (
         "english-practice.md", "english-assessment.md", "english-rubric.md",
@@ -80,6 +81,7 @@ DOMAIN_REFERENCES_BY_SKILL = {
         "arrival-documents.md",
         "arrival-phone.md",
         "arrival-bank.md",
+        "arrival-ssn.md",
     ),
     "swt-yangmao": ("yangmao-saving.md",),
 }
@@ -89,7 +91,8 @@ PORTABLE_SCRIPTS_BY_SKILL = {
     "swt": COMMON_PORTABLE_SCRIPTS + ("free_update.py",),
     "swt-application": COMMON_PORTABLE_SCRIPTS,
     "swt-position": COMMON_PORTABLE_SCRIPTS + (
-        "budget.py", "offer_return.py", "offer_chart.py", "compare_budget.py", "location_context.py", "state_context.py", "swt_market.py",
+        "budget.py", "offer_return.py", "offer_chart.py", "compare_budget.py",
+        "location_context.py", "state_context.py", "swt_market.py", "ssa_offices.py",
     ),
     "swt-english": COMMON_PORTABLE_SCRIPTS + ("speaking_score.py", "english_speaking.py"),
     "swt-visa": COMMON_PORTABLE_SCRIPTS,
@@ -191,7 +194,7 @@ def portable_sources(skill: str) -> dict[Path, Path]:
     for filename in DOMAIN_REFERENCES_BY_SKILL[skill]:
         sources[Path("references") / filename] = REFERENCES_ROOT / filename
     if skill == "swt-position":
-        for directory in ("state_context", "swt_market", "state_guides"):
+        for directory in ("state_context", "swt_market", "state_guides", "ssa_offices"):
             canonical = REFERENCES_ROOT / "knowledge" / directory
             for path in canonical.rglob("*"):
                 if path.is_file():

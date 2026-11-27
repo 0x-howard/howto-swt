@@ -1,6 +1,6 @@
 {
   "product": "howto-swt",
-  "version": "1.7.0",
-  "notice": "直播知识入库：SWT 入门、2027 九步时间线、钱概览、机构公开价；50 州学生指南可按需查阅。",
+  "version": "1.7.1",
+  "notice": "岗位分析可按州／城市查 SSA 办公室（落地便利；2026-03 官方数据快照），出发前用 Locator 核实。",
   "details_url": "https://github.com/0x-howard/howto-swt/blob/main/docs/CHANGELOG.md"
 }

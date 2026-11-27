@@ -2,7 +2,7 @@
 
 <!-- GENERATED FILE: DO NOT EDIT. -->
 <!-- Source: shared/logic-architecture.md, shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md, shared/official-sources.md -->
-<!-- runtime-version: 1.7.0 -->
+<!-- runtime-version: 1.7.1 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
 <!-- skill: swt-visa; source-sha256: 173400db9c26085000219591cdd8a3778b403974422faa91967e7d6f47e5252b -->
 

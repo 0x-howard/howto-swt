@@ -14,7 +14,7 @@ description: 处理 J-1 SWT 出发前和到美国后的事：机票、入境和 
 ## 按状态做
 
 - 人身危险、急病或受伤：第一句写立即到安全的地方、打 911，再谈保险和 Sponsor。
-- 准备出发或已在美国，问报到、SSN、保险、换岗：按依赖顺序给下一步和要留的回执。
+- 准备出发或已在美国，问报到、SSN、保险、换岗：按依赖顺序给下一步和要留的回执。只问办理流程／材料／预约时按 [办 SSN](references/arrival-ssn.md)；问某城附近办公室远不远则交回 `swt-position`。
 - 问中美机票／来回大概多少钱、经哪座门户再到岗：按 [中美交通估算](references/travel-estimate.md) 跑 `scripts/travel_estimate.py`，分国际段与美国国内段给区间；国际段可提宠物帮带一句，国内段说明几乎带不了宠物。
 - 问驾照、州 ID、转 F1、电话卡、银行卡、信用卡，或这些事的羊毛：给可照做的步骤、金额、核验日期和官方入口。问“附近”时给全国性银行的奖励和网点查询入口，不编造网点地址。
 - 学生问先办哪个：美国手机号 → SSN → 银行账户 → 一张无年费信用卡 → 州 ID 或驾照 → 券商 → 离美前保号。
@@ -34,6 +34,7 @@ description: 处理 J-1 SWT 出发前和到美国后的事：机票、入境和 
 先完整读取 [共享运行规则](references/shared-runtime/swt-arrival.md) 和 [行前与在美流程](references/predeparture-program.md)。动态时限、入口、保险或机构要求必须核验本人当前文件和正式来源。按问题再读取：
 
 - 中美机票／来回费用：[中美交通估算](references/travel-estimate.md)
+- 办 SSN 流程／材料／预约：[办 SSN](references/arrival-ssn.md)；附近办公室地址表在 `swt-position`
 - 驾照、州 ID、J1 转 F1：[在美证件](references/arrival-documents.md)
 - 选电话卡、回国保号：[美国电话卡](references/arrival-phone.md)
 - 银行开户奖励、信用卡、Schwab 和美股券商、税务：[银行卡与信用卡](references/arrival-bank.md)
@@ -63,6 +64,7 @@ description: 处理 J-1 SWT 出发前和到美国后的事：机票、入境和 
 - 问中美机票／来回费用 → 国际段＋国内段规划区间（估）；国际段可提帮带，国内段说明几乎不能带宠物。
 - 问驾照、州 ID、转 F1、电话卡、银行卡、信用卡或这些事项的羊毛 → 可照做的步骤、金额、核验日期和官方入口。
 - 问附近的银行羊毛 → 全国性银行的开户奖励和官方网点查询入口，不编造网点。
+- 问怎么办 SSN／带什么 → 流程要点与预约入口；附近办公室远近交 `swt-position`。
 - 不交出：签证表格和加拿大签证、岗位值不值得去、帮带测试免费餐等省钱赚钱细则（帮带细节转 `swt-yangmao`）、未获 Sponsor 批准就开工。
 
 ## 边界

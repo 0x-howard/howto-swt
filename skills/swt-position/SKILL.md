@@ -14,7 +14,7 @@ description: 分析和比较 J-1 SWT 岗位与 Offer：工资、工时、住宿�
 ## 按状态做
 
 - 有一份或多份能读的 Offer：先抽字段 →（仅缺时薪才硬拦）→ **测算前用 AskQuestion／交互提问确认** → 再交六维和回本。2–3 份对比前同样先确认；4 份及以上先问赴美诉求（同样优先 AskQuestion），收窄到 ≤3 份后再确认假设。
-- 只问城市或州、没有 Offer：用 state_context 的结构化背景；有对应 `state_guides/{CODE}.md` 时再补学生经验要点（标【个人】／公开帖）。不编造时薪、工时和结余。
+- 只问城市或州、没有 Offer：用 state_context 的结构化背景；有对应 `state_guides/{CODE}.md` 时再补学生经验要点（标【个人】／公开帖）。问附近 SSA／办 SSN 方不方便时，查 `ssa_offices`（脚本或州文件），写入落地便利，并提醒用 Locator 核实。不编造时薪、工时和结余。
 - 材料读不到时薪或工时等关键字段：原样列出缺的字段，问完停下；不要跳过确认直接出完整回本表。
 - 两个结论打架（例如合同几乎不能退、Offer 却算得回来）：分成两行，不写成“总体还行”。
 
@@ -29,7 +29,7 @@ description: 分析和比较 J-1 SWT 岗位与 Offer：工资、工时、住宿�
 
 ## 开始前
 
-先完整读取 [共享运行规则](references/shared-runtime/swt-position.md)、[岗位与地点核对](references/location-offer.md)、[Offer 字段提取模板](references/offer-extraction.md)、[岗位 12 字段事实清单](references/job-facts-handoff.md)、[测算前确认假设](references/assumption-confirm.md)、[默认估算数据](references/default-assumptions.json) 和 [预算方法](references/budget-method.md)。需要税务细节时读 [税务估算口径](references/tax-estimation.md) 与 [工作州所得税参考](references/state-income-tax.md)。只问「要花多少／大概能挣多少」、没有 Offer 时读 [钱概览](references/money-overview.md)；有 Offer 仍以测算脚本为准。完整岗位评估中只要有城市、州或可可靠识别的地点，就调用统一入口 `scripts/location_context.py` 获取 state_context 与 swt_market；多岗位比较要逐个岗位解析地点，不能只解析第一个岗位，也不能因岗位多而跳过 Resolver。同一规范化 city/state 可复用同一 context，但各岗位的 Offer 数据仍独立处理。不要分别读取州索引、州 profile、market JSON，也不要复制 Resolver 逻辑。学生问某州怎么样、有没有一手经验、该不该去某州时，在 state_context 之外按 [州学生指南索引](references/knowledge/state_guides/INDEX.md) 再读对应 `state_guides/{CODE}.md`；叙事经验不得覆盖 Offer 数字或测算结果。单点问题按需调用、按需回答；没有地点时跳过 Location Context，沿用当前缺值与通用估算规则。岗位／Offer 首答默认使用 `scripts/budget.py` 的 `position_overview` 模式，详情和旧三情景现金流按需展开。
+先完整读取 [共享运行规则](references/shared-runtime/swt-position.md)、[岗位与地点核对](references/location-offer.md)、[Offer 字段提取模板](references/offer-extraction.md)、[岗位 12 字段事实清单](references/job-facts-handoff.md)、[测算前确认假设](references/assumption-confirm.md)、[默认估算数据](references/default-assumptions.json) 和 [预算方法](references/budget-method.md)。需要税务细节时读 [税务估算口径](references/tax-estimation.md) 与 [工作州所得税参考](references/state-income-tax.md)。只问「要花多少／大概能挣多少」、没有 Offer 时读 [钱概览](references/money-overview.md)；有 Offer 仍以测算脚本为准。完整岗位评估中只要有城市、州或可可靠识别的地点，就调用统一入口 `scripts/location_context.py` 获取 state_context 与 swt_market；多岗位比较要逐个岗位解析地点，不能只解析第一个岗位，也不能因岗位多而跳过 Resolver。同一规范化 city/state 可复用同一 context，但各岗位的 Offer 数据仍独立处理。不要分别读取州索引、州 profile、market JSON，也不要复制 Resolver 逻辑。学生问某州怎么样、有没有一手经验、该不该去某州时，在 state_context 之外按 [州学生指南索引](references/knowledge/state_guides/INDEX.md) 再读对应 `state_guides/{CODE}.md`；叙事经验不得覆盖 Offer 数字或测算结果。完整岗位评估或问附近 SSA 时，用 `python3 scripts/ssa_offices.py --state "<ST>" [--city "<city>"]`（或读 [ssa_offices 索引](references/knowledge/ssa_offices/INDEX.md)／`{STATE}.md`）把同城／邻近办公室写进落地便利；数据快照 2026-03-09，回答末尾提醒 [SSA Locator](https://www.ssa.gov/locator)／1-800-772-1213 核实；办理材料流程见 [办 SSN](references/arrival-ssn.md)，不在本 Skill 代办抵美排队。单点问题按需调用、按需回答；没有地点时跳过 Location Context，沿用当前缺值与通用估算规则。岗位／Offer 首答默认使用 `scripts/budget.py` 的 `position_overview` 模式，详情和旧三情景现金流按需展开。
 
 ## 材料分析顺序
 
@@ -97,8 +97,9 @@ description: 分析和比较 J-1 SWT 岗位与 Offer：工资、工时、住宿�
 
 - 有一份或多份 Offer（文字、PDF 或截图）→ 六维分析、回本测算；两份及以上给出对比结论。
 - 只问城市或州怎么样、没给 Offer → 该地的 SWT 背景，不编造 Offer 数字。
+- 问附近 SSA／办 SSN 方不方便（有城市或州）→ 同城或邻近办公室地址／电话／时间＋核实提醒；可附简短办理入口。
 - 材料读不到关键字段 → 列出缺的字段请用户补充，先算能算的部分。
-- 不交出：申请提交和签署、英语练习、签证表格、替用户做最终选择。
+- 不交出：申请提交和签署、英语练习、签证表格、替用户做最终选择、替学生去 SSA 排队。
 
 ## 边界
 
