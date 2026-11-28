@@ -1,5 +1,10 @@
 # HowTo SWT 更新记录
 
+## v1.7.4
+
+- `swt-position`：测算前按字段清单扫描缺项；**缺几个字段就几道独立 AskQuestion**（一题一个字段）
+- 已从 Offer 读到的字段直接采用，不再弹窗复述确认；读错以用户之后更正为准
+
 ## v1.7.3
 
 - `swt-application`：机构调研蒸馏为可查数据（`agencies-market-2026.json`／CSV）+ `agency_market.py`

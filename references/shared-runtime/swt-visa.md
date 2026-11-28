@@ -2,9 +2,9 @@
 
 <!-- GENERATED FILE: DO NOT EDIT. -->
 <!-- Source: shared/logic-architecture.md, shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md, shared/official-sources.md -->
-<!-- runtime-version: 1.7.3 -->
+<!-- runtime-version: 1.7.4 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
-<!-- skill: swt-visa; source-sha256: 173400db9c26085000219591cdd8a3778b403974422faa91967e7d6f47e5252b -->
+<!-- skill: swt-visa; source-sha256: 6dee345b9b14284d448d564a9c075d840604794715963b6127a143abf52f5b9d -->
 
 <!-- source: shared/logic-architecture.md -->
 
@@ -185,7 +185,7 @@ Interaction UI does not weaken authorization. Edition replacement and other sens
 
 ## Shared Executor uses
 
-- `swt-position`: with four or more offers, first ask the core goal via interactive user question (`AskQuestion` / `AskUserQuestion` / native `single_choice`, A–D)—never Markdown-only when those tools exist; when the offers lack the facts needed to rank an experience or English goal, ask the user to pick three offers (`multi_choice`, maximum three). Before the full six-dimension / ROI report (≤3 offers), run assumption confirm the same way: prefer `AskQuestion`／`AskUserQuestion` with clickable options (“按上表直接测算” / “我要改数字”), else native `structured_form`, else script Markdown fallback. Prefill known Offer fields; empty / “不知道” / “按默认” keeps defaults; then rerun with `assumptions_confirmed: true`.
+- `swt-position`: with four or more offers, first ask the core goal via interactive user question (`AskQuestion` / `AskUserQuestion` / native `single_choice`, A–D)—never Markdown-only when those tools exist; when the offers lack the facts needed to rank an experience or English goal, ask the user to pick three offers (`multi_choice`, maximum three). Before the full six-dimension / ROI report (≤3 offers), do **not** re-confirm Offer-read fields. Scan the canonical field checklist and emit **one separate AskQuestion per missing field** (hours, work period, rent, tips, meals, deposit, commute, second job, SSN, project fee). Zero gaps → skip popup and calculate. Prefer `AskQuestion`／`AskUserQuestion`, else native, else Markdown fallback; then rerun with `assumptions_confirmed: true`. Later corrections override earlier values.
 - `swt-english`: genuinely undecided practice mode → `single_choice`; a named mode stays direct.
 - `swt-visa`: multiple valid next actions → `single_choice`; one required next action stays direct.
 - `swt-application`: finite stage confirmation → `single_choice`; a missing document value uses free text.
@@ -233,7 +233,7 @@ These are semantic examples, not copies to paste into five Skill files.
 
 ### `swt-position` 的默认岗位／Offer 概览
 
-完整岗位分析前先出 **测算前确认假设表**（可改项目费、工时、周租等；空着／不知道用默认）。用户确认后再：**加粗一句话结论 → 1. 六维分析 → 2. 回本测算 → 3. 特殊注意事项 → 后续选项（A–D）**。4 份及以上先问赴美核心诉求，收窄到 ≤3 份后再确认假设。未确认时不要输出六维／回本装成已测算。
+完整岗位分析：Offer 已读字段直接用。按字段清单扫缺项，**缺几个就几道独立交互题**；零缺项直接测算。用户确认缺项后再：**加粗一句话结论 → 1. 六维分析 → 2. 回本测算 → 3. 特殊注意事项 → 后续选项（A–D）**。4 份及以上先问赴美核心诉求，收窄后再走缺项确认。未确认缺项时不要输出六维／回本装成已测算。
 
 ## Edit：最后的读者视角检查
 

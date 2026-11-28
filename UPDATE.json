@@ -1,6 +1,6 @@
 {
   "product": "howto-swt",
-  "version": "1.7.3",
-  "notice": "选机构时可查公开价与口碑数据表（swt-application）；冲突原样列出，付款前核合同。",
+  "version": "1.7.4",
+  "notice": "岗位测算：已读字段直接用；按字段清单缺几个就几道独立 AskQuestion，不合并、不复述确认。",
   "details_url": "https://github.com/0x-howard/howto-swt/blob/main/docs/CHANGELOG.md"
 }

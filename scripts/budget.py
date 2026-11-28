@@ -702,24 +702,25 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
     }
 
 
+# Canonical checklist for interactive gap questions (one AskQuestion per missing item).
+# Present fields are never re-asked. Wage stays a hard ask_missing block.
 OFFER_FIELD_CHECKS = (
-    ("工作起止日期（Start / End date）", ("offer_start_date", "start_date", "work_weeks"), False),
-    ("住宿费用（Cost Amount）", ("rent_usd_per_week",), False),
-    ("小费（Tips）", ("tips",), True),
-    ("餐饮安排（Meals）", ("meals",), True),
-    ("住宿押金（Deposit amount）", ("housing_deposit_usd",), True),
-    ("通勤方式与时间（Transportation details）",
+    ("work_period", "工作起止／工期", ("offer_start_date", "start_date", "work_weeks"), False),
+    ("rent_usd_per_week", "住宿周租", ("rent_usd_per_week",), False),
+    ("tips", "小费", ("tips",), True),
+    ("meals", "餐饮安排", ("meals",), True),
+    ("housing_deposit_usd", "住宿押金", ("housing_deposit_usd",), True),
+    ("commute", "通勤方式与时间",
      ("employer_transport", "commute_walk_minutes", "commute_bike_minutes", "commute_drive_minutes"), True),
-    ("能否找二工（Possibility to find a second job）", ("second_job_allowed",), True),
-    ("是否需先有 SSN 才能上班（require SSN）", ("ssn_required_before_work",), True),
+    ("second_job_allowed", "能否找二工", ("second_job_allowed",), True),
+    ("ssn_required_before_work", "是否需先有 SSN 才能上班", ("ssn_required_before_work",), True),
 )
-
 
 DEFAULT_HOURS_PER_WEEK = Decimal("32")
 
 
 def _missing_fields(raws: list[Any], *, require_hours: bool) -> list[dict[str, Any]]:
-    """Only hard-block on wage (and hours when calculation cannot wait for the confirm form)."""
+    """Hard-block only on wage (and hours when calculation cannot wait)."""
     missing = []
     for index, raw in enumerate(raws):
         if not isinstance(raw, dict):
@@ -735,106 +736,163 @@ def _missing_fields(raws: list[Any], *, require_hours: bool) -> list[dict[str, A
     return missing
 
 
-def _assumption_field(value: Any, source: str) -> dict[str, Any]:
-    return {"value": value, "source": source}
+def _field_present(raw: dict[str, Any], keys: tuple[str, ...], *, in_details: bool) -> bool:
+    source = raw.get("details") if in_details else raw
+    if not isinstance(source, dict):
+        return False
+    return any(key in source for key in keys)
 
 
-def _material_gaps(raw: dict[str, Any]) -> list[str]:
-    """Soft gaps from the flyer/PDF folded into the confirm form, not a separate wall of text."""
-    gaps = []
-    if "hours_per_week" not in raw and "expected_hours" not in raw:
-        gaps.append("每周工时（材料未写，表内先用默认 32h）")
-    details = raw.get("details") if isinstance(raw.get("details"), dict) else {}
-    for name, keys, in_details in OFFER_FIELD_CHECKS:
-        source = details if in_details else raw
-        if not any(key in source for key in keys):
-            # dates/rent already handled as known or default in the form
-            if name.startswith("工作起止") or name.startswith("住宿费用") or name.startswith("通勤"):
-                continue
-            gaps.append(f"{name}（材料未写）")
-    return gaps
+def _hours_present(raw: dict[str, Any]) -> bool:
+    return "hours_per_week" in raw or "expected_hours" in raw
+
+
+def _project_fee_is_provided(data: dict[str, Any]) -> bool:
+    if "project_cost_cny" in data or "project_cost_usd" in data:
+        return True
+    return any(
+        isinstance(raw, dict) and ("project_cost_cny" in raw or "project_cost_usd" in raw)
+        for raw in data.get("offers") or []
+    )
+
+
+def _soft_skip_options(label_cn: str) -> list[dict[str, Any]]:
+    return [
+        {"id": "skip_unknown", "label": f"材料没写，先跳过{label_cn}", "recommended": True},
+        {"id": "I_will_provide", "label": f"我要补充{label_cn}"},
+    ]
+
+
+def _estimate_options(use_label: str, edit_label: str) -> list[dict[str, Any]]:
+    return [
+        {"id": "use_estimate", "label": use_label, "recommended": True},
+        {"id": "I_will_provide", "label": edit_label},
+    ]
+
+
+def _planning_gap_questions(data: dict[str, Any], defaults: dict[str, Any]) -> list[dict[str, Any]]:
+    """Scan the canonical field checklist; emit one separate AskQuestion per missing field."""
+    global_defaults = defaults["global"]
+    questions: list[dict[str, Any]] = []
+    offers = [raw for raw in data.get("offers") or [] if isinstance(raw, dict)]
+    soft_only = data.get("missing_confirmed") is True  # user already said Offer lacks soft facts
+
+    # 1) hours — numeric planning
+    hour_gaps = [i for i, raw in enumerate(offers) if not _hours_present(raw)]
+    if hour_gaps:
+        display = f"{float(DEFAULT_HOURS_PER_WEEK):g} h"
+        questions.append({
+            "id": "hours_per_week",
+            "title": "确认每周工时",
+            "prompt": f"材料没写每周工时。测算先按每周 {display}（默认）算，可以吗？",
+            "field": "hours_per_week",
+            "proposed": float(DEFAULT_HOURS_PER_WEEK),
+            "offer_indexes": hour_gaps,
+            "options": _estimate_options(f"按每周 {display}（默认）算", "我要改成别的工时"),
+        })
+
+    # 2–9) OFFER_FIELD_CHECKS — one question per missing checklist field
+    for field_id, label_cn, keys, in_details in OFFER_FIELD_CHECKS:
+        if soft_only and in_details:
+            continue
+        missing_indexes = [
+            i for i, raw in enumerate(offers)
+            if not _field_present(raw, keys, in_details=in_details)
+        ]
+        if not missing_indexes:
+            continue
+
+        if field_id == "rent_usd_per_week":
+            rent_bits = []
+            for i in missing_indexes:
+                raw = offers[i]
+                path = f"input.offers[{i}]"
+                state = _state_code(raw["state"], f"{path}.state") if "state" in raw else None
+                city = raw.get("city") if isinstance(raw.get("city"), str) else None
+                city_key = f"{state or ''}|{city.strip().casefold()}" if city else ""
+                city_defaults = defaults["city_cost_overrides"].get(city_key, {})
+                profile = _state_reference(state)
+                amount, _source = _overview_cost(
+                    raw, city_defaults, profile, defaults, "rent_usd_per_week", "常见周租", path,
+                )
+                name = raw.get("label") or raw.get("id") or f"岗位 {i + 1}"
+                rent_bits.append((name, float(amount)))
+            if len(rent_bits) == 1:
+                name, amount = rent_bits[0]
+                display = f"${amount:g}"
+                prompt = f"材料没写清{label_cn}。住宿按每周 {display}（估）算，可以吗？"
+                use_label = f"按每周 {display}（估）算"
+            else:
+                bits = "；".join(f"{name} 每周 ${amount:g}" for name, amount in rent_bits)
+                prompt = f"有的岗位材料没写清{label_cn}。先按估：{bits}。可以吗？"
+                use_label = "按上述周租（估）算"
+            questions.append({
+                "id": field_id,
+                "title": f"确认{label_cn}",
+                "prompt": prompt,
+                "field": field_id,
+                "offer_indexes": missing_indexes,
+                "options": _estimate_options(use_label, f"我要改成别的{label_cn}"),
+            })
+            continue
+
+        if field_id == "work_period":
+            weeks = float(global_defaults["work_weeks"])
+            questions.append({
+                "id": field_id,
+                "title": f"确认{label_cn}",
+                "prompt": f"材料没写清{label_cn}。测算先按 {weeks:g} 周（默认）算，可以吗？",
+                "field": "work_weeks",
+                "proposed": weeks,
+                "offer_indexes": missing_indexes,
+                "options": _estimate_options(f"按 {weeks:g} 周（默认）算", f"我要补充{label_cn}"),
+            })
+            continue
+
+        # Soft / detail checklist fields
+        questions.append({
+            "id": field_id,
+            "title": f"确认{label_cn}",
+            "prompt": f"材料没写{label_cn}。先按未知跳过（不挡测算），可以吗？",
+            "field": field_id,
+            "offer_indexes": missing_indexes,
+            "options": _soft_skip_options(label_cn),
+        })
+
+    # 10) project fee — shared planning field
+    if not _project_fee_is_provided(data):
+        fee = float(global_defaults["project_cost_cny"])
+        display = f"¥{fee:,.0f}"
+        questions.append({
+            "id": "project_fee",
+            "title": "确认项目费",
+            "prompt": f"还没有你的项目费。测算先按 {display}（默认）算，可以吗？",
+            "field": "project_cost_cny",
+            "proposed": fee,
+            "options": _estimate_options(f"按 {display}（默认）算", "我要改成别的项目费"),
+        })
+
+    return questions
 
 
 def _propose_assumptions(data: dict[str, Any], defaults: dict[str, Any]) -> dict[str, Any]:
-    """Build editable planning inputs before the full ROI report."""
-    global_defaults = defaults["global"]
-    if "project_cost_usd" in data:
-        project = _assumption_field(float(_number(data["project_cost_usd"], "input.project_cost_usd")), "已知")
-        project_key = "project_cost_usd"
-    elif "project_cost_cny" in data:
-        project = _assumption_field(float(_number(data["project_cost_cny"], "input.project_cost_cny")), "已知")
-        project_key = "project_cost_cny"
-    else:
-        project = _assumption_field(float(global_defaults["project_cost_cny"]), "默认（估）")
-        project_key = "project_cost_cny"
-
-    offers_out: list[dict[str, Any]] = []
+    """Build one AskQuestion per missing checklist field; never re-ask Offer-read fields."""
+    questions = _planning_gap_questions(data, defaults)
     patches: list[dict[str, Any]] = []
     for index, raw in enumerate(data["offers"]):
         if not isinstance(raw, dict):
-            raise ValueError(f"input.offers[{index}]: requires an object")
-        path = f"input.offers[{index}]"
-        label = raw.get("label") or raw.get("id") or f"岗位 {index + 1}"
-        if "wage_usd_per_hour" not in raw:
-            raise ValueError(f"{path}.wage_usd_per_hour: required before confirm form")
-        wage = _number(raw["wage_usd_per_hour"], f"{path}.wage_usd_per_hour", positive=True)
-        if "expected_hours" in raw:
-            hours = _number(raw["expected_hours"], f"{path}.expected_hours", positive=True)
-            hours_source = "已从 Offer 读到"
-        elif "hours_per_week" in raw:
-            hours = _number(raw["hours_per_week"], f"{path}.hours_per_week", positive=True)
-            hours_source = "已从 Offer 读到"
-        else:
-            hours = DEFAULT_HOURS_PER_WEEK
-            hours_source = "材料未写，默认（估）"
-            patches.append({"offer_index": index, "hours_per_week": float(hours)})
-        weeks, weeks_source = _overview_period(raw, defaults, path)
-        state = _state_code(raw["state"], f"{path}.state") if "state" in raw else None
-        city = raw.get("city") if isinstance(raw.get("city"), str) else None
-        city_key = f"{state or ''}|{city.strip().casefold()}" if city else ""
-        city_defaults = defaults["city_cost_overrides"].get(city_key, {})
-        profile = _state_reference(state)
-        fields: dict[str, Any] = {
-            "wage_usd_per_hour": _assumption_field(float(wage), "已从 Offer 读到"),
-            "hours_per_week": _assumption_field(float(hours), hours_source),
-            "work_weeks": _assumption_field(
-                float(weeks),
-                {
-                    "offer_dates": "已从 Offer 日期算出",
-                    "user_dates": "已知（你给的日期）",
-                    "provided_weeks": "已知（你给的周数）",
-                    "global_estimate": "默认（估）",
-                }.get(weeks_source, weeks_source),
-            ),
-        }
-        for key, state_field, label_cn in (
-            ("rent_usd_per_week", "常见周租", "住宿／周租"),
-            ("food_usd_per_week", "每周基础开销", "餐饮"),
-            ("transport_usd_per_week", None, "交通"),
-            ("other_weekly_usd", None, "其他生活费"),
-        ):
-            amount, source = _overview_cost(raw, city_defaults, profile, defaults, key, state_field, path)
-            if source == "provided":
-                source_label = "已从 Offer 读到" if key in raw else "已知"
-            elif source.startswith("city"):
-                source_label = "城市参考（估）"
-            elif source.startswith("state"):
-                source_label = "州级参考（估）"
-            else:
-                source_label = "默认（估）"
-            fields[key] = {**_assumption_field(float(amount), source_label), "label": label_cn}
-        offers_out.append({
-            "id": raw.get("id") or str(index + 1),
-            "label": label,
-            "fields": fields,
-            "material_gaps": _material_gaps(raw),
-        })
-
+            continue
+        if not _hours_present(raw):
+            patches.append({"offer_index": index, "hours_per_week": float(DEFAULT_HOURS_PER_WEEK)})
     return {
-        "shared": {project_key: {**project, "label": "项目费"}},
-        "offers": offers_out,
+        "questions": questions,
+        "checklist_size": 1 + len(OFFER_FIELD_CHECKS) + 1,  # hours + offer checks + project fee
+        "missing_count": len(questions),
         "suggested_patches": patches,
-        "note": "已读到的先核对；默认／估可改可留。材料未写的项见各岗位下方。",
+        "note": (
+            "已从 Offer 读到的字段直接采用，不再确认。"
+            "按字段清单扫描：缺几个字段就出几道独立题；读错了以你之后更正为准。"
+        ),
     }
 
 
@@ -880,36 +938,41 @@ def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("input.assumptions_confirmed: use true or false")
     defaults = _overview_defaults()
     confirmed = data.get("assumptions_confirmed") is True
-    # 用户已点确认后，先补上弹窗里的软默认（如材料未写的 32h），再检查硬缺口。
+    working = data
+    # ≤3 份：按字段清单扫描缺项；缺几个字段就几道独立 AskQuestion。
+    # 已读到的字段直接采用，不复述确认；用户事后更正以最新输入为准。
+    if len(data["offers"]) <= 3 and not confirmed:
+        gap_form = _propose_assumptions(data, defaults)
+        if not gap_form["questions"]:
+            confirmed = True
+        else:
+            return {
+                "mode": "position_overview",
+                "assumptions_version": defaults["version"],
+                "stage": "confirm_assumptions",
+                "assumption_form": gap_form,
+                "interaction": {
+                    "type": "ask_questions",
+                    "id": "position_field_gaps",
+                    "title": "测算前确认缺项",
+                    "prefer_native_popup": True,
+                    "prefer_ask_question": True,
+                    "ask_question_tools": ["AskQuestion", "AskUserQuestion", "request_user_input"],
+                    "separate_questions": True,
+                    "questions": gap_form["questions"],
+                    "rule": (
+                        "按字段清单扫描：已读字段不要再确认；缺几个字段就出几道独立 AskQuestion，"
+                        "一题只问一个字段，禁止合并。"
+                    ),
+                },
+            }
+    # 用户已确认或缺项已齐：补软默认（如材料未写的 32h）再算。
     working = _with_confirm_defaults(data) if confirmed else data
-    # PDF／截图：有时薪就先出确认弹窗；小费／餐／押金等并进弹窗。
-    # 4 份及以上比较前仍要有工时；已确认则 working 里应已有工时。
     require_hours = confirmed or len(working["offers"]) > 3
     missing = _missing_fields(working["offers"], require_hours=require_hours)
     if missing:
         return {"mode": "position_overview", "assumptions_version": defaults["version"], "stage": "ask_missing",
                 "missing_fields": missing}
-    if len(working["offers"]) <= 3 and not confirmed:
-        form = _propose_assumptions(working, defaults)
-        return {
-            "mode": "position_overview",
-            "assumptions_version": defaults["version"],
-            "stage": "confirm_assumptions",
-            "assumption_form": form,
-            "interaction": {
-                "type": "single_choice",
-                "id": "position_assumption_confirm",
-                "title": "岗位测算前确认",
-                "allow_skip_defaults": True,
-                "prefer_native_popup": True,
-                "prefer_ask_question": True,
-                "ask_question_tools": ["AskQuestion", "AskUserQuestion", "request_user_input"],
-                "options": [
-                    {"id": "use_defaults", "label": "按上表直接测算", "recommended": True},
-                    {"id": "edit", "label": "我要改数字"},
-                ],
-            },
-        }
     offers = [_overview_offer(raw, working, defaults, index) for index, raw in enumerate(working["offers"])]
     ids = [item["id"] for item in offers]
     if len(ids) != len(set(ids)):
@@ -1065,61 +1128,30 @@ def _is_known_assumption(source: str) -> bool:
 
 
 def _format_assumption_confirm(result: dict[str, Any]) -> str:
+    """Markdown fallback when AskQuestion is unavailable — one block per gap question."""
     form = result["assumption_form"]
-    labels = {
-        "wage_usd_per_hour": "时薪",
-        "hours_per_week": "平均每周工时",
-        "work_weeks": "工作周数",
-        "rent_usd_per_week": "住宿／周租",
-        "food_usd_per_week": "餐饮／周",
-        "transport_usd_per_week": "交通／周",
-        "other_weekly_usd": "其他生活费／周",
-        "project_cost_cny": "项目费",
-        "project_cost_usd": "项目费（美元）",
-    }
-    known_rows: list[tuple[str, str, str]] = []
-    guess_rows: list[tuple[str, str, str]] = []
-
-    def add_row(prefix: str, key: str, item: dict[str, Any]) -> None:
-        label = item.get("label") or labels.get(key, key)
-        if prefix:
-            label = f"{prefix}{label}"
-        row = (label, _assumption_display(key, item["value"]), item["source"])
-        (known_rows if _is_known_assumption(item["source"]) else guess_rows).append(row)
-
-    for key, item in form["shared"].items():
-        add_row("", key, item)
-    for offer in form["offers"]:
-        prefix = f"{offer['label']} · " if len(form["offers"]) > 1 else ""
-        for key, item in offer["fields"].items():
-            add_row(prefix, key, item)
-
+    questions = form.get("questions") or []
     lines = [
-        "我已从你发的 Offer／截图里读出能用的数字，并填进测算。",
-        "下面分成「已读到」和「默认／估」：默认项不知道就不用改；有确切数再改。",
+        "Offer 里已经读到的数字会直接用来测算，不再请你复述确认。",
+        "下面只问材料**没有**的项（住宿周租、项目费各一题）。读错了之后直接说正确数字即可。",
         "**测算是规划估，不是工资单，也不能保证回本。**",
         "",
     ]
-    if known_rows:
-        lines.extend(["### 已从材料读到（核对有没有读错）", "", "| 字段 | 将使用的值 | 来源 |", "|---|---|---|"])
-        lines.extend(f"| {label} | {value} | {source} |" for label, value, source in known_rows)
+    if not questions:
+        lines.append("缺项已齐，可直接测算。")
+        return "\n".join(lines)
+    for index, question in enumerate(questions, 1):
+        lines.append(f"### 问题 {index}：{question.get('title') or question.get('id')}")
         lines.append("")
-    if guess_rows:
-        lines.extend(["### 默认／估（可改；不知道就留着）", "", "| 字段 | 将使用的值 | 来源 |", "|---|---|---|"])
-        lines.extend(f"| {label} | {value} | {source} |" for label, value, source in guess_rows)
+        lines.append(question.get("prompt") or "")
         lines.append("")
-    gap_lines: list[str] = []
-    for offer in form["offers"]:
-        for gap in offer.get("material_gaps") or []:
-            prefix = f"{offer['label']}：" if len(form["offers"]) > 1 else ""
-            gap_lines.append(f"- {prefix}{gap}")
-    if gap_lines:
-        lines.extend(["### 材料未写（不影响先测算）", "", *gap_lines, ""])
+        for opt_index, option in enumerate(question.get("options") or [], 1):
+            mark = "（推荐）" if option.get("recommended") else ""
+            lines.append(f"{index}.{opt_index} {option.get('label', '')}{mark}")
+        lines.append("")
     lines.extend([
-        "1. 没问题，按上表测算",
-        "2. 我要改（例：工时 40，项目费 30000，餐费 70）",
-        "",
-        "回复 `1`，或只写出要改的项。",
+        "请分别回答每一题：选推荐项，或写出你的周租／项目费。",
+        "答完后我会加 `assumptions_confirmed: true` 再测算。",
     ])
     return "\n".join(lines)
 

@@ -20,6 +20,17 @@ def offer(name, wage=17):
             "tax": {"federal_income_tax_percent": 10, "state_income_tax_percent": 0, "fica_percent": 0}}
 
 
+def full_details():
+    return {
+        "tips": True,
+        "meals": "none",
+        "housing_deposit_usd": 0,
+        "employer_transport": "none",
+        "second_job_allowed": False,
+        "ssn_required_before_work": False,
+    }
+
+
 class StudentOutputContractTests(unittest.TestCase):
     def test_single_offer_six_dim_two_finance_no_roi(self):
         text = format_position_overview(calculate_position_overview(with_confirm({"offers": [offer('A')]})))
@@ -48,55 +59,10 @@ class StudentOutputContractTests(unittest.TestCase):
     def test_four_offers_ask_core_goal_first(self):
         offers = [offer(str(i), 15 + i) for i in range(4)]
         text = format_position_overview(calculate_position_overview({"offers": offers}))
-        self.assertIn('比较前先确认：你的赴美核心诉求是什么？', text)
-        self.assertIn('A. 多赚钱，尽快回本', text)
+        self.assertIn('你的赴美核心诉求是什么', text)
         self.assertNotIn('六维分析', text)
 
-    def test_four_offers_money_goal_compares_top_three(self):
-        offers = [offer(str(i), 15 + i) for i in range(4)]
-        text = format_position_overview(calculate_position_overview(with_confirm({"offers": offers, "core_goal": "money"})))
-        self.assertTrue(text.startswith('按你的核心诉求（多赚钱，尽快回本），从 4 份岗位中选出以下 3 份深入对比；其余：0（'))
-        self.assertIn('| 要素 | 项目 | 3 | 2 | 1 |', text)
-        self.assertIn('岗位收益对比', text)
-
-    def test_four_offers_experience_goal_asks_selection_then_compares(self):
-        offers = [offer(str(i), 15 + i) for i in range(4)]
-        ask = format_position_overview(calculate_position_overview({"offers": offers, "core_goal": "experience"}))
-        self.assertIn('请从下面 4 份岗位中选 3 份深入对比', ask)
-        self.assertTrue(ask.endswith('回复 3 个编号。'))
-        text = format_position_overview(calculate_position_overview(
-            with_confirm({"offers": offers, "core_goal": "experience", "selected_offer_ids": [1, 2, 4]})))
-        self.assertIn('| 要素 | 项目 | 0 | 1 | 3 |', text)
-        self.assertIn('**三份岗位共同**', text)
-        with self.assertRaises(ValueError):
-            calculate_position_overview({"offers": offers, "selected_offer_ids": [1, 1]})
-        with self.assertRaises(ValueError):
-            calculate_position_overview({"offers": offers, "core_goal": "fun"})
-
-    def test_experience_goal_ranks_by_travel_facts(self):
-        offers = [offer(str(i), 15 + i) for i in range(4)]
-        offers[0]["details"] = {"nearest_city": "Boston", "nearest_city_hours": 2, "days_per_week": 5}
-        offers[1]["details"] = {"nearest_city": "Denver", "nearest_city_hours": 6, "days_per_week": 6}
-        offers[2]["details"] = {"nearest_city": "Seattle", "nearest_city_hours": 3, "days_per_week": 6}
-        text = format_position_overview(calculate_position_overview(with_confirm({"offers": offers, "core_goal": "experience", "missing_confirmed": True})))
-        self.assertIn('| 要素 | 项目 | 0 | 2 | 3 |', text)
-        self.assertIn('按你的诉求（旅行与体验），0 最匹配：距 Boston 约 2 小时、周末可往返大城市、每周上班约 5 天。', text)
-        self.assertIn('- **距大城市**：0 更近，距 Boston 约 2 小时。', text)
-        self.assertIn('- **上班天数**：0 每周少上 1 天。', text)
-        self.assertLess(text.index('**距大城市**'), text.index('**时薪**'))
-
-    def test_english_goal_orders_notes_and_names_fit(self):
-        a, b = offer('A'), offer('B', 18)
-        a["details"] = {"customer_facing": True, "english_level": "Advanced", "cultural_activities": "雇主组织周末出游。"}
-        b["details"] = {"customer_facing": False, "tips": True}
-        text = format_position_overview(calculate_position_overview(with_confirm({"offers": [a, b], "core_goal": "english", "missing_confirmed": True})))
-        self.assertIn('按你的诉求（提升英语与文化交流），A 最匹配：面向顾客、日常用英语沟通、英语要求 Advanced、有文化交流活动。', text)
-        self.assertIn('- **面向顾客**：A 面向顾客，B 以后台工作为主。', text)
-        self.assertIn('- **工作英语环境**：岗位面向顾客，日常用英语沟通；雇主要求英语 Advanced。', text)
-        notes = text[text.index('**B**'):]
-        self.assertLess(notes.index('工作英语环境'), notes.index('小费'))
-
-    def test_minimum_hours_surplus_when_range_given(self):
+    def test_min_hours_line(self):
         item = offer('A')
         item.update(min_hours=30, max_hours=40, expected_hours=35)
         text = format_position_overview(calculate_position_overview(with_confirm({"offers": [item]})))
@@ -111,38 +77,57 @@ class StudentOutputContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             calculate_position_overview(with_confirm({"offers": [item]}))
 
-    def test_assumption_confirm_before_full_report(self):
+    def test_full_checklist_skips_popup(self):
         item = offer("A")
-        del item["project_cost_usd"]
+        item["details"] = full_details()
         text = format_position_overview(calculate_position_overview({
-            "offers": [item], "project_cost_cny": 30000, "missing_confirmed": True,
+            "offers": [item], "missing_confirmed": True,
         }))
-        self.assertIn("已从你发的 Offer／截图里读出", text)
-        self.assertIn("已从材料读到", text)
-        self.assertIn("默认／估", text)
-        self.assertIn("项目费", text)
-        self.assertIn("¥30,000", text)
-        self.assertIn("没问题，按上表测算", text)
+        self.assertIn("六维分析", text)
+        self.assertNotIn("确认住宿周租", text)
+        self.assertNotIn("确认项目费", text)
+
+    def test_each_missing_field_is_its_own_question(self):
+        item = offer("A")
+        del item["rent_usd_per_week"]
+        # project fee on offer; soft details missing → many separate questions
+        result = calculate_position_overview({"offers": [item]})
+        self.assertEqual(result["stage"], "confirm_assumptions")
+        ids = [q["id"] for q in result["assumption_form"]["questions"]]
+        self.assertIn("rent_usd_per_week", ids)
+        self.assertIn("tips", ids)
+        self.assertIn("meals", ids)
+        self.assertTrue(result["interaction"]["separate_questions"])
+        self.assertEqual(len(result["interaction"]["questions"]), len(ids))
+        text = format_position_overview(result)
+        self.assertIn("问题 1", text)
+        self.assertNotIn("已从材料读到", text)
         self.assertNotIn("六维分析", text)
 
-    def test_pdf_partial_fields_go_to_confirm_popup_not_missing_wall(self):
-        item = offer('A')
-        item["details"] = {"tips": True}
-        form = format_position_overview(calculate_position_overview({"offers": [item]}))
-        self.assertIn("已从你发的 Offer／截图里读出", form)
-        self.assertIn("材料未写", form)
-        self.assertIn("餐饮安排", form)
-        self.assertNotIn("我这里检测不到以下信息", form)
-        confirmed = format_position_overview(calculate_position_overview(with_confirm({"offers": [item], "missing_confirmed": True})))
-        self.assertIn('## 1. 六维分析', confirmed)
-        typed = offer('B')
-        del typed["expected_hours"]
-        # ≤3 份：缺工时也先出确认弹窗，用默认 32h
-        ask = format_position_overview(calculate_position_overview({"offers": [typed]}))
-        self.assertIn("材料未写，默认（估）", ask)
-        self.assertIn("32 h", ask)
-        # 已确认后仍无工时：计算前会补默认
-        done = format_position_overview(calculate_position_overview(with_confirm({"offers": [typed]})))
+    def test_missing_confirmed_skips_soft_but_asks_rent_or_fee(self):
+        item = offer("A")
+        del item["rent_usd_per_week"]
+        del item["project_cost_usd"]
+        result = calculate_position_overview({"offers": [item], "missing_confirmed": True})
+        self.assertEqual(result["stage"], "confirm_assumptions")
+        ids = [q["id"] for q in result["assumption_form"]["questions"]]
+        self.assertEqual(ids, ["rent_usd_per_week", "project_fee"])
+        text = format_position_overview(result)
+        self.assertIn("确认住宿周租", text)
+        self.assertIn("确认项目费", text)
+        self.assertNotIn("确认小费", text)
+
+    def test_hours_missing_becomes_its_own_question(self):
+        item = offer("B")
+        del item["expected_hours"]
+        item["details"] = full_details()
+        result = calculate_position_overview({"offers": [item], "missing_confirmed": True})
+        self.assertEqual(result["stage"], "confirm_assumptions")
+        ids = [q["id"] for q in result["assumption_form"]["questions"]]
+        self.assertEqual(ids, ["hours_per_week"])
+        done = format_position_overview(calculate_position_overview(with_confirm({
+            "offers": [item], "missing_confirmed": True,
+        })))
         self.assertIn("六维分析", done)
 
     def test_direct_skill_contract(self):
