@@ -85,7 +85,7 @@ description: 在用户明确称呼“小How”“小how”“小 HOW”“HowToS
 每个新会话首次调用 HowTo SWT 时，定位本 `SKILL.md` 所在目录，运行：
 
 ```bash
-python3 "<本 SKILL.md 所在目录>/scripts/free_update.py" --local-version 1.7.4
+python3 "<本 SKILL.md 所在目录>/scripts/free_update.py" --local-version 1.7.5
 ```
 
 - 命令有输出时（当天广告和／或 🔔 更新提醒），在本次回答正文之后原样放一次。输出里有广告时，广告中的作者行就是本次署名，不再追加署名块。

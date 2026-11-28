@@ -2,7 +2,7 @@
 
 <!-- GENERATED FILE: DO NOT EDIT. -->
 <!-- Source: shared/logic-architecture.md, shared/interaction-protocol.md, shared/interaction-contract.md, shared/answer-framework.md, shared/editorial-policy.md, shared/creator-attribution.md, shared/risk-policy.md, shared/evidence-policy.md, shared/state-schema.md, shared/decision-model.md, shared/handoff-contract.md, shared/executor-state-machines.md, shared/visualization-policy.md, shared/persistence-contract.md -->
-<!-- runtime-version: 1.7.4 -->
+<!-- runtime-version: 1.7.5 -->
 <!-- Regenerate with: python3 scripts/sync_shared.py -->
 <!-- skill: swt-application; source-sha256: 651c356becf033f7f6af109aa7e5efab10198d26c2dcc67b48d4af7207ef01eb -->
 

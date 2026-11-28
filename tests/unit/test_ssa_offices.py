@@ -14,6 +14,8 @@ class SsaOfficesTests(unittest.TestCase):
         self.assertTrue(result["same_city"])
         self.assertEqual(result["offices"][0]["city"], "Myrtle Beach")
         self.assertIn("同城", result["student_hint_zh"])
+        self.assertTrue(result["landing_line_zh"].startswith("SSA 办公室："))
+        self.assertIn("Myrtle Beach", result["landing_line_zh"])
 
     def test_address_parses_zip_and_city(self):
         loc = parse_offer_location(address="611 Chapin Blvd, Myrtle Beach, SC 29577")
@@ -25,6 +27,17 @@ class SsaOfficesTests(unittest.TestCase):
         result = lookup(state="SC", zip_code="29577", limit=5)
         self.assertGreaterEqual(result["count"], 1)
         self.assertIn(result["offices"][0]["match"], {"same_zip", "same_city_zip", "same_zip3", "same_city"})
+
+    def test_sparks_returns_candidates_and_distance_queries(self):
+        result = lookup(state="NV", city="Sparks", limit=3)
+        self.assertEqual(result["best_match"], "same_state")
+        self.assertGreaterEqual(result["count"], 3)
+        cities = {o["city"] for o in result["offices"]}
+        self.assertIn("Reno", cities)
+        self.assertTrue(result["landing_line_zh"].startswith("SSA 办公室："))
+        self.assertNotIn("未命中", result["landing_line_zh"])
+        self.assertTrue(result["distance_search_queries"])
+        self.assertIn("Sparks", result["nearest_office_search_query"])
 
 
 if __name__ == "__main__":
