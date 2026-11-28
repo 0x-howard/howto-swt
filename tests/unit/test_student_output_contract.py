@@ -111,11 +111,26 @@ class StudentOutputContractTests(unittest.TestCase):
         result = calculate_position_overview({"offers": [item], "missing_confirmed": True})
         self.assertEqual(result["stage"], "confirm_assumptions")
         ids = [q["id"] for q in result["assumption_form"]["questions"]]
-        self.assertEqual(ids, ["rent_usd_per_week", "project_fee"])
+        # project fee missing → ask agency first (not raw default fee)
+        self.assertEqual(ids, ["agency", "rent_usd_per_week"])
         text = format_position_overview(result)
         self.assertIn("确认住宿周租", text)
-        self.assertIn("确认项目费", text)
+        self.assertIn("报名机构", text)
         self.assertNotIn("确认小费", text)
+
+    def test_agency_then_table_fee(self):
+        item = offer("A")
+        item["details"] = full_details()
+        del item["project_cost_usd"]
+        first = calculate_position_overview({"offers": [item], "missing_confirmed": True})
+        self.assertEqual([q["id"] for q in first["assumption_form"]["questions"]], ["agency"])
+        second = calculate_position_overview({
+            "offers": [item], "missing_confirmed": True, "agency": "西米",
+        })
+        q = second["assumption_form"]["questions"][0]
+        self.assertEqual(q["id"], "project_fee")
+        self.assertEqual(q["proposed"], 20500)
+        self.assertIn("西米", q["prompt"])
 
     def test_hours_missing_becomes_its_own_question(self):
         item = offer("B")

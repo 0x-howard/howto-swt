@@ -1,6 +1,6 @@
 {
   "product": "howto-swt",
-  "version": "1.7.5",
-  "notice": "落地便利：先写 SSA 办公室地址，再联网估岗位到办公室车程；表内排序不是远近。",
+  "version": "1.7.6",
+  "notice": "缺项目费时先问报名机构，再用机构对照表默认值填测算（付款以合同为准）。",
   "details_url": "https://github.com/0x-howard/howto-swt/blob/main/docs/CHANGELOG.md"
 }

@@ -756,6 +756,14 @@ def _project_fee_is_provided(data: dict[str, Any]) -> bool:
     )
 
 
+def _agency_name(data: dict[str, Any]) -> str | None:
+    for key in ("agency", "agency_name"):
+        value = data.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
 def _soft_skip_options(label_cn: str) -> list[dict[str, Any]]:
     return [
         {"id": "skip_unknown", "label": f"材料没写，先跳过{label_cn}", "recommended": True},
@@ -770,12 +778,115 @@ def _estimate_options(use_label: str, edit_label: str) -> list[dict[str, Any]]:
     ]
 
 
+def _agency_fee_questions(data: dict[str, Any], defaults: dict[str, Any]) -> list[dict[str, Any]]:
+    """Ask agency first when project fee is missing; then propose table default."""
+    if _project_fee_is_provided(data):
+        return []
+    global_defaults = defaults["global"]
+    global_fee = float(global_defaults["project_cost_cny"])
+    try:
+        from agency_market import AGENCY_OTHER, AGENCY_UNKNOWN, agency_ask_options, planning_fee_for
+    except ImportError:
+        display = f"¥{global_fee:,.0f}"
+        return [{
+            "id": "project_fee",
+            "title": "确认项目费",
+            "prompt": f"还没有你的项目费。测算先按 {display}（默认）算，可以吗？",
+            "field": "project_cost_cny",
+            "proposed": global_fee,
+            "options": _estimate_options(f"按 {display}（默认）算", "我要改成别的项目费"),
+        }]
+
+    agency = _agency_name(data)
+    if agency is None:
+        options = agency_ask_options(global_default_cny=global_fee)
+        return [{
+            "id": "agency",
+            "title": "你的报名机构是哪家？",
+            "prompt": (
+                "测算要用项目费。先选你的报名机构；有公开价的会带上机构对照表默认值（估）。"
+                "不确定就用通用默认；付款仍以你的合同为准。"
+            ),
+            "field": "agency",
+            "options": options,
+        }]
+
+    key = agency.casefold()
+    if key in {AGENCY_UNKNOWN, "不确定"}:
+        display = f"¥{global_fee:,.0f}"
+        return [{
+            "id": "project_fee",
+            "title": "确认项目费",
+            "prompt": f"机构未指定。测算先按通用默认 {display} 算，可以吗？",
+            "field": "project_cost_cny",
+            "proposed": global_fee,
+            "agency": AGENCY_UNKNOWN,
+            "options": _estimate_options(f"按 {display}（通用默认）算", "我要改成别的项目费"),
+        }]
+
+    if key in {AGENCY_OTHER, "其他"}:
+        display = f"¥{global_fee:,.0f}"
+        return [{
+            "id": "project_fee",
+            "title": "确认项目费",
+            "prompt": (
+                f"你选了其他机构。请补充项目费；没有确切数字时，测算可先按通用默认 {display} 算。"
+            ),
+            "field": "project_cost_cny",
+            "proposed": global_fee,
+            "agency": AGENCY_OTHER,
+            "options": _estimate_options(f"先按 {display}（通用默认）算", "我要填入实际项目费"),
+        }]
+
+    resolved = planning_fee_for(agency)
+    if resolved and resolved.get("planning_default_cny") is not None:
+        fee = float(resolved["planning_default_cny"])
+        display = f"¥{fee:,.0f}"
+        name = resolved.get("name") or agency
+        note = resolved.get("planning_note") or "机构对照表"
+        return [{
+            "id": "project_fee",
+            "title": "确认项目费",
+            "prompt": (
+                f"按机构对照表，{name} 规划默认约 {display}（{note}）。"
+                "测算先按这个数，可以吗？付款以合同为准。"
+            ),
+            "field": "project_cost_cny",
+            "proposed": fee,
+            "agency": name,
+            "source": "agency_table",
+            "options": _estimate_options(
+                f"按 {name} 表内约 {display}（估）算",
+                "我要改成别的项目费",
+            ),
+        }]
+
+    display = f"¥{global_fee:,.0f}"
+    label = (resolved or {}).get("name") or agency
+    why = (resolved or {}).get("planning_note") or "表内无单一人民币默认"
+    return [{
+        "id": "project_fee",
+        "title": "确认项目费",
+        "prompt": (
+            f"{label} 在对照表里{why}。测算先按通用默认 {display} 算，可以吗？"
+            "有合同价请直接改成实际数字。"
+        ),
+        "field": "project_cost_cny",
+        "proposed": global_fee,
+        "agency": label,
+        "options": _estimate_options(f"按 {display}（通用默认）算", "我要改成别的项目费"),
+    }]
+
+
 def _planning_gap_questions(data: dict[str, Any], defaults: dict[str, Any]) -> list[dict[str, Any]]:
     """Scan the canonical field checklist; emit one separate AskQuestion per missing field."""
     global_defaults = defaults["global"]
     questions: list[dict[str, Any]] = []
     offers = [raw for raw in data.get("offers") or [] if isinstance(raw, dict)]
     soft_only = data.get("missing_confirmed") is True  # user already said Offer lacks soft facts
+
+    # 0) project fee — ask agency first, then table default (leading so fee is grounded)
+    questions.extend(_agency_fee_questions(data, defaults))
 
     # 1) hours — numeric planning
     hour_gaps = [i for i, raw in enumerate(offers) if not _hours_present(raw)]
@@ -859,19 +970,6 @@ def _planning_gap_questions(data: dict[str, Any], defaults: dict[str, Any]) -> l
             "options": _soft_skip_options(label_cn),
         })
 
-    # 10) project fee — shared planning field
-    if not _project_fee_is_provided(data):
-        fee = float(global_defaults["project_cost_cny"])
-        display = f"¥{fee:,.0f}"
-        questions.append({
-            "id": "project_fee",
-            "title": "确认项目费",
-            "prompt": f"还没有你的项目费。测算先按 {display}（默认）算，可以吗？",
-            "field": "project_cost_cny",
-            "proposed": fee,
-            "options": _estimate_options(f"按 {display}（默认）算", "我要改成别的项目费"),
-        })
-
     return questions
 
 
@@ -891,6 +989,7 @@ def _propose_assumptions(data: dict[str, Any], defaults: dict[str, Any]) -> dict
         "suggested_patches": patches,
         "note": (
             "已从 Offer 读到的字段直接采用，不再确认。"
+            "缺项目费时先问报名机构，再用机构对照表默认值（估）填测算；"
             "按字段清单扫描：缺几个字段就出几道独立题；读错了以你之后更正为准。"
         ),
     }
@@ -915,6 +1014,7 @@ def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
     """Calculate a one-result SWT comparison with explicit provenance for every fallback."""
     _exact_keys(
         data, {"mode", "offers", "fx_cny_per_usd", "fx_source", "fx_quote_date", "project_cost_cny", "project_cost_usd", "tax",
+               "agency", "agency_name",
                "comparison_hours", "core_goal", "selected_offer_ids", "missing_confirmed", "assumptions_confirmed"},
         {"offers"}, "input",
     )
@@ -963,6 +1063,8 @@ def calculate_position_overview(data: dict[str, Any]) -> dict[str, Any]:
                     "rule": (
                         "按字段清单扫描：已读字段不要再确认；缺几个字段就出几道独立 AskQuestion，"
                         "一题只问一个字段，禁止合并。"
+                        "缺项目费时先问机构：选具名机构后写入 agency，再用表内默认确认项目费；"
+                        "选「不确定」可同时写入通用默认 project_cost_cny。"
                     ),
                 },
             }
@@ -1133,8 +1235,8 @@ def _format_assumption_confirm(result: dict[str, Any]) -> str:
     questions = form.get("questions") or []
     lines = [
         "Offer 里已经读到的数字会直接用来测算，不再请你复述确认。",
-        "下面只问材料**没有**的项（住宿周租、项目费各一题）。读错了之后直接说正确数字即可。",
-        "**测算是规划估，不是工资单，也不能保证回本。**",
+        "下面只问材料**没有**的项；缺项目费时会先问报名机构，再按机构对照表默认值确认。",
+        "**测算是规划估，不是工资单，也不能保证回本；付款以合同为准。**",
         "",
     ]
     if not questions:
