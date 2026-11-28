@@ -1,6 +1,6 @@
 {
   "plugin": "howto-swt",
-  "version": "1.7.6",
+  "version": "1.7.7",
   "behavior_contract": {
     "routing_dimensions": [
       "Task Type",

@@ -93,7 +93,7 @@ PORTABLE_SCRIPTS_BY_SKILL = {
     "swt-position": COMMON_PORTABLE_SCRIPTS + (
         "budget.py", "offer_return.py", "offer_chart.py", "compare_budget.py",
         "location_context.py", "state_context.py", "swt_market.py", "ssa_offices.py",
-        "agency_market.py",
+        "agency_market.py", "second_job_supply.py",
     ),
     "swt-english": COMMON_PORTABLE_SCRIPTS + ("speaking_score.py", "english_speaking.py"),
     "swt-visa": COMMON_PORTABLE_SCRIPTS,

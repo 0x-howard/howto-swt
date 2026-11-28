@@ -388,6 +388,7 @@ DETAIL_TYPES: dict[str, tuple[type, ...]] = {
     "housing_deposit_usd": (int, float), "housing_deposit_refundable": (bool,), "housing_people_per_room": (str,),
     "housing_contract": (bool,), "commute_walk_minutes": (int, float), "commute_bike_minutes": (int, float),
     "commute_drive_minutes": (int, float), "employer_transport": (str,), "second_job_allowed": (bool,),
+    "second_job_supply_stars": (int,), "second_job_supply_display": (str,), "second_job_supply_analysis_zh": (str,),
     "ssn_required_before_work": (bool,), "ssn_employer_assist": (bool,), "ssn_office": (str,),
     "ssn_office_miles": (int, float), "start": (str,), "training_reduced_hours": (bool,),
     "open_availability": (bool,), "multiple_locations": (int,), "dress_code": (str,), "arrival": (str,), "area": (str,),
@@ -670,6 +671,11 @@ def _overview_offer(raw: dict[str, Any], top: dict[str, Any], defaults: dict[str
     second_job = raw.get("second_job_note") or (
         f"州级：{profile['好不好找']}（估）" if profile.get("好不好找") not in (None, "暂无可靠数据") else "不计入收益（估）"
     )
+    supply_stars = details.get("second_job_supply_stars")
+    if isinstance(supply_stars, int) and 1 <= supply_stars <= 5:
+        display = details.get("second_job_supply_display") or ("🌟" * supply_stars)
+        supply_bit = f"周边 {display}（{supply_stars}/5，估）"
+        second_job = f"{second_job}；{supply_bit}" if second_job else supply_bit
     landing = raw.get("landing_note") or (
         f"州级 SSN：{profile['SSN']}（估）" if profile.get("SSN") not in (None, "暂无可靠数据") else "办理时间待核验（估）"
     )
@@ -1513,7 +1519,10 @@ def _dimension_analysis(item: dict[str, Any]) -> dict[str, str]:
         "住宿": housing,
         "生活成本": "；".join(living),
         "交通": "；".join(transport),
-        "二工": "二工收入不计入回本",
+        "二工": "；".join(x for x in (
+            details.get("second_job_supply_analysis_zh") or "",
+            "二工收入不计入回本",
+        ) if x),
         "落地便利": "；".join(x for x in (
             (f"最近的 SSA 在 {details['ssn_office']}" + (f"（约 {_short_decimal(Decimal(str(details['ssn_office_miles'])))} 英里）"
                                                        if "ssn_office_miles" in details else "")) if "ssn_office" in details else "",

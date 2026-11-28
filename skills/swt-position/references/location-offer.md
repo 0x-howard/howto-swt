@@ -43,6 +43,18 @@ Offer 中“平均每周 X 小时”不能改写为每周保证；“公司提�
 4. 本人 Sponsor 已对该工作完成核验并确认：保留对应文件与日期；不得把别人的确认迁移给本人。
 5. 已实际开工：工时和收入另看实际记录，不由批准自动保证。
 
+## 周边二工供给（五档星级，估）
+
+完整岗位评估有住宿／雇主地址时，另估**步行可达的场所疏密**（不是找到二工的概率）：
+
+1. 跑 `python3 scripts/second_job_supply.py plan --address "<住宿或雇主地址>"`（或 `--city`／`--state`）。  
+2. 按返回的 `search_queries` **联网搜**餐馆／酒店／便利店／季节小店，只计步行约 15 分钟内大约数量（整数，估）；禁止编造。  
+3. 再跑 `score --restaurants N --hotels N --grocery N --seasonal N [--competition low|mid|high]`；`competition` 可参考同城 SWT participant 疏密。  
+4. 把 `for_budget_details` 写入 Offer `details`（`second_job_supply_stars`／`display`／`analysis_zh`）。  
+5. **六维二工**：数据列写政策句＋`周边 🌟…（n/5，估）`；分析列用脚本 `analysis_zh`（如「周围餐馆较多，有二工机会（估）」），并保留「二工收入不计入回本」。  
+
+星级只描述供给疏密；场所≠在招≠收 J-1≠已过 Sponsor。「允许二工」仍须本人批准。搜不到就省略星级，不编造。
+
 预算基础情景只用一工。二工单独做增量分析，计入新增交通、餐食、休息和排班冲突。尚未找到、未核验或未确认开工的收入不能拿来填预算缺口。即使已确认，也不把未来工时称为保底。
 
 ## 比较与结论

@@ -1,6 +1,6 @@
 # HowTo SWT
 
-![版本](https://img.shields.io/badge/version-1.7.6-2563EB.svg?style=flat-square) ![语言](https://img.shields.io/badge/语言-中文-16A34A.svg?style=flat-square)
+![版本](https://img.shields.io/badge/version-1.7.7-2563EB.svg?style=flat-square) ![语言](https://img.shields.io/badge/语言-中文-16A34A.svg?style=flat-square)
 
 ## HowTo SWT 是什么
 
@@ -96,6 +96,7 @@ npx -y skills add 0x-howard/howto-swt -g --all
 <!-- CHANGELOG_LATEST_START -->
 | 版本 | 更新 |
 |---|---|
+| v1.7.7 | 六维二工按周边场所五档🌟给分（估）；分析如「周围餐馆较多，有二工机会」。 |
 | v1.7.6 | 缺项目费先问报名机构，再用机构对照表默认值填测算。 |
 | v1.7.5 | 落地便利先写 SSA 办公室；再联网估岗位到办公室车程，表内排序不当远近。 |
 | v1.7.4 | 岗位测算按字段清单扫缺项：缺几个就几道独立 AskQuestion；已读字段不再复述确认。 |
